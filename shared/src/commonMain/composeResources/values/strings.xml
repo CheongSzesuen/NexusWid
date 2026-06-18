@@ -29,4 +29,7 @@
     <string name="github_token">Token</string>
     <string name="widget">小组件</string>
     <string name="widget_contribution">贡献图</string>
+    <string name="week_start_day">每周起始日</string>
+    <string name="week_start_monday">周一</string>
+    <string name="week_start_sunday">周日</string>
 </resources>

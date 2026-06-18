@@ -8,4 +8,5 @@ sealed interface SettingsAction {
     data class SaveColorScheme(val color: Color) : SettingsAction
     data class SaveBlackTheme(val enabled: Boolean) : SettingsAction
     data class SaveHeatmapAccent(val accent: HeatmapAccent) : SettingsAction
+    data class SaveWeekStartsOnMonday(val enabled: Boolean) : SettingsAction
 }

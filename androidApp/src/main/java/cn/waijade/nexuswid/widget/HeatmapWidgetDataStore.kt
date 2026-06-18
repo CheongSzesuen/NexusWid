@@ -33,17 +33,22 @@ class HeatmapWidgetDataStore(context: Context) {
     }
     private val githubApiService = GitHubApiService(httpClient, json)
 
-    fun getGrid(columns: Int, rows: Int = HeatmapGridCalculator.ROWS): List<Int> {
+    fun getGrid(columns: Int, rows: Int = HeatmapGridCalculator.ROWS, weekStartsOnMonday: Boolean = false): List<Int> {
+        val levelsByDate = getContributionLevels()
+        return buildGridFromLevels(levelsByDate, columns, rows, weekStartsOnMonday)
+    }
+
+    fun getContributionLevels(): Map<String, Int> {
         return runBlocking(Dispatchers.IO) {
             runCatching {
                 val username = githubPreferences.username
                 val token = githubPreferences.token.takeIf { it.isNotBlank() }
 
-                Log.d(TAG, "getGrid: username=$username, token=${if (token.isNullOrBlank()) "empty" else "set"}")
+                Log.d(TAG, "getContributionLevels: username=$username, token=${if (token.isNullOrBlank()) "empty" else "set"}")
 
                 if (username.isBlank()) {
-                    Log.d(TAG, "getGrid: username is blank, returning empty grid")
-                    return@runCatching List(columns.coerceAtLeast(1) * rows.coerceAtLeast(1)) { 0 }
+                    Log.d(TAG, "getContributionLevels: username is blank, returning empty map")
+                    return@runCatching emptyMap()
                 }
 
                 val contributionDays = githubApiService.getContributionData(
@@ -51,7 +56,7 @@ class HeatmapWidgetDataStore(context: Context) {
                     token = token
                 ).getOrThrow()
 
-                Log.d(TAG, "getGrid: got ${contributionDays.size} contribution days")
+                Log.d(TAG, "getContributionLevels: got ${contributionDays.size} contribution days")
 
                 val levelsByDate = mutableMapOf<String, Int>()
                 contributionDays.forEach { day ->
@@ -59,41 +64,39 @@ class HeatmapWidgetDataStore(context: Context) {
                     levelsByDate[day.date] = level
                 }
 
-                Log.d(TAG, "getGrid: levelsByDate size=${levelsByDate.size}")
+                Log.d(TAG, "getContributionLevels: levelsByDate size=${levelsByDate.size}")
 
-                val grid = buildRecentGrid(
-                    levelsByDate = levelsByDate,
-                    columns = columns,
-                    rows = rows
-                )
-
-                Log.d(TAG, "getGrid: grid size=${grid.size}, non-zero=${grid.count { it > 0 }}")
-
-                grid
+                levelsByDate
             }.getOrElse {
-                Log.e(TAG, "getGrid: error", it)
-                List(columns.coerceAtLeast(1) * rows.coerceAtLeast(1)) { 0 }
+                Log.e(TAG, "getContributionLevels: error", it)
+                emptyMap()
             }
         }
     }
 
-    private fun buildRecentGrid(
+    fun buildGridFromLevels(
         levelsByDate: Map<String, Int>,
         columns: Int,
-        rows: Int
+        rows: Int,
+        weekStartsOnMonday: Boolean
     ): List<Int> {
         val today = LocalDate.now()
-        val totalDays = columns * rows
-        val startDate = today.minusDays((totalDays - 1).toLong())
+        val todayDow = today.dayOfWeek.value // 1=周一, 7=周日
+
+        val offsetFromStart = if (weekStartsOnMonday) {
+            todayDow - 1        // 周一=0, 周日=6
+        } else {
+            todayDow % 7        // 周日=0, 周六=6
+        }
+        val lastColumnStart = today.minusDays(offsetFromStart.toLong())
+        val startDate = lastColumnStart.minusDays(((columns - 1) * 7L))
 
         val grid = mutableListOf<Int>()
         for (col in 0 until columns) {
             for (row in 0 until rows) {
-                val dayOffset = col * rows + row
-                val date = startDate.plusDays(dayOffset.toLong())
+                val date = startDate.plusDays((col * 7 + row).toLong())
                 val dateStr = date.format(DateTimeFormatter.ISO_LOCAL_DATE)
-                val level = levelsByDate[dateStr] ?: 0
-                grid.add(level)
+                grid.add(levelsByDate[dateStr] ?: 0)
             }
         }
         return grid

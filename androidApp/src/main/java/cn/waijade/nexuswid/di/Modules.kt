@@ -3,6 +3,7 @@ package cn.waijade.nexuswid.di
 import android.content.Context
 import android.os.Build
 import cn.waijade.nexuswid.data.StateRepository
+import cn.waijade.nexuswid.data.WidgetPreferences
 import cn.waijade.nexuswid.data.github.GitHubApiService
 import cn.waijade.nexuswid.data.github.GitHubPreferences
 import cn.waijade.nexuswid.ui.settingsScreen.viewModel.SettingsViewModel
@@ -20,6 +21,7 @@ val appModule = module {
     single<AppInfo> { create(::createAppInfo) }
     single<StateRepository> { StateRepository() }
     single<GitHubPreferences> { GitHubPreferences(get()) }
+    single<WidgetPreferences> { get<GitHubPreferences>() }
     single<Json> { Json { ignoreUnknownKeys = true } }
     single<HttpClient> {
         HttpClient(OkHttp) {
@@ -29,7 +31,7 @@ val appModule = module {
         }
     }
     single<GitHubApiService> { GitHubApiService(get(), get()) }
-    viewModel { SettingsViewModel(get()) }
+    viewModel { SettingsViewModel(get(), get()) }
 }
 
 private fun createAppInfo(context: Context): AppInfo {

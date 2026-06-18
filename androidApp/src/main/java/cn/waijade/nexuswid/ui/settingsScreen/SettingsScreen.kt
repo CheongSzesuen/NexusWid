@@ -19,6 +19,7 @@ import androidx.compose.material3.adaptive.navigation3.rememberListDetailSceneSt
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -37,6 +38,7 @@ import cn.waijade.nexuswid.ui.settingsScreen.viewModel.SettingsViewModel
 import cn.waijade.nexuswid.ui.theme.CustomColors.topBarColors
 import cn.waijade.nexuswid.ui.utils.onBack
 import cn.waijade.nexuswid.ui.utils.onTopLevelNavigate
+import cn.waijade.nexuswid.widget.ContributionHeatmapWidgetProvider
 
 @OptIn(
     ExperimentalMaterial3Api::class, ExperimentalMaterial3AdaptiveApi::class,
@@ -51,6 +53,7 @@ fun SettingsScreenRoot(
     val backStack = settingsViewModel.backStack
     val settingsState by settingsViewModel.settingsState.collectAsStateWithLifecycle()
     val directionMultiplier = if (LocalLayoutDirection.current == LayoutDirection.Ltr) 1 else -1
+    val context = LocalContext.current
 
     NavDisplay(
         backStack = backStack,
@@ -134,6 +137,12 @@ fun SettingsScreenRoot(
                     heatmapAccent = settingsState.heatmapAccent,
                     onHeatmapAccentChange = { accent ->
                         settingsViewModel.onAction(SettingsAction.SaveHeatmapAccent(accent))
+                        ContributionHeatmapWidgetProvider.updateAll(context)
+                    },
+                    weekStartsOnMonday = settingsState.weekStartsOnMonday,
+                    onWeekStartsOnMondayChange = { enabled ->
+                        settingsViewModel.onAction(SettingsAction.SaveWeekStartsOnMonday(enabled))
+                        ContributionHeatmapWidgetProvider.updateAll(context)
                     },
                     modifier = modifier,
                 )

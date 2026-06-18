@@ -34,6 +34,9 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -57,7 +60,15 @@ import cn.waijade.nexuswid.data.HeatmapAccent
 import cn.waijade.nexuswid.ui.components.ColorSwatchOption
 import cn.waijade.nexuswid.widget.ContributionHeatmapWidgetProvider
 import cn.waijade.nexuswid.widget.HeatmapGridCalculator
+import cn.waijade.nexuswid.widget.HeatmapWidgetDataStore
 import cn.waijade.nexuswid.ui.mergePaddingValues
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import nexuswid.shared.generated.resources.Res
+import nexuswid.shared.generated.resources.week_start_day
+import nexuswid.shared.generated.resources.week_start_monday
+import nexuswid.shared.generated.resources.week_start_sunday
+import org.jetbrains.compose.resources.stringResource
 import kotlin.random.Random
 
 private const val PREVIEW_CONTENT_PADDING_DP = 6f
@@ -69,11 +80,24 @@ fun WidgetSettingsScreen(
     onBack: () -> Unit,
     heatmapAccent: HeatmapAccent,
     onHeatmapAccentChange: (HeatmapAccent) -> Unit,
+    weekStartsOnMonday: Boolean,
+    onWeekStartsOnMondayChange: (Boolean) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
     val density = LocalDensity.current
     var previewFrameWidthPx by rememberSaveable { mutableStateOf(0f) }
+    
+    // 缓存原始贡献数据
+    val contributionLevels = remember { mutableStateOf<Map<String, Int>>(emptyMap()) }
+    
+    // 异步获取真实数据
+    LaunchedEffect(Unit) {
+        withContext(Dispatchers.IO) {
+            val dataStore = HeatmapWidgetDataStore(context)
+            contributionLevels.value = dataStore.getContributionLevels()
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -178,6 +202,8 @@ fun WidgetSettingsScreen(
                                     ) {
                                         HeatmapPreviewCard(
                                             accent = heatmapAccent,
+                                            weekStartsOnMonday = weekStartsOnMonday,
+                                            contributionLevels = contributionLevels.value,
                                             modifier = Modifier.fillMaxSize()
                                         )
                                     }
@@ -217,6 +243,22 @@ fun WidgetSettingsScreen(
                                     onClick = { onHeatmapAccentChange(HeatmapAccent.TERTIARY) }
                                 )
                             }
+                            Text(
+                                text = stringResource(Res.string.week_start_day),
+                                style = MaterialTheme.typography.titleMedium
+                            )
+                            SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
+                                SegmentedButton(
+                                    selected = !weekStartsOnMonday,
+                                    onClick = { onWeekStartsOnMondayChange(false) },
+                                    shape = SegmentedButtonDefaults.itemShape(index = 0, count = 2)
+                                ) { Text(stringResource(Res.string.week_start_sunday)) }
+                                SegmentedButton(
+                                    selected = weekStartsOnMonday,
+                                    onClick = { onWeekStartsOnMondayChange(true) },
+                                    shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2)
+                                ) { Text(stringResource(Res.string.week_start_monday)) }
+                            }
                         }
                     }
                 }
@@ -252,26 +294,40 @@ private fun requestPinContributionHeatmapWidget(context: Context): PinWidgetRequ
 @Composable
 private fun HeatmapPreviewCard(
     accent: HeatmapAccent,
+    weekStartsOnMonday: Boolean,
+    contributionLevels: Map<String, Int>,
     modifier: Modifier = Modifier
 ) {
+    val context = LocalContext.current
+    val isDark = isDarkMode()
     val surface = MaterialTheme.colorScheme.surfaceContainerLow
     val outline = MaterialTheme.colorScheme.outlineVariant
-    val empty = MaterialTheme.colorScheme.surfaceVariant
+    val empty = if (isDark) Color(0xFF2D3129) else Color(0xFFE0E4D8)
     val active = when (accent) {
-        HeatmapAccent.GITHUB -> Color(0xFF216E39)
-        HeatmapAccent.PRIMARY -> MaterialTheme.colorScheme.primary
-        HeatmapAccent.SECONDARY -> MaterialTheme.colorScheme.secondary
-        HeatmapAccent.TERTIARY -> MaterialTheme.colorScheme.tertiary
+        HeatmapAccent.GITHUB -> if (isDark) Color(0xFF39D353) else Color(0xFF216E39)
+        HeatmapAccent.PRIMARY -> if (isDark) Color(0xFFB1D18A) else Color(0xFF4C662B)
+        HeatmapAccent.SECONDARY -> if (isDark) Color(0xFFBFCBAD) else Color(0xFF586249)
+        HeatmapAccent.TERTIARY -> if (isDark) Color(0xFFA0D0CB) else Color(0xFF386663)
     }
     val levels = remember(accent, empty, active) {
         if (accent == HeatmapAccent.GITHUB) {
-            listOf(
-                empty,
-                Color(0xFF9BE9A8),
-                Color(0xFF40C463),
-                Color(0xFF30A14E),
-                Color(0xFF216E39)
-            )
+            if (isDark) {
+                listOf(
+                    empty,
+                    Color(0xFF0E4429),
+                    Color(0xFF006D32),
+                    Color(0xFF26A641),
+                    Color(0xFF39D353)
+                )
+            } else {
+                listOf(
+                    empty,
+                    Color(0xFF9BE9A8),
+                    Color(0xFF40C463),
+                    Color(0xFF30A14E),
+                    Color(0xFF216E39)
+                )
+            }
         } else {
             listOf(
                 empty,
@@ -312,9 +368,21 @@ private fun HeatmapPreviewCard(
                 ).times(PREVIEW_CELL_SIZE_SCALE).dp
             }
             val gap = HeatmapGridCalculator.GAP_DP.dp
-            val sample = remember(previewSeed, columns) {
-                val random = Random(previewSeed)
-                List(columns * rows) { random.nextInt(5) }
+            val sample = remember(columns, weekStartsOnMonday, contributionLevels) {
+                if (contributionLevels.isEmpty()) {
+                    // 无数据时使用随机预览
+                    val random = Random(previewSeed)
+                    List(columns * rows) { random.nextInt(5) }
+                } else {
+                    // 使用真实数据
+                    val dataStore = HeatmapWidgetDataStore(context)
+                    dataStore.buildGridFromLevels(
+                        levelsByDate = contributionLevels,
+                        columns = columns,
+                        rows = rows,
+                        weekStartsOnMonday = weekStartsOnMonday
+                    )
+                }
             }
             val gridWidth = cellSize * columns + gap * (columns - 1)
             val gridHeight = cellSize * rows + gap * (rows - 1)
@@ -346,7 +414,7 @@ private fun HeatmapPreviewCard(
                             Column(verticalArrangement = Arrangement.spacedBy(gap)) {
                                 for (day in 0 until rows) {
                                     val index = week * rows + day
-                                    val level = sample[index].coerceIn(0, 4)
+                                    val level = sample.getOrNull(index)?.coerceIn(0, 4) ?: 0
                                     val color = levels[level]
                                     Surface(
                                         color = color,
@@ -363,4 +431,9 @@ private fun HeatmapPreviewCard(
             }
         }
     }
+}
+
+@Composable
+private fun isDarkMode(): Boolean {
+    return androidx.compose.foundation.isSystemInDarkTheme()
 }

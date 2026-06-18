@@ -22,4 +22,8 @@ class StateRepository {
     fun updateHeatmapAccent(accent: HeatmapAccent) {
         settingsState.update { it.copy(heatmapAccent = accent) }
     }
+
+    fun updateWeekStartsOnMonday(enabled: Boolean) {
+        settingsState.update { it.copy(weekStartsOnMonday = enabled) }
+    }
 }

@@ -9,5 +9,6 @@ data class SettingsState(
     val theme: String = "auto",
     val colorScheme: String = Color.White.toString(),
     val blackTheme: Boolean = false,
-    val heatmapAccent: HeatmapAccent = HeatmapAccent.GITHUB
+    val heatmapAccent: HeatmapAccent = HeatmapAccent.GITHUB,
+    val weekStartsOnMonday: Boolean = false
 )
