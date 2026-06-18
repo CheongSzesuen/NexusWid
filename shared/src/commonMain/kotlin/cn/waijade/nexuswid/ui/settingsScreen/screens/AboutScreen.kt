@@ -61,6 +61,7 @@ import cn.waijade.nexuswid.ui.theme.CustomColors.topBarColors
 import cn.waijade.nexuswid.ui.theme.LocalAppFonts
 import cn.waijade.nexuswid.ui.theme.NexusShapeDefaults.PANE_MAX_WIDTH
 import cn.waijade.nexuswid.ui.theme.NexusShapeDefaults.bottomListItemShape
+import cn.waijade.nexuswid.ui.theme.NexusShapeDefaults.middleListItemShape
 import cn.waijade.nexuswid.ui.theme.NexusShapeDefaults.segmentedListItemShapes
 import cn.waijade.nexuswid.ui.theme.NexusShapeDefaults.topListItemShape
 import cn.waijade.nexuswid.ui.theme.NexusTheme
@@ -199,7 +200,7 @@ fun AboutScreen(
                     }
                 }
                 item {
-                    Box(Modifier.background(listItemColors.containerColor, topListItemShape)) {
+                    Box(Modifier.background(listItemColors.containerColor, middleListItemShape)) {
                         Column(modifier = Modifier.padding(16.dp)) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 AsyncImage(

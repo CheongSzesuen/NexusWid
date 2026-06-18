@@ -19,8 +19,8 @@ class StateRepository {
         settingsState.update { it.copy(blackTheme = blackTheme) }
     }
 
-    fun updateHeatmapAccent(accent: HeatmapAccent) {
-        settingsState.update { it.copy(heatmapAccent = accent) }
+    fun updateHeatmapColorMode(mode: HeatmapColorMode) {
+        settingsState.update { it.copy(heatmapColorMode = mode) }
     }
 
     fun updateWeekStartsOnMonday(enabled: Boolean) {

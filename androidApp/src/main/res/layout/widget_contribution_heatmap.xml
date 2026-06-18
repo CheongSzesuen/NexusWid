@@ -2,12 +2,7 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/widget_root"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="@drawable/widget_heatmap_bg"
-    android:paddingLeft="6dp"
-    android:paddingTop="6dp"
-    android:paddingRight="6dp"
-    android:paddingBottom="6dp">
+    android:layout_height="match_parent">
 
     <ImageView
         android:id="@+id/widget_heatmap_image"

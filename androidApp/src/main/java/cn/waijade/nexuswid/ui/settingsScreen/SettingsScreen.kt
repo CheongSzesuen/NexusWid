@@ -134,9 +134,9 @@ fun SettingsScreenRoot(
                 WidgetSettingsScreen(
                     contentPadding = contentPadding,
                     onBack = backStack::onBack,
-                    heatmapAccent = settingsState.heatmapAccent,
-                    onHeatmapAccentChange = { accent ->
-                        settingsViewModel.onAction(SettingsAction.SaveHeatmapAccent(accent))
+                    heatmapColorMode = settingsState.heatmapColorMode,
+                    onHeatmapColorModeChange = { mode ->
+                        settingsViewModel.onAction(SettingsAction.SaveHeatmapColorMode(mode))
                         ContributionHeatmapWidgetProvider.updateAll(context)
                     },
                     weekStartsOnMonday = settingsState.weekStartsOnMonday,

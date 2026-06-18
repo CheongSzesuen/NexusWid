@@ -32,4 +32,12 @@
     <string name="week_start_day">每周起始日</string>
     <string name="week_start_monday">周一</string>
     <string name="week_start_sunday">周日</string>
+    <string name="heatmap_color_mode">颜色模式</string>
+    <string name="heatmap_color_mode_desc">控制贡献图小组件使用浅色或深色色阶</string>
+    <string name="add_to_home_screen">添加到桌面</string>
+    <string name="github_token_optional">GitHub Token（可选）</string>
+    <string name="github_token_placeholder">避免 API 速率限制</string>
+    <string name="github_token_hint">用于避免公共 API 速率限制</string>
+    <string name="github_username_placeholder">输入 GitHub 用户名</string>
+    <string name="contribution_widget_preview_hint">拖动预览边框可调节宽度，列数会随宽度自动变化</string>
 </resources>

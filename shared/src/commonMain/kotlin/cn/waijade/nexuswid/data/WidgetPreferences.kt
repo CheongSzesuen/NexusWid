@@ -1,6 +1,6 @@
 package cn.waijade.nexuswid.data
 
 interface WidgetPreferences {
-    var widgetHeatmapAccent: HeatmapAccent
+    var widgetHeatmapColorMode: HeatmapColorMode
     var weekStartsOnMonday: Boolean
 }

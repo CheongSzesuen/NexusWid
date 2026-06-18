@@ -17,17 +17,11 @@ import android.os.Handler
 import android.os.Looper
 import android.util.Log
 import android.widget.RemoteViews
-import androidx.compose.material3.dynamicDarkColorScheme
-import androidx.compose.material3.dynamicLightColorScheme
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.lerp
-import androidx.compose.ui.graphics.toArgb
 import cn.waijade.nexuswid.R
-import cn.waijade.nexuswid.data.HeatmapAccent
+import cn.waijade.nexuswid.data.HeatmapColorMode
 import cn.waijade.nexuswid.data.HeatmapTheme
 import cn.waijade.nexuswid.data.github.GitHubPreferences
-import com.materialkolor.PaletteStyle
-import com.materialkolor.dynamicColorScheme
+import androidx.compose.ui.graphics.toArgb
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
@@ -38,10 +32,10 @@ private const val TAG = "ContributionHeatmapWidgetProvider"
 private const val ROOT_PADDING_HORIZONTAL_DP = 6f
 private const val ROOT_PADDING_VERTICAL_DP = 6f
 private const val DEFAULT_WIDGET_SIZE_DP = 110
-private const val LEVEL_COUNT = 5
 private const val CELL_RADIUS_RATIO = 0.24f
 private const val CORNER_OUTER_RADIUS_RATIO = 0.5735f
 private const val CELL_SIZE_SCALE = 1f
+private const val WIDGET_CORNER_RADIUS_DP = 16f
 private const val MAX_BITMAP_EDGE_PX = 900f
 private const val MAX_BITMAP_AREA_PX = 900f * 900f
 private const val SIZE_PREFS_NAME = "contribution_heatmap_widget_size"
@@ -132,17 +126,18 @@ class ContributionHeatmapWidgetProvider : AppWidgetProvider() {
                 }
             }
             val size = resolveWidgetSizeDp(context, appWidgetId, options, optionsOverride != null)
-            val contentWidthDp = (size.first - ROOT_PADDING_HORIZONTAL_DP * 2f).coerceAtLeast(1f)
-            val contentHeightDp = (size.second - ROOT_PADDING_VERTICAL_DP * 2f).coerceAtLeast(1f)
-            val heatmapAreaHeightDp = contentHeightDp.coerceAtLeast(1f)
+            val fullWidthDp = size.first
+            val fullHeightDp = size.second
+            val contentWidthDp = (fullWidthDp - ROOT_PADDING_HORIZONTAL_DP * 2f).coerceAtLeast(1f)
+            val contentHeightDp = (fullHeightDp - ROOT_PADDING_VERTICAL_DP * 2f).coerceAtLeast(1f)
 
             val columns = HeatmapGridCalculator.calculateColumns(
                 widthDp = contentWidthDp,
-                heightDp = heatmapAreaHeightDp
+                heightDp = contentHeightDp
             )
             val cellSizeDp = HeatmapGridCalculator.calculateCellSize(
                 widthDp = contentWidthDp,
-                heightDp = heatmapAreaHeightDp,
+                heightDp = contentHeightDp,
                 columns = columns
             ) * CELL_SIZE_SCALE
             val widgetPrefs = GitHubPreferences(context)
@@ -151,21 +146,23 @@ class ContributionHeatmapWidgetProvider : AppWidgetProvider() {
                 weekStartsOnMonday = widgetPrefs.weekStartsOnMonday
             )
             val prefs = GitHubPreferences(context)
-            val palette = buildPalette(
-                isDark = isDarkMode(context),
-                accent = prefs.widgetHeatmapAccent,
-                context = context
-            )
+            val isDark = resolveIsDark(context, prefs.widgetHeatmapColorMode)
+            val theme = HeatmapTheme.resolveCurrentTheme()
+            val heatmapPalette = theme.palette(isDark)
+            val palette = heatmapPalette.toIntArray()
 
             val bitmap = renderHeatmapBitmap(
                 context = context,
-                widthDp = contentWidthDp,
-                canvasHeightDp = contentHeightDp,
-                heatmapAreaHeightDp = heatmapAreaHeightDp,
+                fullWidthDp = fullWidthDp,
+                fullHeightDp = fullHeightDp,
+                contentWidthDp = contentWidthDp,
+                contentHeightDp = contentHeightDp,
                 columns = columns,
                 cellSizeDp = cellSizeDp,
                 allLevels = allLevels,
-                palette = palette
+                palette = palette,
+                bgColor = heatmapPalette.containerBg.toArgb(),
+                borderColor = heatmapPalette.border.toArgb()
             )
 
             val remoteViews = RemoteViews(context.packageName, R.layout.widget_contribution_heatmap)
@@ -370,17 +367,20 @@ class ContributionHeatmapWidgetProvider : AppWidgetProvider() {
 
         private fun renderHeatmapBitmap(
             context: Context,
-            widthDp: Float,
-            canvasHeightDp: Float,
-            heatmapAreaHeightDp: Float,
+            fullWidthDp: Float,
+            fullHeightDp: Float,
+            contentWidthDp: Float,
+            contentHeightDp: Float,
             columns: Int,
             cellSizeDp: Float,
             allLevels: List<Int>,
-            palette: IntArray
+            palette: IntArray,
+            bgColor: Int,
+            borderColor: Int
         ): Bitmap {
             val rawDensity = context.resources.displayMetrics.density
-            val rawBitmapWidth = (widthDp * rawDensity).coerceAtLeast(1f)
-            val rawBitmapHeight = (canvasHeightDp * rawDensity).coerceAtLeast(1f)
+            val rawBitmapWidth = (fullWidthDp * rawDensity).coerceAtLeast(1f)
+            val rawBitmapHeight = (fullHeightDp * rawDensity).coerceAtLeast(1f)
             val edgeScale = minOf(
                 1f,
                 MAX_BITMAP_EDGE_PX / rawBitmapWidth,
@@ -389,29 +389,32 @@ class ContributionHeatmapWidgetProvider : AppWidgetProvider() {
             val areaScale = minOf(1f, kotlin.math.sqrt(MAX_BITMAP_AREA_PX / (rawBitmapWidth * rawBitmapHeight)))
             val renderScale = minOf(edgeScale, areaScale)
             val density = rawDensity * renderScale
-            val bitmapWidth = (widthDp * density).roundToInt().coerceAtLeast(1)
-            val bitmapHeight = (canvasHeightDp * density).roundToInt().coerceAtLeast(1)
-            val heatmapAreaHeightPx = (heatmapAreaHeightDp * density).coerceAtLeast(1f)
+            val bitmapWidth = (fullWidthDp * density).roundToInt().coerceAtLeast(1)
+            val bitmapHeight = (fullHeightDp * density).roundToInt().coerceAtLeast(1)
+            val contentWidthPx = (contentWidthDp * density).coerceAtLeast(1f)
+            val contentHeightPx = (contentHeightDp * density).coerceAtLeast(1f)
+            val paddingH = (ROOT_PADDING_HORIZONTAL_DP * density).coerceAtLeast(0f)
+            val paddingV = (ROOT_PADDING_VERTICAL_DP * density).coerceAtLeast(0f)
             val baseGapPx = (HeatmapGridCalculator.GAP_DP * density).coerceAtLeast(0f)
 
             val rows = HeatmapGridCalculator.ROWS
-            val maxCellByWidth = ((bitmapWidth - baseGapPx * (columns - 1)) / columns).coerceAtLeast(1f)
-            val maxCellByHeight = ((heatmapAreaHeightPx - baseGapPx * (rows - 1)) / rows).coerceAtLeast(1f)
+            val maxCellByWidth = ((contentWidthPx - baseGapPx * (columns - 1)) / columns).coerceAtLeast(1f)
+            val maxCellByHeight = ((contentHeightPx - baseGapPx * (rows - 1)) / rows).coerceAtLeast(1f)
             val cellSizePx = min((cellSizeDp * density).coerceAtLeast(1f), min(maxCellByWidth, maxCellByHeight))
             val horizontalGapPx = if (columns > 1) {
-                ((bitmapWidth - cellSizePx * columns) / (columns - 1)).coerceAtLeast(baseGapPx)
+                ((contentWidthPx - cellSizePx * columns) / (columns - 1)).coerceAtLeast(baseGapPx)
             } else {
                 0f
             }
             val verticalGapPx = if (rows > 1) {
-                ((heatmapAreaHeightPx - cellSizePx * rows) / (rows - 1)).coerceAtLeast(baseGapPx)
+                ((contentHeightPx - cellSizePx * rows) / (rows - 1)).coerceAtLeast(baseGapPx)
             } else {
                 0f
             }
             val gridWidth = cellSizePx * columns + horizontalGapPx * (columns - 1)
             val gridHeight = cellSizePx * rows + verticalGapPx * (rows - 1)
-            val startX = ((bitmapWidth - gridWidth) / 2f).coerceAtLeast(0f)
-            val startY = ((bitmapHeight - gridHeight) / 2f).coerceAtLeast(0f)
+            val gridStartX = paddingH + ((contentWidthPx - gridWidth) / 2f).coerceAtLeast(0f)
+            val gridStartY = paddingV + ((contentHeightPx - gridHeight) / 2f).coerceAtLeast(0f)
 
             val totalLogicalColumns = (allLevels.size / rows).coerceAtLeast(1)
             val visualToLogicalColumns = buildVisibleLogicalColumns(
@@ -419,12 +422,23 @@ class ContributionHeatmapWidgetProvider : AppWidgetProvider() {
                 totalLogicalColumns = totalLogicalColumns
             )
             val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.FILL }
+            val strokePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                style = Paint.Style.STROKE
+                color = borderColor
+                strokeWidth = density.coerceAtLeast(1f)
+            }
             val path = Path()
             val bitmap = Bitmap.createBitmap(bitmapWidth, bitmapHeight, Bitmap.Config.ARGB_8888)
             val canvas = Canvas(bitmap)
+            val bgRadius = WIDGET_CORNER_RADIUS_DP * density
             val smallRadius = cellSizePx * CELL_RADIUS_RATIO
             val largeRadius = cellSizePx * CORNER_OUTER_RADIUS_RATIO
             val lastRow = rows - 1
+
+            val bgRect = RectF(0f, 0f, bitmapWidth.toFloat(), bitmapHeight.toFloat())
+            paint.color = bgColor
+            canvas.drawRoundRect(bgRect, bgRadius, bgRadius, paint)
+            canvas.drawRoundRect(bgRect, bgRadius, bgRadius, strokePaint)
 
             for (visualCol in 0 until columns) {
                 val logicalCol = visualToLogicalColumns[visualCol]
@@ -433,8 +447,8 @@ class ContributionHeatmapWidgetProvider : AppWidgetProvider() {
                     val level = allLevels.getOrNull(index)?.coerceIn(0, 4) ?: 0
                     paint.color = palette[level]
 
-                    val top = startY + row * (cellSizePx + verticalGapPx)
-                    val left = startX + visualCol * (cellSizePx + horizontalGapPx)
+                    val top = gridStartY + row * (cellSizePx + verticalGapPx)
+                    val left = gridStartX + visualCol * (cellSizePx + horizontalGapPx)
                     val rect = RectF(left, top, left + cellSizePx, top + cellSizePx)
                     val cornerType = resolveCornerType(visualCol, row, columns, lastRow)
 
@@ -514,30 +528,12 @@ class ContributionHeatmapWidgetProvider : AppWidgetProvider() {
             return List(actualVisible) { index -> startColumn + index }
         }
 
-        private fun buildPalette(
-            isDark: Boolean,
-            accent: HeatmapAccent,
-            context: Context
-        ): IntArray {
-            if (accent == HeatmapAccent.GITHUB) {
-                val theme = HeatmapTheme.resolveCurrentTheme()
-                return theme.toIntArray()
+        private fun resolveIsDark(context: Context, mode: HeatmapColorMode): Boolean {
+            return when (mode) {
+                HeatmapColorMode.LIGHT -> false
+                HeatmapColorMode.DARK -> true
+                HeatmapColorMode.SYSTEM -> isDarkMode(context)
             }
-
-            val empty = if (isDark) Color(0xFF2D3129) else Color(0xFFE0E4D8)
-            val active = when (accent) {
-                HeatmapAccent.GITHUB -> if (isDark) Color(0xFF39D353) else Color(0xFF216E39)
-                HeatmapAccent.PRIMARY -> if (isDark) Color(0xFFB1D18A) else Color(0xFF4C662B)
-                HeatmapAccent.SECONDARY -> if (isDark) Color(0xFFBFCBAD) else Color(0xFF586249)
-                HeatmapAccent.TERTIARY -> if (isDark) Color(0xFFA0D0CB) else Color(0xFF386663)
-            }
-            return intArrayOf(
-                empty.toArgb(),
-                lerp(empty, active, 0.25f).toArgb(),
-                lerp(empty, active, 0.5f).toArgb(),
-                lerp(empty, active, 0.75f).toArgb(),
-                active.toArgb()
-            )
         }
 
         private fun isDarkMode(context: Context): Boolean {

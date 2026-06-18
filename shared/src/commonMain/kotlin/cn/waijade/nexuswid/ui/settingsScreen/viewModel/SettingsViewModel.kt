@@ -4,12 +4,11 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import cn.waijade.nexuswid.data.HeatmapAccent
+import cn.waijade.nexuswid.data.HeatmapColorMode
 import cn.waijade.nexuswid.data.StateRepository
 import cn.waijade.nexuswid.data.WidgetPreferences
 import cn.waijade.nexuswid.ui.Screen
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class SettingsViewModel(
@@ -21,8 +20,7 @@ class SettingsViewModel(
     val settingsState = stateRepository.settingsState.asStateFlow()
 
     init {
-        // 从 SharedPreferences 加载配置
-        stateRepository.updateHeatmapAccent(widgetPreferences.widgetHeatmapAccent)
+        stateRepository.updateHeatmapColorMode(widgetPreferences.widgetHeatmapColorMode)
         stateRepository.updateWeekStartsOnMonday(widgetPreferences.weekStartsOnMonday)
     }
 
@@ -31,7 +29,7 @@ class SettingsViewModel(
             is SettingsAction.SaveTheme -> saveTheme(action.theme)
             is SettingsAction.SaveColorScheme -> saveColorScheme(action.color)
             is SettingsAction.SaveBlackTheme -> saveBlackTheme(action.enabled)
-            is SettingsAction.SaveHeatmapAccent -> saveHeatmapAccent(action.accent)
+            is SettingsAction.SaveHeatmapColorMode -> saveHeatmapColorMode(action.mode)
             is SettingsAction.SaveWeekStartsOnMonday -> saveWeekStartsOnMonday(action.enabled)
         }
     }
@@ -54,10 +52,10 @@ class SettingsViewModel(
         }
     }
 
-    private fun saveHeatmapAccent(accent: HeatmapAccent) {
+    private fun saveHeatmapColorMode(mode: HeatmapColorMode) {
         viewModelScope.launch {
-            stateRepository.updateHeatmapAccent(accent)
-            widgetPreferences.widgetHeatmapAccent = accent
+            stateRepository.updateHeatmapColorMode(mode)
+            widgetPreferences.widgetHeatmapColorMode = mode
         }
     }
 

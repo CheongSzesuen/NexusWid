@@ -26,12 +26,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.window.core.layout.WindowSizeClass.Companion.WIDTH_DP_EXPANDED_LOWER_BOUND
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
+import cn.waijade.nexuswid.githubSettingsScreen
 import cn.waijade.nexuswid.settingsScreens
 import cn.waijade.nexuswid.ui.Screen
 import cn.waijade.nexuswid.ui.mergePaddingValues
@@ -90,6 +91,33 @@ fun SettingsMainScreen(
                 .padding(horizontal = 16.dp)
         ) {
             item { Spacer(Modifier.height(14.dp)) }
+
+            item {
+                val item = githubSettingsScreen
+                SegmentedListItem(
+                    leadingContent = {
+                        Icon(painterResource(item.icon), null)
+                    },
+                    supportingContent = {
+                        val innerStrings = item.innerSettings.map { stringResource(it) }
+                        val joinedText = remember(innerStrings) { innerStrings.joinToString(", ") }
+                        Text(
+                            joinedText,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    },
+                    trailingContent = if (!widthExpanded) {
+                        { Icon(painterResource(Res.drawable.arrow_forward_big), null) }
+                    } else null,
+                    shapes = segmentedListItemShapes(0, 1),
+                    colors = listItemColors,
+                    selected = currentScreen == item.route,
+                    onClick = { onNavigate(item.route) }
+                ) { Text(stringResource(item.label)) }
+            }
+
+            item { Spacer(Modifier.height(12.dp)) }
 
             itemsIndexed(settingsScreens) { index, item ->
                 SegmentedListItem(
