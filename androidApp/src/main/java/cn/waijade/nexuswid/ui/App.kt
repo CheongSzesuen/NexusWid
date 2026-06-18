@@ -10,6 +10,7 @@ import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
@@ -59,24 +60,44 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.fastForEach
 import androidx.compose.ui.zIndex
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
-import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.ui.NavDisplay
 import androidx.window.core.layout.WindowSizeClass
 import org.jetbrains.compose.resources.stringResource
 import cn.waijade.nexuswid.ui.settingsScreen.SettingsScreenRoot
+import cn.waijade.nexuswid.ui.settingsScreen.viewModel.SettingsViewModel
 import cn.waijade.nexuswid.ui.theme.NexusTheme
 import cn.waijade.nexuswid.ui.utils.onBack
+import cn.waijade.nexuswid.utils.toColor
 import nexuswid.shared.generated.resources.Res
 import nexuswid.shared.generated.resources.home
 import nexuswid.shared.generated.resources.settings
+import org.koin.compose.viewmodel.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun App() {
-    NexusTheme {
-        AppScreen()
+    val settingsViewModel = koinViewModel<SettingsViewModel>()
+    val settingsState by settingsViewModel.settingsState.collectAsStateWithLifecycle()
+
+    val darkTheme = when (settingsState.theme) {
+        "dark" -> true
+        "light" -> false
+        else -> isSystemInDarkTheme()
+    }
+
+    val seed = settingsState.colorScheme.toColor()
+
+    NexusTheme(
+        darkTheme = darkTheme,
+        seedColor = seed,
+        blackTheme = settingsState.blackTheme
+    ) {
+        AppScreen(
+            settingsViewModel = settingsViewModel
+        )
     }
 }
 
@@ -84,6 +105,7 @@ fun App() {
 @Composable
 fun AppScreen(
     modifier: Modifier = Modifier,
+    settingsViewModel: SettingsViewModel = koinViewModel()
 ) {
     val layoutDirection = LocalLayoutDirection.current
     val motionScheme = motionScheme
@@ -244,7 +266,8 @@ fun AppScreen(
 
                     entry<Screen.Settings.Main> {
                         SettingsScreenRoot(
-                            contentPadding = contentPadding
+                            contentPadding = contentPadding,
+                            settingsViewModel = settingsViewModel
                         )
                     }
                 },

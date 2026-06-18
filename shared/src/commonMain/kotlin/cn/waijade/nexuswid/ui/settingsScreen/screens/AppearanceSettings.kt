@@ -40,9 +40,7 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -55,11 +53,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastForEachIndexed
 import androidx.window.core.layout.WindowSizeClass.Companion.WIDTH_DP_EXPANDED_LOWER_BOUND
-import org.jetbrains.compose.resources.DrawableResource
-import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import cn.waijade.nexuswid.ui.mergePaddingValues
+import cn.waijade.nexuswid.ui.settingsScreen.viewModel.SettingsAction
+import cn.waijade.nexuswid.ui.settingsScreen.viewModel.SettingsState
 import cn.waijade.nexuswid.ui.theme.CustomColors.detailPaneTopBarColors
 import cn.waijade.nexuswid.ui.theme.CustomColors.listItemColors
 import cn.waijade.nexuswid.ui.theme.CustomColors.switchColors
@@ -68,6 +66,7 @@ import cn.waijade.nexuswid.ui.theme.LocalAppFonts
 import cn.waijade.nexuswid.ui.theme.NexusShapeDefaults.PANE_MAX_WIDTH
 import cn.waijade.nexuswid.ui.theme.NexusShapeDefaults.segmentedListItemShapes
 import cn.waijade.nexuswid.ui.theme.NexusTheme
+import cn.waijade.nexuswid.utils.toColor
 import nexuswid.shared.generated.resources.Res
 import nexuswid.shared.generated.resources.appearance
 import nexuswid.shared.generated.resources.back
@@ -95,6 +94,8 @@ import nexuswid.shared.generated.resources.theme
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun AppearanceSettings(
+    settingsState: SettingsState,
+    onAction: (SettingsAction) -> Unit,
     contentPadding: PaddingValues,
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
@@ -104,11 +105,6 @@ fun AppearanceSettings(
     val widthExpanded = currentWindowAdaptiveInfo()
         .windowSizeClass
         .isWidthAtLeastBreakpoint(WIDTH_DP_EXPANDED_LOWER_BOUND)
-
-    var theme by remember { mutableStateOf("auto") }
-    var colorSchemeSeed by remember { mutableStateOf(Color(0xfffeb4a7)) }
-    var dynamicColor by remember { mutableStateOf(false) }
-    var blackThemeEnabled by remember { mutableStateOf(false) }
 
     val barColors = if (widthExpanded) detailPaneTopBarColors
     else topBarColors
@@ -188,7 +184,7 @@ fun AppearanceSettings(
                     SegmentedListItem(
                         onClick = {},
                         leadingContent = {
-                            AnimatedContent(themeMap[theme]!!.first) {
+                            AnimatedContent(themeMap[settingsState.theme]!!.first) {
                                 Icon(
                                     painter = painterResource(it),
                                     contentDescription = null,
@@ -204,10 +200,10 @@ fun AppearanceSettings(
                                 modifier = Modifier.padding(top = 8.dp)
                             ) {
                                 options.fastForEachIndexed { index, entry ->
-                                    val isSelected = theme == entry.first
+                                    val isSelected = settingsState.theme == entry.first
                                     ToggleButton(
                                         checked = isSelected,
-                                        onCheckedChange = { theme = entry.first },
+                                        onCheckedChange = { onAction(SettingsAction.SaveTheme(entry.first)) },
                                         modifier = Modifier
                                             .weight(1f)
                                             .semantics { role = Role.RadioButton },
@@ -233,10 +229,15 @@ fun AppearanceSettings(
                 }
 
                 item {
+                    val dynamicColor = settingsState.colorScheme == Color.White.toString()
                     SegmentedListItem(
                         onClick = {
-                            dynamicColor = !dynamicColor
-                            if (!dynamicColor) colorSchemeSeed = colorSchemes.first()
+                            onAction(
+                                SettingsAction.SaveColorScheme(
+                                    if (dynamicColor) colorSchemes.first()
+                                    else Color.White
+                                )
+                            )
                         },
                         leadingContent = { Icon(painterResource(Res.drawable.colors), null) },
                         content = { Text(stringResource(Res.string.dynamic_color)) },
@@ -245,8 +246,12 @@ fun AppearanceSettings(
                             Switch(
                                 checked = dynamicColor,
                                 onCheckedChange = {
-                                    dynamicColor = it
-                                    if (!it) colorSchemeSeed = colorSchemes.first()
+                                    onAction(
+                                        SettingsAction.SaveColorScheme(
+                                            if (it) Color.White
+                                            else colorSchemes.first()
+                                        )
+                                    )
                                 },
                                 thumbContent = {
                                     if (dynamicColor) {
@@ -272,6 +277,7 @@ fun AppearanceSettings(
                 }
 
                 item {
+                    val dynamicColor = settingsState.colorScheme == Color.White.toString()
                     Box {
                         SegmentedListItem(
                             onClick = {},
@@ -309,6 +315,7 @@ fun AppearanceSettings(
                 }
 
                 item {
+                    val currentColor = settingsState.colorScheme.toColor()
                     LazyRow(
                         contentPadding = PaddingValues(horizontal = 48.dp),
                         modifier = Modifier
@@ -322,7 +329,7 @@ fun AppearanceSettings(
                             .padding(bottom = 8.dp)
                     ) {
                         items(colorSchemes) { color ->
-                            val isSelected = color == colorSchemeSeed
+                            val isSelected = color == currentColor
                             IconButton(
                                 shapes = IconButtonDefaults.shapes(),
                                 colors = IconButtonDefaults.iconButtonColors(
@@ -332,8 +339,7 @@ fun AppearanceSettings(
                                     .padding(4.dp)
                                     .size(48.dp),
                                 onClick = {
-                                    colorSchemeSeed = color
-                                    dynamicColor = false
+                                    onAction(SettingsAction.SaveColorScheme(color))
                                 }
                             ) {
                                 AnimatedContent(isSelected) { selected ->
@@ -353,7 +359,7 @@ fun AppearanceSettings(
 
                 item {
                     SegmentedListItem(
-                        onClick = { blackThemeEnabled = !blackThemeEnabled },
+                        onClick = { onAction(SettingsAction.SaveBlackTheme(!settingsState.blackTheme)) },
                         leadingContent = {
                             Icon(painterResource(Res.drawable.contrast), null)
                         },
@@ -361,10 +367,10 @@ fun AppearanceSettings(
                         supportingContent = { Text(stringResource(Res.string.black_theme_desc)) },
                         trailingContent = {
                             Switch(
-                                checked = blackThemeEnabled,
-                                onCheckedChange = { blackThemeEnabled = it },
+                                checked = settingsState.blackTheme,
+                                onCheckedChange = { onAction(SettingsAction.SaveBlackTheme(it)) },
                                 thumbContent = {
-                                    if (blackThemeEnabled) {
+                                    if (settingsState.blackTheme) {
                                         Icon(
                                             painter = painterResource(Res.drawable.check),
                                             contentDescription = null,
@@ -397,6 +403,8 @@ fun AppearanceSettings(
 fun AppearanceSettingsPreview() {
     NexusTheme(dynamicColor = false) {
         AppearanceSettings(
+            settingsState = SettingsState(),
+            onAction = {},
             contentPadding = PaddingValues(),
             onBack = {}
         )

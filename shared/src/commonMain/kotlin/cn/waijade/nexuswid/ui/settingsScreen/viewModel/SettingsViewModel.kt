@@ -3,14 +3,19 @@ package cn.waijade.nexuswid.ui.settingsScreen.viewModel
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import cn.waijade.nexuswid.data.StateRepository
 import cn.waijade.nexuswid.ui.Screen
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 
-class SettingsViewModel : ViewModel() {
+class SettingsViewModel(
+    private val stateRepository: StateRepository
+) : ViewModel() {
     val backStack = mutableStateListOf<Screen.Settings>(Screen.Settings.Main)
 
-    private var _theme = "auto"
-    private var _colorScheme = "white"
-    private var _blackTheme = false
+    val settingsState = stateRepository.settingsState.asStateFlow()
 
     fun onAction(action: SettingsAction) {
         when (action) {
@@ -21,14 +26,20 @@ class SettingsViewModel : ViewModel() {
     }
 
     private fun saveTheme(theme: String) {
-        _theme = theme
+        viewModelScope.launch {
+            stateRepository.updateTheme(theme)
+        }
     }
 
     private fun saveColorScheme(color: Color) {
-        _colorScheme = color.toString()
+        viewModelScope.launch {
+            stateRepository.updateColorScheme(color.toString())
+        }
     }
 
     private fun saveBlackTheme(enabled: Boolean) {
-        _blackTheme = enabled
+        viewModelScope.launch {
+            stateRepository.updateBlackTheme(enabled)
+        }
     }
 }

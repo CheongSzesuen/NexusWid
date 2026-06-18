@@ -14,6 +14,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
+import com.materialkolor.dynamiccolor.ColorSpec
+import com.materialkolor.rememberDynamicColorScheme
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -43,9 +45,24 @@ actual fun NexusTheme(
     }
     CustomColors.black = blackTheme && darkTheme
 
+    val dynamicColorScheme = rememberDynamicColorScheme(
+        seedColor = when (seedColor) {
+            Color.White -> colorScheme.primary
+            else -> seedColor
+        },
+        isDark = darkTheme,
+        specVersion = if (blackTheme && darkTheme) ColorSpec.SpecVersion.SPEC_2021
+        else ColorSpec.SpecVersion.SPEC_2025,
+        isAmoled = blackTheme && darkTheme
+    )
+
+    val scheme =
+        if (seedColor == Color.White && !(blackTheme && darkTheme)) colorScheme
+        else dynamicColorScheme
+
     CompositionLocalProvider(LocalAppFonts provides getAppFonts()) {
         MaterialExpressiveTheme(
-            colorScheme = colorScheme,
+            colorScheme = scheme,
             typography = typography(),
             motionScheme = MotionScheme.expressive(),
             content = content

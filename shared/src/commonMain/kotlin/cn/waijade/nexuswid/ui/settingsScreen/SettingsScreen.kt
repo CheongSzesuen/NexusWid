@@ -21,6 +21,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.LayoutDirection
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.ui.NavDisplay
 import cn.waijade.nexuswid.ui.Screen
@@ -42,9 +43,10 @@ import cn.waijade.nexuswid.ui.utils.onTopLevelNavigate
 fun SettingsScreenRoot(
     contentPadding: PaddingValues,
     modifier: Modifier = Modifier,
-    viewModel: SettingsViewModel = SettingsViewModel()
+    settingsViewModel: SettingsViewModel
 ) {
-    val backStack = viewModel.backStack
+    val backStack = settingsViewModel.backStack
+    val settingsState by settingsViewModel.settingsState.collectAsStateWithLifecycle()
     val directionMultiplier = if (LocalLayoutDirection.current == LayoutDirection.Ltr) 1 else -1
 
     NavDisplay(
@@ -102,6 +104,8 @@ fun SettingsScreenRoot(
                 metadata = detailPane()
             ) {
                 AppearanceSettings(
+                    settingsState = settingsState,
+                    onAction = settingsViewModel::onAction,
                     contentPadding = contentPadding,
                     onBack = backStack::onBack,
                     modifier = modifier,

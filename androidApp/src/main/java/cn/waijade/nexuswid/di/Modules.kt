@@ -2,12 +2,17 @@ package cn.waijade.nexuswid.di
 
 import android.content.Context
 import android.os.Build
+import cn.waijade.nexuswid.data.StateRepository
+import cn.waijade.nexuswid.ui.settingsScreen.viewModel.SettingsViewModel
 import org.koin.dsl.module
 import org.koin.plugin.module.dsl.create
 import org.koin.plugin.module.dsl.single
+import org.koin.core.module.dsl.viewModel
 
 val appModule = module {
     single<AppInfo> { create(::createAppInfo) }
+    single<StateRepository> { StateRepository() }
+    viewModel { SettingsViewModel(get()) }
 }
 
 private fun createAppInfo(context: Context): AppInfo {

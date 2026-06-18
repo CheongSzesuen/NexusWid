@@ -17,6 +17,7 @@ composeMultiplatform = "1.11.0"
 koinBom = "4.2.0"
 koinCompilerPlugin = "0.3.0"
 coil = "3.1.0"
+materialKolor = "4.1.1"
 ktor = "3.1.0"
 
 [libraries]
@@ -55,6 +56,9 @@ junit = { group = "junit", name = "junit", version.ref = "junit" }
 # Coil
 coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coil" }
 coil-network-okhttp = { module = "io.coil-kt.coil3:coil-network-okhttp", version.ref = "coil" }
+
+# MaterialKolor
+material-kolor = { module = "com.materialkolor:material-kolor", version.ref = "materialKolor" }
 
 # Ktor
 ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
