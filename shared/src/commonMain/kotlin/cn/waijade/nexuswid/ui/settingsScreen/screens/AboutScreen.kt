@@ -4,11 +4,11 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -36,7 +36,6 @@ import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -49,10 +48,9 @@ import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.util.fastForEach
+
 import androidx.window.core.layout.WindowSizeClass.Companion.WIDTH_DP_EXPANDED_LOWER_BOUND
 import coil3.compose.AsyncImage
-import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import cn.waijade.nexuswid.ui.Screen
@@ -95,15 +93,6 @@ fun AboutScreen(
     val widthExpanded = currentWindowAdaptiveInfo()
         .windowSizeClass
         .isWidthAtLeastBreakpoint(WIDTH_DP_EXPANDED_LOWER_BOUND)
-
-    val socialLinks = remember {
-        listOf(
-            SocialLink(Res.drawable.ic_github, "https://github.com/CheongSzesuen", "GitHub"),
-            SocialLink(Res.drawable.ic_globe, "https://waijade.cn/", "个人网站"),
-            SocialLink(Res.drawable.ic_bandbbs, "https://www.bandbbs.cn/members/344224/", "米坛社区"),
-            SocialLink(Res.drawable.ic_afdian, "https://afdian.com/a/waijade", "爱发电"),
-        )
-    }
 
     var showLicense by rememberSaveable { mutableStateOf(false) }
 
@@ -210,11 +199,11 @@ fun AboutScreen(
                     }
                 }
                 item {
-                    Box(Modifier.background(listItemColors.containerColor, bottomListItemShape)) {
+                    Box(Modifier.background(listItemColors.containerColor, topListItemShape)) {
                         Column(modifier = Modifier.padding(16.dp)) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 AsyncImage(
-                                    model = "https://waijade.cn/avatar.png",
+                                    model = "https://www.bandbbs.cn/data/avatars/o/344/344224.jpg?1757132574",
                                     contentDescription = "WaiJade的头像",
                                     modifier = Modifier
                                         .size(64.dp)
@@ -224,14 +213,14 @@ fun AboutScreen(
                                 Spacer(Modifier.width(16.dp))
                                 Column {
                                     Text(
-                                        "WaiJade",
+                                        text = "WaiJade",
                                         style = typography.titleLarge,
                                         color = colorScheme.onSurface,
                                         fontFamily = typography.bodyLarge.fontFamily,
                                         fontWeight = FontWeight.Bold
                                     )
                                     Text(
-                                        "Developer",
+                                        text = "Developer",
                                         style = typography.labelLarge,
                                         color = colorScheme.secondary
                                     )
@@ -239,18 +228,85 @@ fun AboutScreen(
                                 Spacer(Modifier.weight(1f))
                             }
                             Spacer(Modifier.height(8.dp))
-                            Row {
+                            Row(modifier = Modifier.fillMaxWidth()) {
                                 Spacer(Modifier.width((64 + 16).dp))
-                                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                    socialLinks.fastForEach { link ->
+                                Row(
+                                    modifier = Modifier.weight(1f),
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
+                                    listOf(
+                                        Triple(Res.drawable.ic_github, "https://github.com/CheongSzesuen", "GitHub"),
+                                        Triple(Res.drawable.ic_globe, "https://waijade.cn/", "个人网站"),
+                                        Triple(Res.drawable.ic_bandbbs, "https://www.bandbbs.cn/members/344224/", "米坛社区"),
+                                        Triple(Res.drawable.ic_afdian, "https://afdian.com/a/waijade", "爱发电")
+                                    ).forEach { (icon, url, desc) ->
                                         FilledTonalIconButton(
-                                            onClick = { uriHandler.openUri(link.url) },
+                                            onClick = { uriHandler.openUri(url) },
                                             shapes = IconButtonDefaults.shapes(),
                                             modifier = Modifier.width(52.dp)
                                         ) {
                                             Icon(
-                                                painterResource(link.icon),
-                                                link.description,
+                                                painterResource(icon),
+                                                contentDescription = desc,
+                                                modifier = Modifier.size(ButtonDefaults.SmallIconSize)
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                item {
+                    Box(Modifier.background(listItemColors.containerColor, bottomListItemShape)) {
+                        Column(modifier = Modifier.padding(16.dp)) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                AsyncImage(
+                                    model = "https://www.bandbbs.cn/data/avatars/o/157/157218.jpg?1752559526",
+                                    contentDescription = "Zaona的头像",
+                                    modifier = Modifier
+                                        .size(64.dp)
+                                        .clip(CircleShape),
+                                    contentScale = ContentScale.Crop
+                                )
+                                Spacer(Modifier.width(16.dp))
+                                Column {
+                                    Text(
+                                        text = "Zaona",
+                                        style = typography.titleLarge,
+                                        color = colorScheme.onSurface,
+                                        fontFamily = typography.bodyLarge.fontFamily,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                    Text(
+                                        text = "Developer",
+                                        style = typography.labelLarge,
+                                        color = colorScheme.secondary
+                                    )
+                                }
+                                Spacer(Modifier.weight(1f))
+                            }
+                            Spacer(Modifier.height(8.dp))
+                            Row(modifier = Modifier.fillMaxWidth()) {
+                                Spacer(Modifier.width((64 + 16).dp))
+                                Row(
+                                    modifier = Modifier.weight(1f),
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
+                                    listOf(
+                                        Triple(Res.drawable.ic_github, "https://github.com/zaona", "GitHub"),
+                                        Triple(Res.drawable.ic_globe, "https://zaona.top/", "个人网站"),
+                                        Triple(Res.drawable.ic_bandbbs, "https://www.bandbbs.cn/members/157218/", "米坛社区"),
+                                        Triple(Res.drawable.ic_afdian, "https://afdian.com/a/zaona", "爱发电")
+                                    ).forEach { (icon, url, desc) ->
+                                        FilledTonalIconButton(
+                                            onClick = { uriHandler.openUri(url) },
+                                            shapes = IconButtonDefaults.shapes(),
+                                            modifier = Modifier.width(52.dp)
+                                        ) {
+                                            Icon(
+                                                painterResource(icon),
+                                                contentDescription = desc,
                                                 modifier = Modifier.size(ButtonDefaults.SmallIconSize)
                                             )
                                         }
@@ -311,12 +367,6 @@ fun AboutScreen(
         // TODO: LicenseBottomSheet
     }
 }
-
-private data class SocialLink(
-    val icon: DrawableResource,
-    val url: String,
-    val description: String
-)
 
 @Preview
 @Composable
