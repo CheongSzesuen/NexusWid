@@ -13,6 +13,15 @@ android {
     namespace = "cn.waijade.nexuswid"
     compileSdk = 37
 
+    signingConfigs {
+        create("release") {
+            storeFile = file("../keystore/nexuswid.jks")
+            storePassword = project.findProperty("KEYSTORE_PASSWORD") as? String ?: ""
+            keyAlias = "nexuswid"
+            keyPassword = project.findProperty("KEY_PASSWORD") as? String ?: ""
+        }
+    }
+
     defaultConfig {
         applicationId = "cn.waijade.nexuswid"
         minSdk = 26
@@ -27,6 +36,7 @@ android {
         release {
             isMinifyEnabled = true
             isShrinkResources = true
+            signingConfig = signingConfigs.getByName("release")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -34,6 +44,7 @@ android {
         }
         debug {
             applicationIdSuffix = ".debug"
+            signingConfig = signingConfigs.getByName("release")
         }
     }
 
