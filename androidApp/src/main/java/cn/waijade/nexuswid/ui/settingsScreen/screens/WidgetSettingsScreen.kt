@@ -47,11 +47,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import cn.waijade.nexuswid.data.HeatmapAccent
+import cn.waijade.nexuswid.ui.components.ColorSwatchOption
 import cn.waijade.nexuswid.widget.ContributionHeatmapWidgetProvider
 import cn.waijade.nexuswid.widget.HeatmapGridCalculator
 import cn.waijade.nexuswid.ui.mergePaddingValues
@@ -64,6 +67,8 @@ private const val PREVIEW_CELL_SIZE_SCALE = 1f
 fun WidgetSettingsScreen(
     contentPadding: PaddingValues,
     onBack: () -> Unit,
+    heatmapAccent: HeatmapAccent,
+    onHeatmapAccentChange: (HeatmapAccent) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
@@ -172,6 +177,7 @@ fun WidgetSettingsScreen(
                                             }
                                     ) {
                                         HeatmapPreviewCard(
+                                            accent = heatmapAccent,
                                             modifier = Modifier.fillMaxSize()
                                         )
                                     }
@@ -182,6 +188,35 @@ fun WidgetSettingsScreen(
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
+                            Text(
+                                text = "色阶风格",
+                                style = MaterialTheme.typography.titleMedium
+                            )
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(14.dp, Alignment.CenterHorizontally)
+                            ) {
+                                ColorSwatchOption(
+                                    selected = heatmapAccent == HeatmapAccent.GITHUB,
+                                    swatch = Color(0xFF30A14E),
+                                    onClick = { onHeatmapAccentChange(HeatmapAccent.GITHUB) }
+                                )
+                                ColorSwatchOption(
+                                    selected = heatmapAccent == HeatmapAccent.PRIMARY,
+                                    swatch = MaterialTheme.colorScheme.primary,
+                                    onClick = { onHeatmapAccentChange(HeatmapAccent.PRIMARY) }
+                                )
+                                ColorSwatchOption(
+                                    selected = heatmapAccent == HeatmapAccent.SECONDARY,
+                                    swatch = MaterialTheme.colorScheme.secondary,
+                                    onClick = { onHeatmapAccentChange(HeatmapAccent.SECONDARY) }
+                                )
+                                ColorSwatchOption(
+                                    selected = heatmapAccent == HeatmapAccent.TERTIARY,
+                                    swatch = MaterialTheme.colorScheme.tertiary,
+                                    onClick = { onHeatmapAccentChange(HeatmapAccent.TERTIARY) }
+                                )
+                            }
                         }
                     }
                 }
@@ -216,19 +251,36 @@ private fun requestPinContributionHeatmapWidget(context: Context): PinWidgetRequ
 
 @Composable
 private fun HeatmapPreviewCard(
+    accent: HeatmapAccent,
     modifier: Modifier = Modifier
 ) {
     val surface = MaterialTheme.colorScheme.surfaceContainerLow
     val outline = MaterialTheme.colorScheme.outlineVariant
     val empty = MaterialTheme.colorScheme.surfaceVariant
-    val levels = remember(empty) {
-        listOf(
-            empty,
-            Color(0xFF9BE9A8),
-            Color(0xFF40C463),
-            Color(0xFF30A14E),
-            Color(0xFF216E39)
-        )
+    val active = when (accent) {
+        HeatmapAccent.GITHUB -> Color(0xFF216E39)
+        HeatmapAccent.PRIMARY -> MaterialTheme.colorScheme.primary
+        HeatmapAccent.SECONDARY -> MaterialTheme.colorScheme.secondary
+        HeatmapAccent.TERTIARY -> MaterialTheme.colorScheme.tertiary
+    }
+    val levels = remember(accent, empty, active) {
+        if (accent == HeatmapAccent.GITHUB) {
+            listOf(
+                empty,
+                Color(0xFF9BE9A8),
+                Color(0xFF40C463),
+                Color(0xFF30A14E),
+                Color(0xFF216E39)
+            )
+        } else {
+            listOf(
+                empty,
+                lerp(empty, active, 0.25f),
+                lerp(empty, active, 0.5f),
+                lerp(empty, active, 0.75f),
+                active
+            )
+        }
     }
     val previewSeed = rememberSaveable { Random.nextInt() }
 

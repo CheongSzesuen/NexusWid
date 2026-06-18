@@ -23,6 +23,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.toArgb
 import cn.waijade.nexuswid.R
+import cn.waijade.nexuswid.data.HeatmapAccent
+import cn.waijade.nexuswid.data.github.GitHubPreferences
 import com.materialkolor.PaletteStyle
 import com.materialkolor.dynamicColorScheme
 import kotlin.math.abs
@@ -35,7 +37,7 @@ private const val TAG = "ContributionHeatmapWidgetProvider"
 private const val ROOT_PADDING_HORIZONTAL_DP = 6f
 private const val ROOT_PADDING_VERTICAL_DP = 6f
 private const val DEFAULT_WIDGET_SIZE_DP = 110
-private const val LEVEL_COUNT = 18
+private const val LEVEL_COUNT = 5
 private const val CELL_RADIUS_RATIO = 0.24f
 private const val CORNER_OUTER_RADIUS_RATIO = 0.5735f
 private const val CELL_SIZE_SCALE = 1f
@@ -143,8 +145,10 @@ class ContributionHeatmapWidgetProvider : AppWidgetProvider() {
                 columns = columns
             ) * CELL_SIZE_SCALE
             val allLevels = HeatmapWidgetDataStore(context).getGrid(HeatmapGridCalculator.MAX_COLS)
+            val prefs = GitHubPreferences(context)
             val palette = buildPalette(
                 isDark = isDarkMode(context),
+                accent = prefs.widgetHeatmapAccent,
                 context = context
             )
 
@@ -507,25 +511,23 @@ class ContributionHeatmapWidgetProvider : AppWidgetProvider() {
 
         private fun buildPalette(
             isDark: Boolean,
+            accent: HeatmapAccent,
             context: Context
         ): IntArray {
-            return if (isDark) {
-                intArrayOf(
-                    Color(0xFF2D3129).toArgb(),  // level 0 - no contributions
-                    Color(0xFF0E4429).toArgb(),  // level 1
-                    Color(0xFF006D32).toArgb(),  // level 2
-                    Color(0xFF26A641).toArgb(),  // level 3
-                    Color(0xFF39D353).toArgb()   // level 4
-                )
-            } else {
-                intArrayOf(
-                    Color(0xFFE0E4D8).toArgb(),  // level 0 - no contributions
-                    Color(0xFF9BE9A8).toArgb(),  // level 1
-                    Color(0xFF40C463).toArgb(),  // level 2
-                    Color(0xFF30A14E).toArgb(),  // level 3
-                    Color(0xFF216E39).toArgb()   // level 4
-                )
+            val empty = if (isDark) Color(0xFF2D3129) else Color(0xFFE0E4D8)
+            val active = when (accent) {
+                HeatmapAccent.GITHUB -> if (isDark) Color(0xFF39D353) else Color(0xFF216E39)
+                HeatmapAccent.PRIMARY -> if (isDark) Color(0xFFB1D18A) else Color(0xFF4C662B)
+                HeatmapAccent.SECONDARY -> if (isDark) Color(0xFFBFCBAD) else Color(0xFF586249)
+                HeatmapAccent.TERTIARY -> if (isDark) Color(0xFFA0D0CB) else Color(0xFF386663)
             }
+            return intArrayOf(
+                empty.toArgb(),
+                lerp(empty, active, 0.25f).toArgb(),
+                lerp(empty, active, 0.5f).toArgb(),
+                lerp(empty, active, 0.75f).toArgb(),
+                active.toArgb()
+            )
         }
 
         private fun isDarkMode(context: Context): Boolean {

@@ -2,6 +2,7 @@ package cn.waijade.nexuswid.data.github
 
 import android.content.Context
 import android.content.SharedPreferences
+import cn.waijade.nexuswid.data.HeatmapAccent
 
 class GitHubPreferences(context: Context) {
     private val prefs: SharedPreferences = context.getSharedPreferences(
@@ -19,9 +20,25 @@ class GitHubPreferences(context: Context) {
     val isConfigured: Boolean
         get() = username.isNotBlank()
 
+    var widgetHeatmapAccent: HeatmapAccent
+        get() {
+            val name = prefs.getString(KEY_WIDGET_HEATMAP_ACCENT, DEFAULT_WIDGET_HEATMAP_ACCENT)
+                ?: DEFAULT_WIDGET_HEATMAP_ACCENT
+            return try {
+                HeatmapAccent.valueOf(name)
+            } catch (_: IllegalArgumentException) {
+                HeatmapAccent.GITHUB
+            }
+        }
+        set(value) {
+            prefs.edit().putString(KEY_WIDGET_HEATMAP_ACCENT, value.name).commit()
+        }
+
     companion object {
         private const val PREFS_NAME = "github_preferences"
         private const val KEY_USERNAME = "github_username"
         private const val KEY_TOKEN = "github_token"
+        private const val KEY_WIDGET_HEATMAP_ACCENT = "widget_heatmap_accent"
+        private const val DEFAULT_WIDGET_HEATMAP_ACCENT = "GITHUB"
     }
 }

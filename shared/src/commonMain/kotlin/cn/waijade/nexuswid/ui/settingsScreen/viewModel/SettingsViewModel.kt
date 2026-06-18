@@ -4,6 +4,7 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import cn.waijade.nexuswid.data.HeatmapAccent
 import cn.waijade.nexuswid.data.StateRepository
 import cn.waijade.nexuswid.ui.Screen
 import kotlinx.coroutines.flow.asStateFlow
@@ -22,6 +23,7 @@ class SettingsViewModel(
             is SettingsAction.SaveTheme -> saveTheme(action.theme)
             is SettingsAction.SaveColorScheme -> saveColorScheme(action.color)
             is SettingsAction.SaveBlackTheme -> saveBlackTheme(action.enabled)
+            is SettingsAction.SaveHeatmapAccent -> saveHeatmapAccent(action.accent)
         }
     }
 
@@ -40,6 +42,12 @@ class SettingsViewModel(
     private fun saveBlackTheme(enabled: Boolean) {
         viewModelScope.launch {
             stateRepository.updateBlackTheme(enabled)
+        }
+    }
+
+    private fun saveHeatmapAccent(accent: HeatmapAccent) {
+        viewModelScope.launch {
+            stateRepository.updateHeatmapAccent(accent)
         }
     }
 }

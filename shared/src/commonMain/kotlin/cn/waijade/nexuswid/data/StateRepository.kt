@@ -18,4 +18,8 @@ class StateRepository {
     fun updateBlackTheme(blackTheme: Boolean) {
         settingsState.update { it.copy(blackTheme = blackTheme) }
     }
+
+    fun updateHeatmapAccent(accent: HeatmapAccent) {
+        settingsState.update { it.copy(heatmapAccent = accent) }
+    }
 }

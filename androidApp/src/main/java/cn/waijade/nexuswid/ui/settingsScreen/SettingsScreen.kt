@@ -32,6 +32,7 @@ import cn.waijade.nexuswid.ui.settingsScreen.screens.BuildInfoScreen
 import cn.waijade.nexuswid.ui.settingsScreen.screens.GitHubSettingsScreen
 import cn.waijade.nexuswid.ui.settingsScreen.screens.SettingsMainScreen
 import cn.waijade.nexuswid.ui.settingsScreen.screens.WidgetSettingsScreen
+import cn.waijade.nexuswid.ui.settingsScreen.viewModel.SettingsAction
 import cn.waijade.nexuswid.ui.settingsScreen.viewModel.SettingsViewModel
 import cn.waijade.nexuswid.ui.theme.CustomColors.topBarColors
 import cn.waijade.nexuswid.ui.utils.onBack
@@ -130,6 +131,10 @@ fun SettingsScreenRoot(
                 WidgetSettingsScreen(
                     contentPadding = contentPadding,
                     onBack = backStack::onBack,
+                    heatmapAccent = settingsState.heatmapAccent,
+                    onHeatmapAccentChange = { accent ->
+                        settingsViewModel.onAction(SettingsAction.SaveHeatmapAccent(accent))
+                    },
                     modifier = modifier,
                 )
             }
