@@ -3,7 +3,14 @@ package cn.waijade.nexuswid.di
 import android.content.Context
 import android.os.Build
 import cn.waijade.nexuswid.data.StateRepository
+import cn.waijade.nexuswid.data.github.GitHubApiService
+import cn.waijade.nexuswid.data.github.GitHubPreferences
 import cn.waijade.nexuswid.ui.settingsScreen.viewModel.SettingsViewModel
+import io.ktor.client.HttpClient
+import io.ktor.client.engine.okhttp.OkHttp
+import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.serialization.kotlinx.json.json
+import kotlinx.serialization.json.Json
 import org.koin.dsl.module
 import org.koin.plugin.module.dsl.create
 import org.koin.plugin.module.dsl.single
@@ -12,6 +19,16 @@ import org.koin.core.module.dsl.viewModel
 val appModule = module {
     single<AppInfo> { create(::createAppInfo) }
     single<StateRepository> { StateRepository() }
+    single<GitHubPreferences> { GitHubPreferences(get()) }
+    single<Json> { Json { ignoreUnknownKeys = true } }
+    single<HttpClient> {
+        HttpClient(OkHttp) {
+            install(ContentNegotiation) {
+                json(get<Json>())
+            }
+        }
+    }
+    single<GitHubApiService> { GitHubApiService(get(), get()) }
     viewModel { SettingsViewModel(get()) }
 }
 

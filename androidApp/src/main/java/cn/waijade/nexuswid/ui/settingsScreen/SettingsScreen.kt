@@ -29,7 +29,9 @@ import cn.waijade.nexuswid.ui.calculatePaneScaffoldDirective
 import cn.waijade.nexuswid.ui.settingsScreen.screens.AboutScreen
 import cn.waijade.nexuswid.ui.settingsScreen.screens.AppearanceSettings
 import cn.waijade.nexuswid.ui.settingsScreen.screens.BuildInfoScreen
+import cn.waijade.nexuswid.ui.settingsScreen.screens.GitHubSettingsScreen
 import cn.waijade.nexuswid.ui.settingsScreen.screens.SettingsMainScreen
+import cn.waijade.nexuswid.ui.settingsScreen.screens.WidgetSettingsScreen
 import cn.waijade.nexuswid.ui.settingsScreen.viewModel.SettingsViewModel
 import cn.waijade.nexuswid.ui.theme.CustomColors.topBarColors
 import cn.waijade.nexuswid.ui.utils.onBack
@@ -106,6 +108,26 @@ fun SettingsScreenRoot(
                 AppearanceSettings(
                     settingsState = settingsState,
                     onAction = settingsViewModel::onAction,
+                    contentPadding = contentPadding,
+                    onBack = backStack::onBack,
+                    modifier = modifier,
+                )
+            }
+
+            entry<Screen.Settings.GitHub>(
+                metadata = detailPane()
+            ) {
+                GitHubSettingsScreen(
+                    contentPadding = contentPadding,
+                    onBack = backStack::onBack,
+                    modifier = modifier,
+                )
+            }
+
+            entry<Screen.Settings.Widget>(
+                metadata = detailPane()
+            ) {
+                WidgetSettingsScreen(
                     contentPadding = contentPadding,
                     onBack = backStack::onBack,
                     modifier = modifier,

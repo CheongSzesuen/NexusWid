@@ -24,4 +24,9 @@
     <string name="developer">开发者</string>
     <string name="build_info">构建信息</string>
     <string name="more">更多</string>
+    <string name="github">GitHub</string>
+    <string name="github_username">用户名</string>
+    <string name="github_token">Token</string>
+    <string name="widget">小组件</string>
+    <string name="widget_contribution">贡献图</string>
 </resources>

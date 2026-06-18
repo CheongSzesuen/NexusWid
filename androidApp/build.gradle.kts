@@ -82,7 +82,16 @@ dependencies {
     implementation(libs.koin.compose.viewmodel)
     implementation(libs.androidx.navigation3.runtime)
     implementation(libs.androidx.navigation3.ui)
+    implementation(libs.androidx.compose.adaptive.navigation3)
     implementation(libs.components.resources)
+
+    implementation(libs.ktor.client.core)
+    implementation(libs.ktor.client.okhttp)
+    implementation(libs.ktor.client.content.negotiation)
+    implementation(libs.ktor.serialization.kotlinx.json)
+    implementation(libs.kotlinx.serialization.json)
+
+    implementation(libs.material.kolor)
 
     testImplementation(libs.junit)
 

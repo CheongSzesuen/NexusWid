@@ -23,6 +23,12 @@ sealed class Screen : NavKey {
 
         @Serializable
         object BuildInfo : Settings()
+
+        @Serializable
+        object GitHub : Settings()
+
+        @Serializable
+        object Widget : Settings()
     }
 }
 
