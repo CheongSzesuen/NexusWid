@@ -1,9 +1,12 @@
 package cn.waijade.nexuswid.ui.settingsScreen.screens
 
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
@@ -11,23 +14,28 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Clear
-import androidx.compose.material.icons.filled.Star
-import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.ButtonGroupDefaults
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.LargeFlexibleTopAppBar
+import androidx.compose.material3.ListItemDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SegmentedListItem
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.ToggleButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.runtime.Composable
@@ -39,12 +47,19 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.util.fastForEachIndexed
 import androidx.window.core.layout.WindowSizeClass.Companion.WIDTH_DP_EXPANDED_LOWER_BOUND
+import org.jetbrains.compose.resources.DrawableResource
+import org.jetbrains.compose.resources.StringResource
+import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import cn.waijade.nexuswid.ui.mergePaddingValues
-import cn.waijade.nexuswid.ui.settingsScreen.SettingsSwitchItem
 import cn.waijade.nexuswid.ui.theme.CustomColors.detailPaneTopBarColors
 import cn.waijade.nexuswid.ui.theme.CustomColors.listItemColors
 import cn.waijade.nexuswid.ui.theme.CustomColors.switchColors
@@ -58,8 +73,24 @@ import nexuswid.shared.generated.resources.appearance
 import nexuswid.shared.generated.resources.back
 import nexuswid.shared.generated.resources.black_theme
 import nexuswid.shared.generated.resources.black_theme_desc
+import nexuswid.shared.generated.resources.check
+import nexuswid.shared.generated.resources.clear
+import nexuswid.shared.generated.resources.color
+import nexuswid.shared.generated.resources.color_scheme
+import nexuswid.shared.generated.resources.colors
+import nexuswid.shared.generated.resources.contrast
+import nexuswid.shared.generated.resources.dark
+import nexuswid.shared.generated.resources.ic_brightness_auto
+import nexuswid.shared.generated.resources.dark_mode
+import nexuswid.shared.generated.resources.dynamic
+import nexuswid.shared.generated.resources.dynamic_color
+import nexuswid.shared.generated.resources.dynamic_color_desc
+import nexuswid.shared.generated.resources.light
+import nexuswid.shared.generated.resources.light_mode
+import nexuswid.shared.generated.resources.palette
 import nexuswid.shared.generated.resources.settings
 import nexuswid.shared.generated.resources.system_default
+import nexuswid.shared.generated.resources.theme
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -74,11 +105,21 @@ fun AppearanceSettings(
         .windowSizeClass
         .isWidthAtLeastBreakpoint(WIDTH_DP_EXPANDED_LOWER_BOUND)
 
+    var theme by remember { mutableStateOf("auto") }
+    var colorSchemeSeed by remember { mutableStateOf(Color(0xfffeb4a7)) }
+    var dynamicColor by remember { mutableStateOf(false) }
+    var blackThemeEnabled by remember { mutableStateOf(false) }
+
     val barColors = if (widthExpanded) detailPaneTopBarColors
     else topBarColors
 
-    var theme by remember { mutableStateOf("auto") }
-    var blackThemeEnabled by remember { mutableStateOf(false) }
+    val colorSchemes = remember {
+        listOf(
+            Color(0xfffeb4a7), Color(0xffffb3c0), Color(0xfffcaaff), Color(0xffb9c3ff),
+            Color(0xff62d3ff), Color(0xff44d9f1), Color(0xff52dbc9), Color(0xff78dd77),
+            Color(0xff9fd75c), Color(0xffc1d02d), Color(0xfffabd00), Color(0xffffb86e),
+        )
+    }
 
     Box(
         contentAlignment = Alignment.Center,
@@ -108,7 +149,7 @@ fun AppearanceSettings(
                                 )
                             ) {
                                 Icon(
-                                    Icons.Default.ArrowBack,
+                                    Icons.AutoMirrored.Filled.ArrowBack,
                                     stringResource(Res.string.back)
                                 )
                             }
@@ -130,49 +171,93 @@ fun AppearanceSettings(
                     .fillMaxSize()
                     .padding(horizontal = 16.dp)
             ) {
+                item { Spacer(Modifier.height(14.dp)) }
+
                 item {
-                    Spacer(Modifier.height(14.dp))
-                }
-                item {
+                    val themeMap = remember {
+                        mapOf(
+                            "auto" to Pair(
+                                Res.drawable.ic_brightness_auto,
+                                Res.string.system_default
+                            ),
+                            "light" to Pair(Res.drawable.light_mode, Res.string.light),
+                            "dark" to Pair(Res.drawable.dark_mode, Res.string.dark)
+                        )
+                    }
+
                     SegmentedListItem(
                         onClick = {},
                         leadingContent = {
-                            Icon(Icons.Default.Star, null)
+                            AnimatedContent(themeMap[theme]!!.first) {
+                                Icon(
+                                    painter = painterResource(it),
+                                    contentDescription = null,
+                                )
+                            }
                         },
-                        content = { Text(stringResource(Res.string.system_default)) },
-                        shapes = segmentedListItemShapes(0, 2),
-                        colors = listItemColors
+                        content = { Text(stringResource(Res.string.theme)) },
+                        supportingContent = {
+                            val options = themeMap.toList()
+
+                            Row(
+                                horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween),
+                                modifier = Modifier.padding(top = 8.dp)
+                            ) {
+                                options.fastForEachIndexed { index, entry ->
+                                    val isSelected = theme == entry.first
+                                    ToggleButton(
+                                        checked = isSelected,
+                                        onCheckedChange = { theme = entry.first },
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .semantics { role = Role.RadioButton },
+                                        shapes =
+                                            when (index) {
+                                                0 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
+                                                options.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes()
+                                                else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
+                                            },
+                                    ) {
+                                        Text(
+                                            stringResource(entry.second.second),
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis
+                                        )
+                                    }
+                                }
+                            }
+                        },
+                        colors = listItemColors,
+                        shapes = segmentedListItemShapes(0, 3)
                     )
                 }
+
                 item {
-                    val switchItem = SettingsSwitchItem(
-                        checked = blackThemeEnabled,
-                        icon = Icons.Default.Favorite,
-                        label = stringResource(Res.string.black_theme),
-                        description = stringResource(Res.string.black_theme_desc),
-                        onClick = { blackThemeEnabled = it }
-                    )
                     SegmentedListItem(
-                        onClick = { switchItem.onClick(!switchItem.checked) },
-                        leadingContent = {
-                            Icon(switchItem.icon, null)
+                        onClick = {
+                            dynamicColor = !dynamicColor
+                            if (!dynamicColor) colorSchemeSeed = colorSchemes.first()
                         },
-                        content = { Text(switchItem.label) },
-                        supportingContent = { Text(switchItem.description) },
+                        leadingContent = { Icon(painterResource(Res.drawable.colors), null) },
+                        content = { Text(stringResource(Res.string.dynamic_color)) },
+                        supportingContent = { Text(stringResource(Res.string.dynamic_color_desc)) },
                         trailingContent = {
                             Switch(
-                                checked = switchItem.checked,
-                                onCheckedChange = { switchItem.onClick(it) },
+                                checked = dynamicColor,
+                                onCheckedChange = {
+                                    dynamicColor = it
+                                    if (!it) colorSchemeSeed = colorSchemes.first()
+                                },
                                 thumbContent = {
-                                    if (switchItem.checked) {
+                                    if (dynamicColor) {
                                         Icon(
-                                            Icons.Default.Check,
+                                            painter = painterResource(Res.drawable.check),
                                             contentDescription = null,
                                             modifier = Modifier.size(SwitchDefaults.IconSize),
                                         )
                                     } else {
                                         Icon(
-                                            Icons.Default.Clear,
+                                            painter = painterResource(Res.drawable.clear),
                                             contentDescription = null,
                                             modifier = Modifier.size(SwitchDefaults.IconSize),
                                         )
@@ -182,8 +267,122 @@ fun AppearanceSettings(
                             )
                         },
                         colors = listItemColors,
-                        enabled = true,
-                        shapes = segmentedListItemShapes(1, 2)
+                        shapes = segmentedListItemShapes(1, 3)
+                    )
+                }
+
+                item {
+                    Box {
+                        SegmentedListItem(
+                            onClick = {},
+                            leadingContent = {
+                                Icon(
+                                    painter = painterResource(Res.drawable.palette),
+                                    contentDescription = null
+                                )
+                            },
+                            content = { Text(stringResource(Res.string.color_scheme)) },
+                            supportingContent = {
+                                Text(
+                                    if (dynamicColor) stringResource(Res.string.dynamic)
+                                    else stringResource(Res.string.color)
+                                )
+                            },
+                            colors = listItemColors,
+                            shapes = ListItemDefaults.segmentedShapes(
+                                1, 3,
+                                ListItemDefaults.shapes(
+                                    shape = MaterialTheme.shapes.extraSmall.copy(
+                                        bottomStart = CornerSize(0),
+                                        bottomEnd = CornerSize(0)
+                                    )
+                                )
+                            )
+                        )
+
+                        Box(
+                            Modifier
+                                .matchParentSize()
+                                .clickable(false) {}
+                        )
+                    }
+                }
+
+                item {
+                    LazyRow(
+                        contentPadding = PaddingValues(horizontal = 48.dp),
+                        modifier = Modifier
+                            .background(
+                                listItemColors.containerColor,
+                                shape = MaterialTheme.shapes.extraSmall.copy(
+                                    topStart = CornerSize(0),
+                                    topEnd = CornerSize(0)
+                                )
+                            )
+                            .padding(bottom = 8.dp)
+                    ) {
+                        items(colorSchemes) { color ->
+                            val isSelected = color == colorSchemeSeed
+                            IconButton(
+                                shapes = IconButtonDefaults.shapes(),
+                                colors = IconButtonDefaults.iconButtonColors(
+                                    containerColor = color,
+                                ),
+                                modifier = Modifier
+                                    .padding(4.dp)
+                                    .size(48.dp),
+                                onClick = {
+                                    colorSchemeSeed = color
+                                    dynamicColor = false
+                                }
+                            ) {
+                                AnimatedContent(isSelected) { selected ->
+                                    when (selected) {
+                                        true -> Icon(
+                                            painterResource(Res.drawable.check),
+                                            tint = Color.Black,
+                                            contentDescription = null
+                                        )
+                                        else -> Unit
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                item {
+                    SegmentedListItem(
+                        onClick = { blackThemeEnabled = !blackThemeEnabled },
+                        leadingContent = {
+                            Icon(painterResource(Res.drawable.contrast), null)
+                        },
+                        content = { Text(stringResource(Res.string.black_theme)) },
+                        supportingContent = { Text(stringResource(Res.string.black_theme_desc)) },
+                        trailingContent = {
+                            Switch(
+                                checked = blackThemeEnabled,
+                                onCheckedChange = { blackThemeEnabled = it },
+                                thumbContent = {
+                                    if (blackThemeEnabled) {
+                                        Icon(
+                                            painter = painterResource(Res.drawable.check),
+                                            contentDescription = null,
+                                            modifier = Modifier.size(SwitchDefaults.IconSize),
+                                        )
+                                    } else {
+                                        Icon(
+                                            painter = painterResource(Res.drawable.clear),
+                                            contentDescription = null,
+                                            modifier = Modifier.size(SwitchDefaults.IconSize),
+                                        )
+                                    }
+                                },
+                                colors = switchColors
+                            )
+                        },
+                        colors = listItemColors,
+                        shapes = segmentedListItemShapes(2, 3)
                     )
                 }
 

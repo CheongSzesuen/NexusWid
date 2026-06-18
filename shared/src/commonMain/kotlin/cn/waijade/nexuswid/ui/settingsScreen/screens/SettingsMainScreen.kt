@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
@@ -23,12 +22,15 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.sp
 import androidx.window.core.layout.WindowSizeClass.Companion.WIDTH_DP_EXPANDED_LOWER_BOUND
+import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import cn.waijade.nexuswid.settingsScreens
 import cn.waijade.nexuswid.ui.Screen
@@ -39,6 +41,8 @@ import cn.waijade.nexuswid.ui.theme.LocalAppFonts
 import cn.waijade.nexuswid.ui.theme.NexusShapeDefaults.segmentedListItemShapes
 import nexuswid.shared.generated.resources.Res
 import nexuswid.shared.generated.resources.about
+import nexuswid.shared.generated.resources.app_name
+import nexuswid.shared.generated.resources.arrow_forward_big
 import nexuswid.shared.generated.resources.settings
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
@@ -90,10 +94,19 @@ fun SettingsMainScreen(
             itemsIndexed(settingsScreens) { index, item ->
                 SegmentedListItem(
                     leadingContent = {
-                        Icon(item.icon, null)
+                        Icon(painterResource(item.icon), null)
+                    },
+                    supportingContent = {
+                        val innerStrings = item.innerSettings.map { stringResource(it) }
+                        val joinedText = remember(innerStrings) { innerStrings.joinToString(", ") }
+                        Text(
+                            joinedText,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
                     },
                     trailingContent = if (!widthExpanded) {
-                        { Icon(Icons.Default.ArrowForward, null) }
+                        { Icon(painterResource(Res.drawable.arrow_forward_big), null) }
                     } else null,
                     shapes = segmentedListItemShapes(index, settingsScreens.size),
                     colors = listItemColors,
@@ -111,8 +124,11 @@ fun SettingsMainScreen(
                     leadingContent = {
                         Icon(Icons.Default.Info, null)
                     },
+                    supportingContent = {
+                        Text(stringResource(Res.string.app_name) + " 0.0.1")
+                    },
                     trailingContent = if (!widthExpanded) {
-                        { Icon(Icons.Default.ArrowForward, null) }
+                        { Icon(painterResource(Res.drawable.arrow_forward_big), null) }
                     } else null,
                     selected = currentScreen == Screen.Settings.About,
                     shapes = segmentedListItemShapes(0, 1),

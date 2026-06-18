@@ -3,6 +3,7 @@ package cn.waijade.nexuswid.ui
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.navigation3.runtime.NavKey
 import kotlinx.serialization.Serializable
+import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.StringResource
 
 sealed class Screen : NavKey {
@@ -19,6 +20,9 @@ sealed class Screen : NavKey {
 
         @Serializable
         object Appearance : Settings()
+
+        @Serializable
+        object BuildInfo : Settings()
     }
 }
 
@@ -32,7 +36,7 @@ data class NavItem(
 
 data class SettingsNavItem(
     val route: Screen.Settings,
-    val icon: ImageVector,
+    val icon: DrawableResource,
     val label: StringResource,
     val innerSettings: List<StringResource>
 )

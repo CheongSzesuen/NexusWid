@@ -35,6 +35,7 @@ import androidx.compose.material3.FloatingToolbarDefaults.ScreenOffset
 import androidx.compose.material3.FloatingToolbarExitDirection
 import androidx.compose.material3.HorizontalFloatingToolbar
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme.colorScheme
 import androidx.compose.material3.MaterialTheme.motionScheme
 import androidx.compose.material3.PlainTooltip
 import androidx.compose.material3.Scaffold
@@ -137,7 +138,10 @@ fun AppScreen(
                     HorizontalFloatingToolbar(
                         expanded = true,
                         scrollBehavior = toolbarScrollBehavior,
-                        colors = FloatingToolbarDefaults.vibrantFloatingToolbarColors(),
+                        colors = FloatingToolbarDefaults.vibrantFloatingToolbarColors(
+                            toolbarContainerColor = colorScheme.primaryContainer,
+                            toolbarContentColor = colorScheme.onPrimaryContainer
+                        ),
                         modifier = Modifier
                             .padding(
                                 top = ScreenOffset,
@@ -166,7 +170,12 @@ fun AppScreen(
                                     } else {
                                         { item.onNavigateHome() }
                                     },
-                                    colors = ToggleButtonDefaults.toggleButtonColors(),
+                                    colors = ToggleButtonDefaults.toggleButtonColors(
+                                        containerColor = colorScheme.primaryContainer,
+                                        contentColor = colorScheme.onPrimaryContainer,
+                                        checkedContainerColor = colorScheme.primary,
+                                        checkedContentColor = colorScheme.onPrimary
+                                    ),
                                     shapes = ToggleButtonDefaults.shapes(
                                         CircleShape,
                                         CircleShape,

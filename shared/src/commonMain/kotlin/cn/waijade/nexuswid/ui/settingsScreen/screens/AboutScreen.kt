@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -15,8 +16,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
@@ -26,13 +26,13 @@ import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.LargeFlexibleTopAppBar
 import androidx.compose.material3.MaterialShapes
 import androidx.compose.material3.MaterialTheme.colorScheme
+import androidx.compose.material3.toShape
 import androidx.compose.material3.MaterialTheme.typography
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SegmentedListItem
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
-import androidx.compose.material3.toShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -41,12 +41,21 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.util.fastForEach
 import androidx.window.core.layout.WindowSizeClass.Companion.WIDTH_DP_EXPANDED_LOWER_BOUND
+import coil3.compose.AsyncImage
+import org.jetbrains.compose.resources.DrawableResource
+import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
+import cn.waijade.nexuswid.ui.Screen
 import cn.waijade.nexuswid.ui.mergePaddingValues
 import cn.waijade.nexuswid.ui.theme.CustomColors.detailPaneTopBarColors
 import cn.waijade.nexuswid.ui.theme.CustomColors.listItemColors
@@ -60,9 +69,16 @@ import cn.waijade.nexuswid.ui.theme.NexusTheme
 import nexuswid.shared.generated.resources.Res
 import nexuswid.shared.generated.resources.about
 import nexuswid.shared.generated.resources.app_name
+import nexuswid.shared.generated.resources.arrow_forward_big
 import nexuswid.shared.generated.resources.back
-import nexuswid.shared.generated.resources.developer
+import nexuswid.shared.generated.resources.gavel
+import nexuswid.shared.generated.resources.ic_afdian
+import nexuswid.shared.generated.resources.ic_bandbbs
+import nexuswid.shared.generated.resources.ic_github
+import nexuswid.shared.generated.resources.ic_globe
+import nexuswid.shared.generated.resources.ic_launcher_monochrome
 import nexuswid.shared.generated.resources.license
+import nexuswid.shared.generated.resources.more
 import nexuswid.shared.generated.resources.version
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
@@ -70,13 +86,24 @@ import nexuswid.shared.generated.resources.version
 fun AboutScreen(
     contentPadding: PaddingValues,
     onBack: () -> Unit,
+    onNavigate: (Screen.Settings) -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+    val uriHandler = LocalUriHandler.current
 
     val widthExpanded = currentWindowAdaptiveInfo()
         .windowSizeClass
         .isWidthAtLeastBreakpoint(WIDTH_DP_EXPANDED_LOWER_BOUND)
+
+    val socialLinks = remember {
+        listOf(
+            SocialLink(Res.drawable.ic_github, "https://github.com/CheongSzesuen", "GitHub"),
+            SocialLink(Res.drawable.ic_globe, "https://waijade.cn/", "个人网站"),
+            SocialLink(Res.drawable.ic_bandbbs, "https://www.bandbbs.cn/members/344224/", "米坛社区"),
+            SocialLink(Res.drawable.ic_afdian, "https://afdian.com/a/waijade", "爱发电"),
+        )
+    }
 
     var showLicense by rememberSaveable { mutableStateOf(false) }
 
@@ -111,7 +138,7 @@ fun AboutScreen(
                                 )
                             ) {
                                 Icon(
-                                    Icons.Default.ArrowBack,
+                                    Icons.AutoMirrored.Filled.ArrowBack,
                                     stringResource(Res.string.back)
                                 )
                             }
@@ -139,8 +166,11 @@ fun AboutScreen(
                             verticalAlignment = Alignment.CenterVertically,
                             modifier = Modifier.padding(16.dp)
                         ) {
-                            Spacer(
-                                Modifier
+                            Icon(
+                                painterResource(Res.drawable.ic_launcher_monochrome),
+                                tint = colorScheme.onPrimaryContainer,
+                                contentDescription = null,
+                                modifier = Modifier
                                     .size(64.dp)
                                     .background(
                                         colorScheme.primaryContainer,
@@ -156,10 +186,25 @@ fun AboutScreen(
                                     fontFamily = typography.bodyLarge.fontFamily
                                 )
                                 Text(
-                                    text = "0.0.1",
+                                    text = "0.0.1 (1)",
                                     style = typography.labelLarge,
                                     color = colorScheme.primary
                                 )
+                            }
+                            Spacer(Modifier.weight(1f))
+                            Row(horizontalArrangement = Arrangement.spacedBy(2.dp)) {
+                                FilledTonalIconButton(
+                                    onClick = {
+                                        uriHandler.openUri("https://github.com/CheongSzesuen/NexusWid")
+                                    },
+                                    shapes = IconButtonDefaults.shapes()
+                                ) {
+                                    Icon(
+                                        painterResource(Res.drawable.ic_github),
+                                        contentDescription = "GitHub",
+                                        modifier = Modifier.size(24.dp)
+                                    )
+                                }
                             }
                         }
                     }
@@ -168,28 +213,48 @@ fun AboutScreen(
                     Box(Modifier.background(listItemColors.containerColor, bottomListItemShape)) {
                         Column(modifier = Modifier.padding(16.dp)) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                Spacer(
-                                    Modifier
+                                AsyncImage(
+                                    model = "https://waijade.cn/avatar.png",
+                                    contentDescription = "WaiJade的头像",
+                                    modifier = Modifier
                                         .size(64.dp)
-                                        .background(
-                                            colorScheme.secondaryContainer,
-                                            MaterialShapes.Square.toShape()
-                                        )
-                                        .padding(8.dp)
+                                        .clip(CircleShape),
+                                    contentScale = ContentScale.Crop
                                 )
                                 Spacer(Modifier.width(16.dp))
                                 Column {
                                     Text(
-                                        "NexusWid Team",
+                                        "WaiJade",
                                         style = typography.titleLarge,
                                         color = colorScheme.onSurface,
+                                        fontFamily = typography.bodyLarge.fontFamily,
                                         fontWeight = FontWeight.Bold
                                     )
                                     Text(
-                                        stringResource(Res.string.developer),
+                                        "Developer",
                                         style = typography.labelLarge,
                                         color = colorScheme.secondary
                                     )
+                                }
+                                Spacer(Modifier.weight(1f))
+                            }
+                            Spacer(Modifier.height(8.dp))
+                            Row {
+                                Spacer(Modifier.width((64 + 16).dp))
+                                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                    socialLinks.fastForEach { link ->
+                                        FilledTonalIconButton(
+                                            onClick = { uriHandler.openUri(link.url) },
+                                            shapes = IconButtonDefaults.shapes(),
+                                            modifier = Modifier.width(52.dp)
+                                        ) {
+                                            Icon(
+                                                painterResource(link.icon),
+                                                link.description,
+                                                modifier = Modifier.size(ButtonDefaults.SmallIconSize)
+                                            )
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -198,16 +263,46 @@ fun AboutScreen(
                 item { Spacer(Modifier.height(12.dp)) }
 
                 item {
+                    Text(
+                        stringResource(Res.string.more),
+                        style = typography.labelLarge,
+                        color = colorScheme.primary,
+                        modifier = Modifier.padding(start = 16.dp, bottom = 4.dp)
+                    )
+                }
+
+                item {
                     SegmentedListItem(
-                        onClick = { showLicense = true },
-                        leadingContent = { Icon(Icons.Default.Info, null) },
-                        content = { Text(stringResource(Res.string.license)) },
-                        supportingContent = { Text("GNU General Public License Version 3") },
-                        selected = showLicense,
-                        shapes = segmentedListItemShapes(0, 1),
+                        onClick = { onNavigate(Screen.Settings.BuildInfo) },
+                        leadingContent = {
+                            Icon(
+                                painterResource(Res.drawable.ic_github),
+                                null,
+                                modifier = Modifier.size(ButtonDefaults.IconSize)
+                            )
+                        },
+                        content = { Text("构建信息") },
+                        supportingContent = { Text("版本详情、平台环境与依赖") },
+                        trailingContent = { Icon(painterResource(Res.drawable.arrow_forward_big), null) },
+                        selected = false,
+                        shapes = segmentedListItemShapes(0, 2),
                         colors = listItemColors
                     )
                 }
+
+                item {
+                    SegmentedListItem(
+                        onClick = { showLicense = true },
+                        leadingContent = { Icon(painterResource(Res.drawable.gavel), null) },
+                        content = { Text(stringResource(Res.string.license)) },
+                        supportingContent = { Text("GNU General Public License Version 3") },
+                        selected = showLicense,
+                        shapes = segmentedListItemShapes(1, 2),
+                        colors = listItemColors
+                    )
+                }
+
+                item { Spacer(Modifier.height(12.dp)) }
             }
         }
     }
@@ -216,6 +311,12 @@ fun AboutScreen(
         // TODO: LicenseBottomSheet
     }
 }
+
+private data class SocialLink(
+    val icon: DrawableResource,
+    val url: String,
+    val description: String
+)
 
 @Preview
 @Composable

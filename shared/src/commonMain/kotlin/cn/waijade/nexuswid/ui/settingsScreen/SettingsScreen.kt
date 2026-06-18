@@ -27,6 +27,7 @@ import cn.waijade.nexuswid.ui.Screen
 import cn.waijade.nexuswid.ui.calculatePaneScaffoldDirective
 import cn.waijade.nexuswid.ui.settingsScreen.screens.AboutScreen
 import cn.waijade.nexuswid.ui.settingsScreen.screens.AppearanceSettings
+import cn.waijade.nexuswid.ui.settingsScreen.screens.BuildInfoScreen
 import cn.waijade.nexuswid.ui.settingsScreen.screens.SettingsMainScreen
 import cn.waijade.nexuswid.ui.settingsScreen.viewModel.SettingsViewModel
 import cn.waijade.nexuswid.ui.theme.CustomColors.topBarColors
@@ -82,6 +83,16 @@ fun SettingsScreenRoot(
                 metadata = detailPane()
             ) {
                 AboutScreen(
+                    contentPadding = contentPadding,
+                    onBack = backStack::onBack,
+                    onNavigate = backStack::onTopLevelNavigate
+                )
+            }
+
+            entry<Screen.Settings.BuildInfo>(
+                metadata = detailPane()
+            ) {
+                BuildInfoScreen(
                     contentPadding = contentPadding,
                     onBack = backStack::onBack
                 )

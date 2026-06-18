@@ -22,4 +22,6 @@
     <string name="email">邮箱</string>
     <string name="version">版本</string>
     <string name="developer">开发者</string>
+    <string name="build_info">构建信息</string>
+    <string name="more">更多</string>
 </resources>

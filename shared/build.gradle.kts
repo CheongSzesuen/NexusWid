@@ -43,6 +43,7 @@ kotlin {
             implementation(libs.androidx.lifecycle.viewmodel.compose)
             implementation(libs.androidx.material3)
             implementation(libs.androidx.material.icons.core)
+            implementation(libs.androidx.material.icons.extended)
             implementation(libs.androidx.adaptive)
 
             implementation(libs.androidx.navigation3.runtime)
@@ -60,6 +61,8 @@ kotlin {
             implementation(libs.ktor.client.core)
             implementation(libs.ktor.client.content.negotiation)
             implementation(libs.ktor.serialization.kotlinx.json)
+
+            implementation(libs.coil.compose)
         }
 
         androidMain.dependencies {
@@ -72,6 +75,7 @@ kotlin {
             implementation(libs.koin.android)
 
             implementation(libs.ktor.client.okhttp)
+            implementation(libs.coil.network.okhttp)
         }
     }
 }
