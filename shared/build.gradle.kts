@@ -42,6 +42,7 @@ kotlin {
             implementation(libs.androidx.lifecycle.viewmodel)
             implementation(libs.androidx.lifecycle.viewmodel.compose)
             implementation(libs.androidx.material3)
+            implementation(libs.androidx.material.icons.core)
             implementation(libs.androidx.adaptive)
 
             implementation(libs.androidx.navigation3.runtime)

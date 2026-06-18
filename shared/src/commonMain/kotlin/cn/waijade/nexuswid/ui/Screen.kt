@@ -1,8 +1,8 @@
 package cn.waijade.nexuswid.ui
 
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.navigation3.runtime.NavKey
 import kotlinx.serialization.Serializable
-import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.StringResource
 
 sealed class Screen : NavKey {
@@ -10,13 +10,29 @@ sealed class Screen : NavKey {
     object Home : Screen()
 
     @Serializable
-    object Settings : Screen()
+    sealed class Settings : Screen() {
+        @Serializable
+        object Main : Settings()
+
+        @Serializable
+        object About : Settings()
+
+        @Serializable
+        object Appearance : Settings()
+    }
 }
 
 data class NavItem(
     val route: Screen,
-    val unselectedIcon: DrawableResource,
-    val selectedIcon: DrawableResource,
+    val unselectedIcon: ImageVector,
+    val selectedIcon: ImageVector,
     val label: StringResource,
     val onNavigateHome: () -> Unit
+)
+
+data class SettingsNavItem(
+    val route: Screen.Settings,
+    val icon: ImageVector,
+    val label: StringResource,
+    val innerSettings: List<StringResource>
 )
