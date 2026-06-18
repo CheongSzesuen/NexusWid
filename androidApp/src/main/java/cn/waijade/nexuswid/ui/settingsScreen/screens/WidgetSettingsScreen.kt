@@ -8,6 +8,7 @@ import android.content.Context
 import android.os.Build
 import android.widget.Toast
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.Arrangement
@@ -53,14 +54,23 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.StrokeJoin
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -78,6 +88,7 @@ import cn.waijade.nexuswid.ui.theme.NexusShapeDefaults.segmentedListItemShapes
 import cn.waijade.nexuswid.widget.ContributionHeatmapWidgetProvider
 import cn.waijade.nexuswid.widget.HeatmapGridCalculator
 import cn.waijade.nexuswid.widget.HeatmapWidgetDataStore
+import cn.waijade.nexuswid.widget.ReviewsRequestedWidgetProvider
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import nexuswid.shared.generated.resources.Res
@@ -97,6 +108,7 @@ import nexuswid.shared.generated.resources.week_start_day
 import nexuswid.shared.generated.resources.week_start_monday
 import nexuswid.shared.generated.resources.week_start_sunday
 import nexuswid.shared.generated.resources.widget_contribution
+import nexuswid.shared.generated.resources.widget_reviews_requested
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import kotlin.random.Random
@@ -315,6 +327,60 @@ fun WidgetSettingsScreen(
                 item {
                     SegmentedListItem(
                         onClick = {},
+                        content = { Text(stringResource(Res.string.widget_reviews_requested)) },
+                        supportingContent = {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(top = 8.dp)
+                            ) {
+                                ReviewsRequestedPreviewCard(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(160.dp)
+                                )
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Box(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    contentAlignment = Alignment.CenterEnd
+                                ) {
+                                    FilledTonalButton(
+                                        onClick = {
+                                            val message =
+                                                when (requestPinReviewsRequestedWidget(context)) {
+                                                    PinWidgetRequestResult.REQUESTED -> "请在系统弹窗中确认添加小组件"
+                                                    PinWidgetRequestResult.NOT_SUPPORTED -> "当前桌面不支持一键添加小组件"
+                                                    PinWidgetRequestResult.UNSUPPORTED_ANDROID -> "当前安卓版本不支持一键添加"
+                                                    PinWidgetRequestResult.FAILED -> "添加请求发送失败，请手动添加"
+                                                }
+                                            Toast.makeText(context, message, Toast.LENGTH_SHORT)
+                                                .show()
+                                        }
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Outlined.Add,
+                                            contentDescription = null,
+                                            modifier = Modifier.height(18.dp)
+                                        )
+                                        Spacer(modifier = Modifier.width(6.dp))
+                                        Text(stringResource(Res.string.add_to_home_screen))
+                                    }
+                                }
+                            }
+                        },
+                        leadingContent = {
+                            Icon(painterResource(Res.drawable.palette), null)
+                        },
+                        colors = listItemColors,
+                        shapes = segmentedListItemShapes(0, 1)
+                    )
+                }
+
+                item { Spacer(Modifier.height(12.dp)) }
+
+                item {
+                    SegmentedListItem(
+                        onClick = {},
                         leadingContent = {
                             AnimatedContent(currentColorModeIcon) {
                                 Icon(
@@ -420,6 +486,23 @@ private fun requestPinContributionHeatmapWidget(context: Context): PinWidgetRequ
         return PinWidgetRequestResult.NOT_SUPPORTED
     }
     val provider = ComponentName(context, ContributionHeatmapWidgetProvider::class.java)
+    return if (appWidgetManager.requestPinAppWidget(provider, null, null)) {
+        PinWidgetRequestResult.REQUESTED
+    } else {
+        PinWidgetRequestResult.FAILED
+    }
+}
+
+private fun requestPinReviewsRequestedWidget(context: Context): PinWidgetRequestResult {
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+        return PinWidgetRequestResult.UNSUPPORTED_ANDROID
+    }
+    val appWidgetManager = context.getSystemService(AppWidgetManager::class.java)
+        ?: return PinWidgetRequestResult.FAILED
+    if (!appWidgetManager.isRequestPinAppWidgetSupported) {
+        return PinWidgetRequestResult.NOT_SUPPORTED
+    }
+    val provider = ComponentName(context, ReviewsRequestedWidgetProvider::class.java)
     return if (appWidgetManager.requestPinAppWidget(provider, null, null)) {
         PinWidgetRequestResult.REQUESTED
     } else {
@@ -535,6 +618,59 @@ private fun HeatmapPreviewCard(
                         }
                     }
                 }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ReviewsRequestedPreviewCard(
+    modifier: Modifier = Modifier
+) {
+    Surface(
+        modifier = modifier,
+        shape = RoundedCornerShape(PREVIEW_CORNER_RADIUS_DP.dp),
+        color = Color.Black
+    ) {
+        BoxWithConstraints(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(20.dp)
+        ) {
+            val iconSize = 20.dp
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.Top,
+                horizontalAlignment = Alignment.Start
+            ) {
+                Icon(
+                    painter = painterResource(cn.waijade.nexuswid.R.drawable.ic_git_pull_request),
+                    contentDescription = null,
+                    tint = Color.White,
+                    modifier = Modifier
+                        .width(iconSize)
+                        .height(iconSize)
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(
+                    text = "3",
+                    color = Color.White,
+                    style = MaterialTheme.typography.displayLarge.copy(
+                        fontWeight = FontWeight.Bold,
+                        fontFamily = FontFamily.Monospace
+                    )
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = "Reviews",
+                    color = Color.White.copy(alpha = 0.7f),
+                    style = MaterialTheme.typography.bodySmall
+                )
+                Text(
+                    text = "Requested",
+                    color = Color.White.copy(alpha = 0.7f),
+                    style = MaterialTheme.typography.bodySmall
+                )
             }
         }
     }

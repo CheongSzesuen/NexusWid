@@ -2,6 +2,7 @@
 <resources>
     <string name="app_name">NexusWid</string>
     <string name="widget_contribution">贡献图</string>
+    <string name="widget_reviews_requested">Review 请求</string>
     <string name="github">GitHub</string>
     <string name="github_username">用户名</string>
     <string name="github_token">Token</string>

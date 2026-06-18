@@ -6,6 +6,9 @@ import io.ktor.client.request.header
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.isSuccess
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.int
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 
 class GitHubApiService(
     private val httpClient: HttpClient,
@@ -38,6 +41,32 @@ class GitHubApiService(
         println("GitHubApiService: parsed ${days.size} days")
         
         days
+    }
+
+    suspend fun getReviewRequestedCount(
+        token: String
+    ): Result<Int> = runCatching {
+        val url = "https://api.github.com/search/issues?q=is:pr+is:open+review-requested:@me&per_page=1"
+        println("GitHubApiService: fetching review requested count")
+
+        val response = httpClient.get(url) {
+            header("User-Agent", "NexusWid/1.0")
+            header("Authorization", "bearer $token")
+            header("Accept", "application/vnd.github+json")
+        }
+
+        println("GitHubApiService: review requested response status=${response.status}")
+
+        if (!response.status.isSuccess()) {
+            throw Exception("GitHub API error: ${response.status}")
+        }
+
+        val bodyText = response.bodyAsText()
+        val jsonElement = json.parseToJsonElement(bodyText)
+        val totalCount = jsonElement.jsonObject["total_count"]?.jsonPrimitive?.int ?: 0
+        println("GitHubApiService: review requested count=$totalCount")
+
+        totalCount
     }
 
     private fun parseContributionHtml(html: String): List<ContributionDay> {

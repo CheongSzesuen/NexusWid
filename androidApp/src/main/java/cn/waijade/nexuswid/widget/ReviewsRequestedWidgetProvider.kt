@@ -1,0 +1,213 @@
+package cn.waijade.nexuswid.widget
+
+import android.appwidget.AppWidgetManager
+import android.appwidget.AppWidgetProvider
+import android.content.ComponentName
+import android.content.Context
+import android.content.Intent
+import android.content.res.Configuration
+import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.Color
+import android.graphics.Paint
+import android.graphics.RectF
+import android.graphics.Typeface
+import android.graphics.drawable.Drawable
+import android.os.Build
+import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
+import android.util.Log
+import android.widget.RemoteViews
+import androidx.core.content.ContextCompat
+import cn.waijade.nexuswid.R
+import cn.waijade.nexuswid.data.github.GitHubApiService
+import cn.waijade.nexuswid.data.github.GitHubPreferences
+import io.ktor.client.HttpClient
+import io.ktor.client.engine.okhttp.OkHttp
+import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.serialization.kotlinx.json.json
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.json.Json
+import kotlin.math.roundToInt
+
+private const val TAG = "ReviewsRequestedWidget"
+private const val WIDGET_CORNER_RADIUS_DP = 36f
+private const val ROOT_PADDING_DP = 20f
+private const val MAX_BITMAP_EDGE_PX = 900f
+
+class ReviewsRequestedWidgetProvider : AppWidgetProvider() {
+
+    override fun onUpdate(
+        context: Context,
+        appWidgetManager: AppWidgetManager,
+        appWidgetIds: IntArray
+    ) {
+        Log.d(TAG, "onUpdate called with ${appWidgetIds.size} widgets")
+        appWidgetIds.forEach { appWidgetId ->
+            updateWidget(context, appWidgetManager, appWidgetId)
+        }
+    }
+
+    override fun onAppWidgetOptionsChanged(
+        context: Context,
+        appWidgetManager: AppWidgetManager,
+        appWidgetId: Int,
+        newOptions: Bundle
+    ) {
+        updateWidget(context, appWidgetManager, appWidgetId)
+    }
+
+    override fun onReceive(context: Context, intent: Intent) {
+        super.onReceive(context, intent)
+        when (intent.action) {
+            Intent.ACTION_CONFIGURATION_CHANGED -> updateAll(context)
+        }
+    }
+
+    companion object {
+
+        fun updateAll(context: Context) {
+            val appWidgetManager = AppWidgetManager.getInstance(context)
+            val componentName = ComponentName(context, ReviewsRequestedWidgetProvider::class.java)
+            val appWidgetIds = appWidgetManager.getAppWidgetIds(componentName)
+            appWidgetIds.forEach { appWidgetId ->
+                updateWidget(context, appWidgetManager, appWidgetId)
+            }
+        }
+
+        private fun fetchReviewRequestedCount(context: Context): Int {
+            val prefs = GitHubPreferences(context)
+            val token = prefs.token.takeIf { it.isNotBlank() } ?: return -1
+
+            return runBlocking(Dispatchers.IO) {
+                runCatching {
+                    val json = Json { ignoreUnknownKeys = true }
+                    val httpClient = HttpClient(OkHttp) {
+                        install(ContentNegotiation) {
+                            json(json)
+                        }
+                    }
+                    val apiService = GitHubApiService(httpClient, json)
+                    apiService.getReviewRequestedCount(token).getOrThrow()
+                }.getOrElse {
+                    Log.e(TAG, "fetchReviewRequestedCount: error", it)
+                    -1
+                }
+            }
+        }
+
+        private fun updateWidget(
+            context: Context,
+            appWidgetManager: AppWidgetManager,
+            appWidgetId: Int
+        ) {
+            val options = appWidgetManager.getAppWidgetOptions(appWidgetId)
+            val minWidth = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, 250)
+            val minHeight = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT, 250)
+            val maxWidth = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MAX_WIDTH, minWidth)
+            val maxHeight = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT, minHeight)
+
+            val widthDp = maxWidth.coerceAtLeast(250).toFloat()
+            val heightDp = maxHeight.coerceAtLeast(250).toFloat()
+
+            val count = fetchReviewRequestedCount(context)
+
+            val bitmap = renderWidgetBitmap(
+                context = context,
+                widthDp = widthDp,
+                heightDp = heightDp,
+                count = count
+            )
+
+            val remoteViews = RemoteViews(context.packageName, R.layout.widget_reviews_requested)
+            remoteViews.setImageViewBitmap(R.id.widget_reviews_image, bitmap)
+            appWidgetManager.updateAppWidget(appWidgetId, remoteViews)
+        }
+
+        private fun renderWidgetBitmap(
+            context: Context,
+            widthDp: Float,
+            heightDp: Float,
+            count: Int
+        ): Bitmap {
+            val rawDensity = context.resources.displayMetrics.density
+            val rawBitmapWidth = (widthDp * rawDensity).coerceAtLeast(1f)
+            val rawBitmapHeight = (heightDp * rawDensity).coerceAtLeast(1f)
+            val edgeScale = minOf(
+                1f,
+                MAX_BITMAP_EDGE_PX / rawBitmapWidth,
+                MAX_BITMAP_EDGE_PX / rawBitmapHeight
+            )
+            val density = rawDensity * edgeScale
+            val bitmapWidth = (widthDp * density).roundToInt().coerceAtLeast(1)
+            val bitmapHeight = (heightDp * density).roundToInt().coerceAtLeast(1)
+
+            val bitmap = Bitmap.createBitmap(bitmapWidth, bitmapHeight, Bitmap.Config.ARGB_8888)
+            val canvas = Canvas(bitmap)
+
+            val bgRadius = WIDGET_CORNER_RADIUS_DP * density
+            val padding = 18f * density
+
+            // Black background
+            val bgPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                color = Color.BLACK
+                style = Paint.Style.FILL
+            }
+            val bgRect = RectF(0f, 0f, bitmapWidth.toFloat(), bitmapHeight.toFloat())
+            canvas.drawRoundRect(bgRect, bgRadius, bgRadius, bgPaint)
+
+            val contentHeight = bitmapHeight - padding * 2
+            val contentWidth = bitmapWidth - padding * 2
+
+            // Icon - draw vector drawable
+            val iconSize = (contentHeight * 0.15f).coerceAtMost(contentWidth * 0.3f)
+            val iconX = padding
+            val iconY = padding
+            val iconDrawable = ContextCompat.getDrawable(context, R.drawable.ic_git_pull_request)
+            if (iconDrawable != null) {
+                val left = iconX.toInt()
+                val top = iconY.toInt()
+                iconDrawable.setBounds(left, top, left + iconSize.toInt(), top + iconSize.toInt())
+                iconDrawable.draw(canvas)
+            }
+
+            // Labels - tight together at bottom
+            val labelSize = (contentHeight * 0.16f).coerceAtMost(22f * density)
+            val labelPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                color = Color.argb(180, 255, 255, 255)
+                textSize = labelSize
+                typeface = Typeface.create(Typeface.DEFAULT, Typeface.NORMAL)
+                textAlign = Paint.Align.LEFT
+            }
+            val requestedY = bitmapHeight - padding - labelSize * 0.2f
+            val reviewsY = requestedY - labelSize * 1.3f
+
+            // Count number - vertically centered between icon bottom and labels top
+            val countText = if (count >= 0) count.toString() else "--"
+            val countTextSize = (contentHeight * 0.5f).coerceAtMost(contentWidth * 0.5f)
+            val countPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                color = Color.WHITE
+                textSize = countTextSize
+                typeface = Typeface.create(Typeface.MONOSPACE, Typeface.BOLD)
+                textAlign = Paint.Align.LEFT
+            }
+            // Compensate for monospace left side bearing
+            val textBounds = android.graphics.Rect()
+            countPaint.getTextBounds(countText, 0, countText.length, textBounds)
+            val countLeftX = padding - textBounds.left
+            // Center between icon bottom and labels top
+            val spaceTop = iconY + iconSize
+            val spaceBottom = reviewsY - labelSize * 0.3f
+            val spaceCenter = (spaceTop + spaceBottom) / 2f
+            val countY = spaceCenter + countTextSize * 0.35f
+            canvas.drawText(countText, countLeftX, countY, countPaint)
+
+            canvas.drawText("Requested", padding, requestedY, labelPaint)
+            canvas.drawText("Reviews", padding, reviewsY, labelPaint)
+
+            return bitmap
+        }
+    }
+}

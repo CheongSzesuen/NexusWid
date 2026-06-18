@@ -51,3 +51,8 @@ data class ContributionDay(
 data class GitHubError(
     val message: String
 )
+
+@Serializable
+data class ReviewRequestedSearchResult(
+    val total_count: Int
+)
