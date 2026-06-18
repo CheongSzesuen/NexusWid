@@ -19,6 +19,7 @@ koinCompilerPlugin = "0.3.0"
 coil = "3.1.0"
 materialKolor = "4.1.1"
 ktor = "3.1.0"
+kotlinxDatetime = "0.6.2"
 
 [libraries]
 androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }
@@ -68,6 +69,9 @@ ktor-serialization-kotlinx-json = { module = "io.ktor:ktor-serialization-kotlinx
 
 # Kotlinx Serialization
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version = "1.7.3" }
+
+# Kotlinx Datetime
+kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinxDatetime" }
 
 # Koin
 koin-bom = { module = "io.insert-koin:koin-bom", version.ref = "koinBom" }

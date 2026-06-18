@@ -65,6 +65,8 @@ kotlin {
             implementation(libs.coil.compose)
 
             implementation(libs.material.kolor)
+
+            implementation(libs.kotlinx.datetime)
         }
 
         androidMain.dependencies {

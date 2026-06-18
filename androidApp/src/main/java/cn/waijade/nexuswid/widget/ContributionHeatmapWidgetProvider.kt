@@ -24,6 +24,7 @@ import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.toArgb
 import cn.waijade.nexuswid.R
 import cn.waijade.nexuswid.data.HeatmapAccent
+import cn.waijade.nexuswid.data.HeatmapTheme
 import cn.waijade.nexuswid.data.github.GitHubPreferences
 import com.materialkolor.PaletteStyle
 import com.materialkolor.dynamicColorScheme
@@ -144,7 +145,11 @@ class ContributionHeatmapWidgetProvider : AppWidgetProvider() {
                 heightDp = heatmapAreaHeightDp,
                 columns = columns
             ) * CELL_SIZE_SCALE
-            val allLevels = HeatmapWidgetDataStore(context).getGrid(HeatmapGridCalculator.MAX_COLS)
+            val widgetPrefs = GitHubPreferences(context)
+            val allLevels = HeatmapWidgetDataStore(context).getGrid(
+                columns = HeatmapGridCalculator.MAX_COLS,
+                weekStartsOnMonday = widgetPrefs.weekStartsOnMonday
+            )
             val prefs = GitHubPreferences(context)
             val palette = buildPalette(
                 isDark = isDarkMode(context),
@@ -514,6 +519,11 @@ class ContributionHeatmapWidgetProvider : AppWidgetProvider() {
             accent: HeatmapAccent,
             context: Context
         ): IntArray {
+            if (accent == HeatmapAccent.GITHUB) {
+                val theme = HeatmapTheme.resolveCurrentTheme()
+                return theme.toIntArray()
+            }
+
             val empty = if (isDark) Color(0xFF2D3129) else Color(0xFFE0E4D8)
             val active = when (accent) {
                 HeatmapAccent.GITHUB -> if (isDark) Color(0xFF39D353) else Color(0xFF216E39)
