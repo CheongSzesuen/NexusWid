@@ -8,3 +8,15 @@ plugins {
     alias(libs.plugins.kotlin.multiplatform) apply false
     alias(libs.plugins.koin.compiler) apply false
 }
+
+buildscript {
+    configurations.classpath.configure {
+        resolutionStrategy {
+            eachDependency {
+                if (requested.group == "org.jetbrains" && requested.name == "annotations") {
+                    useVersion("23.0.0")
+                }
+            }
+        }
+    }
+}

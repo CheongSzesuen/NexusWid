@@ -19,7 +19,7 @@ kotlin {
 
     android {
         namespace = "cn.waijade.nexuswid.shared"
-        compileSdk = 36
+        compileSdk = 37
         minSdk = 26
 
         compilerOptions {
@@ -66,6 +66,7 @@ kotlin {
 
             implementation(libs.androidx.activity.compose)
             implementation(libs.androidx.core.ktx)
+            implementation(libs.androidx.lifecycle.runtime.ktx)
 
             implementation(libs.koin.android)
 
