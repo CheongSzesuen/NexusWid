@@ -75,7 +75,7 @@ import nexuswid.shared.generated.resources.ic_afdian
 import nexuswid.shared.generated.resources.ic_bandbbs
 import nexuswid.shared.generated.resources.ic_github
 import nexuswid.shared.generated.resources.ic_globe
-import nexuswid.shared.generated.resources.ic_launcher_foreground
+import nexuswid.shared.generated.resources.ic_launcher_about
 import nexuswid.shared.generated.resources.license
 import nexuswid.shared.generated.resources.more
 import nexuswid.shared.generated.resources.version
@@ -157,7 +157,7 @@ fun AboutScreen(
                             modifier = Modifier.padding(16.dp)
                         ) {
                             Icon(
-                                painterResource(Res.drawable.ic_launcher_foreground),
+                                painterResource(Res.drawable.ic_launcher_about),
                                 tint = androidx.compose.ui.graphics.Color.Unspecified,
                                 contentDescription = null,
                                 modifier = Modifier
