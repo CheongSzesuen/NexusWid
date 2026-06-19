@@ -75,6 +75,12 @@ class GitHubPreferences(context: Context) : WidgetPreferences {
             prefs.edit().putInt(KEY_DEBUG_COUNT_VALUE, value).commit()
         }
 
+    var debugUseTestData: Boolean
+        get() = prefs.getBoolean(KEY_DEBUG_USE_TEST_DATA, false)
+        set(value) {
+            prefs.edit().putBoolean(KEY_DEBUG_USE_TEST_DATA, value).commit()
+        }
+
     companion object {
         private const val PREFS_NAME = "github_preferences"
         private const val KEY_USERNAME = "github_username"
@@ -85,6 +91,7 @@ class GitHubPreferences(context: Context) : WidgetPreferences {
         private const val KEY_PULL_REQUEST_TYPES = "pull_request_types"
         private const val KEY_DEBUG_COUNT_TEXT_SCALE = "debug_count_text_scale"
         private const val KEY_DEBUG_COUNT_VALUE = "debug_count_value"
+        private const val KEY_DEBUG_USE_TEST_DATA = "debug_use_test_data"
         private const val DEFAULT_WIDGET_HEATMAP_COLOR_MODE = "SYSTEM"
         private val DEFAULT_PULL_REQUEST_TYPES = setOf(
             PullRequestType.REVIEW_REQUESTED.name

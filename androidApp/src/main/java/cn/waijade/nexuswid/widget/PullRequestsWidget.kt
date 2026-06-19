@@ -75,9 +75,24 @@ class PullRequestsWidget : GlanceAppWidget() {
 
     private suspend fun loadData(context: Context): PullRequestsData {
         val prefs = GitHubPreferences(context)
-        val token = prefs.token.takeIf { it.isNotBlank() }
-            ?: return PullRequestsData(count = -1, items = emptyList(), types = prefs.selectedPullRequestTypes)
         val types = prefs.selectedPullRequestTypes
+
+        if (prefs.debugUseTestData) {
+            return PullRequestsData(
+                count = 5,
+                items = listOf(
+                    PullRequestItem("github/docs", 4287, "Fix broken links in API reference", "", "", CheckStatus.SUCCESS),
+                    PullRequestItem("kubernetes/kubernetes", 131204, "Update node autoscaler config", "", "", CheckStatus.FAILURE),
+                    PullRequestItem("jetbrains/compose-multiplatform", 5392, "Add support for Material3 dynamic colors", "", "", CheckStatus.PENDING),
+                    PullRequestItem("google/accompanist", 1891, "Update SwipeRefresh to use Material3 pull-to-refresh", "", "", CheckStatus.NONE),
+                    PullRequestItem("square/okhttp", 8234, "Fix connection pool leak on timeout", "", "", CheckStatus.SUCCESS)
+                ),
+                types = types
+            )
+        }
+
+        val token = prefs.token.takeIf { it.isNotBlank() }
+            ?: return PullRequestsData(count = -1, items = emptyList(), types = types)
 
         val json = Json { ignoreUnknownKeys = true }
         val httpClient = HttpClient(OkHttp) {
@@ -206,11 +221,10 @@ private fun PullRequestRow(pr: PullRequestItem) {
         modifier = GlanceModifier
             .fillMaxWidth()
             .wrapContentHeight()
-            .padding(vertical = 6.dp)
+            .padding(vertical = 4.dp)
             .clickable(actionStartActivity(openIntent))
     ) {
         Row(
-            modifier = GlanceModifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
@@ -219,18 +233,17 @@ private fun PullRequestRow(pr: PullRequestItem) {
                     color = ColorProvider(ComposeColor(0xFF8B949E)),
                     fontSize = 11.sp
                 ),
-                maxLines = 1,
-                modifier = GlanceModifier.defaultWeight()
+                maxLines = 1
             )
-            Spacer(GlanceModifier.width(6.dp))
+            Spacer(GlanceModifier.width(4.dp))
             CheckStatusIcon(pr.checkStatus)
         }
-        Spacer(GlanceModifier.height(2.dp))
+        Spacer(GlanceModifier.height(1.dp))
         Text(
             text = pr.title,
             style = TextStyle(
                 color = ColorProvider(ComposeColor.White),
-                fontSize = 13.sp,
+                fontSize = 12.sp,
                 fontWeight = FontWeight.Medium
             ),
             maxLines = 1

@@ -26,6 +26,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SegmentedListItem
 import androidx.compose.material3.Slider
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
@@ -168,6 +169,40 @@ fun DebugSettingsScreen(
                 }
 
                 item { Spacer(Modifier.height(12.dp)) }
+
+                item {
+                    var useTestData by remember { mutableStateOf(githubPreferences.debugUseTestData) }
+                    SegmentedListItem(
+                        onClick = {
+                            useTestData = !useTestData
+                            githubPreferences.debugUseTestData = useTestData
+                            // 触发小组件更新
+                            val intent = Intent(AppWidgetManager.ACTION_APPWIDGET_UPDATE).apply {
+                                val componentName = ComponentName(context.packageName, "cn.waijade.nexuswid.widget.PullRequestsWidgetReceiver")
+                                val appWidgetManager = AppWidgetManager.getInstance(context)
+                                val appWidgetIds = appWidgetManager.getAppWidgetIds(componentName)
+                                putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, appWidgetIds)
+                            }
+                            context.sendBroadcast(intent)
+                        },
+                        content = { Text("PR列表使用测试数据") },
+                        supportingContent = {
+                            Text(
+                                text = "开启后PR列表小组件将显示预置的测试数据",
+                                style = MaterialTheme.typography.bodySmall,
+                                modifier = Modifier.padding(top = 4.dp)
+                            )
+                        },
+                        trailingContent = {
+                            Switch(
+                                checked = useTestData,
+                                onCheckedChange = null
+                            )
+                        },
+                        colors = listItemColors,
+                        shapes = segmentedListItemShapes(0, 0)
+                    )
+                }
             }
         }
     }
