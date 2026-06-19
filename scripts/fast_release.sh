@@ -11,7 +11,7 @@ if [[ ! -x "$GRADLEW" ]]; then
     exit 1
 fi
 
-APK_PATH="$ROOT_DIR/androidApp/build/outputs/apk/release/app-release.apk"
+APK_PATH="$ROOT_DIR/androidApp/build/outputs/apk/release/nexuswid-release.apk"
 BUILD_MODE="release_incremental"
 BUILD_MODE_LABEL="增量 Release"
 BUILD_TASK=":androidApp:assembleRelease"
@@ -46,7 +46,7 @@ if ! "$GRADLEW" "$BUILD_TASK" -x lint --configure-on-demand --parallel --daemon;
     "$GRADLEW" "$BUILD_TASK"
 fi
 
-rename_apk_common "$APK_PATH" "release"
+rename_apk_common "$APK_PATH" "androidApp-release.apk"
 
 if [[ -f "$APK_PATH" ]]; then
     APK_SIZE_H="$(du -h "$APK_PATH" | cut -f1)"
@@ -67,7 +67,7 @@ fi
 
 # 启动 HTTP 服务暴露 APK
 if start_apk_server_common "$APK_PATH"; then
-    log_info "下载地址: https://apk.waijade.cn/app-release.apk?t=$(date +%s)"
+    log_info "下载地址: https://apk.waijade.cn/nexuswid-release.apk"
 else
     log_warn "APK 服务启动失败，跳过本地分发"
 fi
