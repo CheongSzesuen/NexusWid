@@ -232,8 +232,9 @@ class ReviewsRequestedWidgetProvider : AppWidgetProvider() {
 
         private fun formatCount(count: Int): String {
             return when {
-                count >= 10000 -> "${count / 10000}w+"
-                count >= 1000 -> "${count / 1000}k+"
+                count >= 1_000_000 -> "${count / 1_000_000}M+"
+                count >= 10_000 -> "${count / 1_000}k+"
+                count >= 1_000 -> "${"%.1f".format(count / 1000.0)}k+"
                 else -> count.toString()
             }
         }

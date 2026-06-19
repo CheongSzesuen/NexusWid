@@ -463,7 +463,7 @@ fun WidgetSettingsScreen(
                                 }
                                 Spacer(modifier = Modifier.height(4.dp))
                                 Text(
-                                    text = "数字缩略: 1k+ = 1000+, 1w+ = 10000+",
+                                    text = "数字缩略: 1.2k = 1200, 10k = 10000, 1M = 1000000",
                                     style = MaterialTheme.typography.labelSmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     modifier = Modifier.fillMaxWidth(),
