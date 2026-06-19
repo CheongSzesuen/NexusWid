@@ -30,6 +30,7 @@ import cn.waijade.nexuswid.ui.calculatePaneScaffoldDirective
 import cn.waijade.nexuswid.ui.settingsScreen.screens.AboutScreen
 import cn.waijade.nexuswid.ui.settingsScreen.screens.AppearanceSettings
 import cn.waijade.nexuswid.ui.settingsScreen.screens.BuildInfoScreen
+import cn.waijade.nexuswid.ui.settingsScreen.screens.DebugSettingsScreen
 import cn.waijade.nexuswid.ui.settingsScreen.screens.GitHubSettingsScreen
 import cn.waijade.nexuswid.ui.settingsScreen.screens.SettingsMainScreen
 import cn.waijade.nexuswid.ui.settingsScreen.screens.WidgetSettingsScreen
@@ -39,6 +40,8 @@ import cn.waijade.nexuswid.ui.theme.CustomColors.topBarColors
 import cn.waijade.nexuswid.ui.utils.onBack
 import cn.waijade.nexuswid.ui.utils.onTopLevelNavigate
 import cn.waijade.nexuswid.widget.ContributionHeatmapWidgetProvider
+import org.koin.compose.koinInject
+import cn.waijade.nexuswid.di.AppInfo
 
 @OptIn(
     ExperimentalMaterial3Api::class, ExperimentalMaterial3AdaptiveApi::class,
@@ -48,7 +51,8 @@ import cn.waijade.nexuswid.widget.ContributionHeatmapWidgetProvider
 fun SettingsScreenRoot(
     contentPadding: PaddingValues,
     modifier: Modifier = Modifier,
-    settingsViewModel: SettingsViewModel
+    settingsViewModel: SettingsViewModel,
+    appInfo: AppInfo = koinInject()
 ) {
     val backStack = settingsViewModel.backStack
     val settingsState by settingsViewModel.settingsState.collectAsStateWithLifecycle()
@@ -83,6 +87,7 @@ fun SettingsScreenRoot(
                     contentPadding = contentPadding,
                     currentScreen = backStack.last(),
                     onNavigate = backStack::onTopLevelNavigate,
+                    isDebug = appInfo.debug,
                     modifier = modifier,
                 )
             }
@@ -148,6 +153,16 @@ fun SettingsScreenRoot(
                     onPullRequestTypesChange = { types ->
                         settingsViewModel.onAction(SettingsAction.SavePullRequestTypes(types))
                     },
+                    modifier = modifier,
+                )
+            }
+
+            entry<Screen.Settings.Debug>(
+                metadata = detailPane()
+            ) {
+                DebugSettingsScreen(
+                    contentPadding = contentPadding,
+                    onBack = backStack::onBack,
                     modifier = modifier,
                 )
             }

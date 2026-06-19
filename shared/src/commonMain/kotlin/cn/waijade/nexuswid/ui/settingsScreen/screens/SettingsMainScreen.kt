@@ -52,6 +52,7 @@ fun SettingsMainScreen(
     contentPadding: PaddingValues,
     currentScreen: Screen.Settings,
     onNavigate: (Screen.Settings) -> Unit,
+    isDebug: Boolean,
     modifier: Modifier = Modifier,
 ) {
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
@@ -164,8 +165,33 @@ fun SettingsMainScreen(
                     onClick = { onNavigate(Screen.Settings.About) }
                 ) { Text(stringResource(Res.string.about)) }
             }
+            item {
+                Spacer(Modifier.height(12.dp))
+            }
 
-            item { Spacer(Modifier.height(12.dp)) }
+            if (isDebug) {
+                item {
+                    SegmentedListItem(
+                        leadingContent = {
+                            Icon(Icons.Default.Info, null)
+                        },
+                        supportingContent = {
+                            Text("调试工具")
+                        },
+                        trailingContent = if (!widthExpanded) {
+                            { Icon(painterResource(Res.drawable.arrow_forward_big), null) }
+                        } else null,
+                        selected = currentScreen == Screen.Settings.Debug,
+                        shapes = segmentedListItemShapes(0, 1),
+                        colors = listItemColors,
+                        onClick = { onNavigate(Screen.Settings.Debug) }
+                    ) { Text("Debug") }
+                }
+
+                item {
+                    Spacer(Modifier.height(12.dp))
+                }
+            }
         }
     }
 }

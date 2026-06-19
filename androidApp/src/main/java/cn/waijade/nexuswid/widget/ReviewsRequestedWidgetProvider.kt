@@ -119,13 +119,18 @@ class ReviewsRequestedWidgetProvider : AppWidgetProvider() {
             val widthDp = maxWidth.coerceAtLeast(250).toFloat()
             val heightDp = maxHeight.coerceAtLeast(250).toFloat()
 
-            val count = fetchReviewRequestedCount(context)
+            val actualCount = fetchReviewRequestedCount(context)
+            val prefs = GitHubPreferences(context)
+            val countTextScale = prefs.debugCountTextScale
+            val debugCountValue = prefs.debugCountValue
+            val count = if (debugCountValue >= 0) debugCountValue else actualCount
 
             val bitmap = renderWidgetBitmap(
                 context = context,
                 widthDp = widthDp,
                 heightDp = heightDp,
-                count = count
+                count = count,
+                countTextScale = countTextScale
             )
 
             val remoteViews = RemoteViews(context.packageName, R.layout.widget_reviews_requested)
@@ -150,7 +155,8 @@ class ReviewsRequestedWidgetProvider : AppWidgetProvider() {
             context: Context,
             widthDp: Float,
             heightDp: Float,
-            count: Int
+            count: Int,
+            countTextScale: Float = 1.0f
         ): Bitmap {
             val rawDensity = context.resources.displayMetrics.density
             val rawBitmapWidth = (widthDp * rawDensity).coerceAtLeast(1f)
@@ -206,13 +212,27 @@ class ReviewsRequestedWidgetProvider : AppWidgetProvider() {
 
             // Count number - vertically centered between icon bottom and labels top
             val countText = if (count >= 0) formatCount(count) else "_"
-            val countTextSize = (contentHeight * 0.5f).coerceAtMost(contentWidth * 0.5f)
+            val availableWidth = contentWidth - padding * 2
+            val maxCountTextSize = (contentHeight * 0.5f).coerceAtMost(availableWidth * 0.6f) * countTextScale
+            
+            // 动态调整字体大小以适应可用宽度
             val countPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
                 color = Color.WHITE
-                textSize = countTextSize
                 typeface = Typeface.create(Typeface.MONOSPACE, Typeface.BOLD)
                 textAlign = Paint.Align.LEFT
             }
+            
+            var countTextSize = maxCountTextSize
+            countPaint.textSize = countTextSize
+            var textWidth = countPaint.measureText(countText)
+            
+            // 如果文本宽度超过可用宽度，逐步缩小字体
+            while (textWidth > availableWidth && countTextSize > 8f * density) {
+                countTextSize *= 0.95f
+                countPaint.textSize = countTextSize
+                textWidth = countPaint.measureText(countText)
+            }
+            
             // Compensate for monospace left side bearing
             val textBounds = android.graphics.Rect()
             countPaint.getTextBounds(countText, 0, countText.length, textBounds)
@@ -233,8 +253,7 @@ class ReviewsRequestedWidgetProvider : AppWidgetProvider() {
         private fun formatCount(count: Int): String {
             return when {
                 count >= 1_000_000 -> "${count / 1_000_000}M+"
-                count >= 10_000 -> "${count / 1_000}k+"
-                count >= 1_000 -> "${"%.1f".format(count / 1000.0)}k+"
+                count >= 1_000 -> "${count / 1_000}k+"
                 else -> count.toString()
             }
         }

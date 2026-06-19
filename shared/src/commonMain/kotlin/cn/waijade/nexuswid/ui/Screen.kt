@@ -29,6 +29,9 @@ sealed class Screen : NavKey {
 
         @Serializable
         object Widget : Settings()
+
+        @Serializable
+        object Debug : Settings()
     }
 }
 

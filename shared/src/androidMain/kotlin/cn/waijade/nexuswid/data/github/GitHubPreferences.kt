@@ -63,6 +63,18 @@ class GitHubPreferences(context: Context) : WidgetPreferences {
             prefs.edit().putBoolean(KEY_LIQUID_GLASS_BOTTOM_BAR, value).commit()
         }
 
+    var debugCountTextScale: Float
+        get() = prefs.getFloat(KEY_DEBUG_COUNT_TEXT_SCALE, 1.0f)
+        set(value) {
+            prefs.edit().putFloat(KEY_DEBUG_COUNT_TEXT_SCALE, value).commit()
+        }
+
+    var debugCountValue: Int
+        get() = prefs.getInt(KEY_DEBUG_COUNT_VALUE, -1)
+        set(value) {
+            prefs.edit().putInt(KEY_DEBUG_COUNT_VALUE, value).commit()
+        }
+
     companion object {
         private const val PREFS_NAME = "github_preferences"
         private const val KEY_USERNAME = "github_username"
@@ -71,6 +83,8 @@ class GitHubPreferences(context: Context) : WidgetPreferences {
         private const val KEY_WIDGET_HEATMAP_COLOR_MODE = "widget_heatmap_color_mode"
         private const val KEY_LIQUID_GLASS_BOTTOM_BAR = "liquid_glass_bottom_bar"
         private const val KEY_PULL_REQUEST_TYPES = "pull_request_types"
+        private const val KEY_DEBUG_COUNT_TEXT_SCALE = "debug_count_text_scale"
+        private const val KEY_DEBUG_COUNT_VALUE = "debug_count_value"
         private const val DEFAULT_WIDGET_HEATMAP_COLOR_MODE = "SYSTEM"
         private val DEFAULT_PULL_REQUEST_TYPES = setOf(
             PullRequestType.REVIEW_REQUESTED.name
