@@ -24,6 +24,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
@@ -459,6 +460,39 @@ fun WidgetSettingsScreen(
                                         ReviewsRequestedPreviewCard(
                                             modifier = Modifier.fillMaxSize()
                                         )
+                                        // 添加到桌面按钮 - 右下角
+                                        Box(
+                                            modifier = Modifier
+                                                .fillMaxSize()
+                                                .padding(8.dp),
+                                            contentAlignment = Alignment.BottomEnd
+                                        ) {
+                                            FilledTonalIconButton(
+                                                onClick = {
+                                                    val message =
+                                                        when (requestPinReviewsRequestedWidget(context)) {
+                                                            PinWidgetRequestResult.REQUESTED -> "请在系统弹窗中确认添加小组件"
+                                                            PinWidgetRequestResult.NOT_SUPPORTED -> "当前桌面不支持一键添加小组件"
+                                                            PinWidgetRequestResult.UNSUPPORTED_ANDROID -> "当前安卓版本不支持一键添加"
+                                                            PinWidgetRequestResult.FAILED -> "添加请求发送失败，请手动添加"
+                                                        }
+                                                    Toast.makeText(context, message, Toast.LENGTH_SHORT)
+                                                        .show()
+                                                },
+                                                modifier = Modifier.size(32.dp),
+                                                shapes = IconButtonDefaults.shapes(),
+                                                colors = IconButtonDefaults.filledTonalIconButtonColors(
+                                                    containerColor = Color.Black.copy(alpha = 0.6f),
+                                                    contentColor = Color.White
+                                                )
+                                            ) {
+                                                Icon(
+                                                    imageVector = Icons.Outlined.Add,
+                                                    contentDescription = null,
+                                                    modifier = Modifier.size(18.dp)
+                                                )
+                                            }
+                                        }
                                     }
                                 }
                                 Spacer(modifier = Modifier.height(4.dp))
@@ -469,59 +503,51 @@ fun WidgetSettingsScreen(
                                     modifier = Modifier.fillMaxWidth(),
                                     textAlign = TextAlign.Center
                                 )
-                                Spacer(modifier = Modifier.height(8.dp))
-                                Text(
-                                    text = "包含的 PR 类型",
-                                    style = MaterialTheme.typography.labelMedium,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    modifier = Modifier.padding(bottom = 4.dp)
-                                )
-                                FlowRow(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                    verticalArrangement = Arrangement.spacedBy(4.dp)
-                                ) {
-                                    PullRequestType.entries.forEach { type ->
-                                        val isSelected = selectedPullRequestTypes.contains(type)
-                                        FilterChip(
-                                            selected = isSelected,
-                                            onClick = {
-                                                val newTypes = if (isSelected) {
-                                                    selectedPullRequestTypes - type
-                                                } else {
-                                                    selectedPullRequestTypes + type
-                                                }
-                                                onPullRequestTypesChange(newTypes)
-                                            },
-                                            label = { Text(type.displayName) }
-                                        )
-                                    }
-                                }
-                                Spacer(modifier = Modifier.height(8.dp))
-                                Box(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    contentAlignment = Alignment.CenterEnd
-                                ) {
-                                    FilledTonalButton(
-                                        onClick = {
-                                            val message =
-                                                when (requestPinReviewsRequestedWidget(context)) {
-                                                    PinWidgetRequestResult.REQUESTED -> "请在系统弹窗中确认添加小组件"
-                                                    PinWidgetRequestResult.NOT_SUPPORTED -> "当前桌面不支持一键添加小组件"
-                                                    PinWidgetRequestResult.UNSUPPORTED_ANDROID -> "当前安卓版本不支持一键添加"
-                                                    PinWidgetRequestResult.FAILED -> "添加请求发送失败，请手动添加"
-                                                }
-                                            Toast.makeText(context, message, Toast.LENGTH_SHORT)
-                                                .show()
+                            }
+                        },
+                        leadingContent = {
+                            Icon(painterResource(Res.drawable.palette), null)
+                        },
+                        colors = listItemColors,
+                        shapes = segmentedListItemShapes(0, 1)
+                    )
+                }
+
+                item {
+                    SegmentedListItem(
+                        onClick = {},
+                        content = { Text("包含的 PR 类型") },
+                        supportingContent = {
+                            Row(
+                                horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween),
+                                modifier = Modifier.padding(top = 8.dp)
+                            ) {
+                                PullRequestType.entries.fastForEachIndexed { index, type ->
+                                    val isSelected = selectedPullRequestTypes.contains(type)
+                                    ToggleButton(
+                                        checked = isSelected,
+                                        onCheckedChange = {
+                                            val newTypes = if (isSelected) {
+                                                selectedPullRequestTypes - type
+                                            } else {
+                                                selectedPullRequestTypes + type
+                                            }
+                                            onPullRequestTypesChange(newTypes)
+                                        },
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .semantics { role = Role.RadioButton },
+                                        shapes = when (index) {
+                                            0 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
+                                            PullRequestType.entries.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes()
+                                            else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
                                         }
                                     ) {
-                                        Icon(
-                                            imageVector = Icons.Outlined.Add,
-                                            contentDescription = null,
-                                            modifier = Modifier.height(18.dp)
+                                        Text(
+                                            type.displayName,
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis
                                         )
-                                        Spacer(modifier = Modifier.width(6.dp))
-                                        Text(stringResource(Res.string.add_to_home_screen))
                                     }
                                 }
                             }
@@ -530,11 +556,9 @@ fun WidgetSettingsScreen(
                             Icon(painterResource(Res.drawable.palette), null)
                         },
                         colors = listItemColors,
-                        shapes = segmentedListItemShapes(0, 0)
+                        shapes = segmentedListItemShapes(1, 1)
                     )
                 }
-
-                item { Spacer(Modifier.height(12.dp)) }
             }
         }
     }
