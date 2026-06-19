@@ -11,7 +11,7 @@ if [[ ! -x "$GRADLEW" ]]; then
     exit 1
 fi
 
-APK_PATH="$ROOT_DIR/androidApp/build/outputs/apk/release/androidApp-release.apk"
+APK_PATH="$ROOT_DIR/androidApp/build/outputs/apk/release/app-release.apk"
 BUILD_MODE="release_clean"
 BUILD_MODE_LABEL="清缓存 Release"
 BUILD_TASKS=(clean :androidApp:assembleRelease)
@@ -58,6 +58,8 @@ log_info "构建模式: ${BUILD_MODE_LABEL} (${BUILD_MODE})"
 log_info "Gradle任务: ${BUILD_TASKS[*]}"
 "$GRADLEW" "${BUILD_TASKS[@]}" "$@"
 
+rename_apk_common "$APK_PATH" "release"
+
 log_info "构建产物"
 print_artifact_size "$APK_PATH" "APK"
 
@@ -71,7 +73,7 @@ fi
 
 # 启动 HTTP 服务暴露 APK
 if start_apk_server_common "$APK_PATH"; then
-    log_info "下载地址: https://apk.waijade.cn/app-release.apk"
+    log_info "下载地址: https://apk.waijade.cn/app-release.apk?t=$(date +%s)"
 else
     log_warn "APK 服务启动失败，跳过本地分发"
 fi

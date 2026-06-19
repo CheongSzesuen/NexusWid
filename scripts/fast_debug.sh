@@ -9,7 +9,7 @@ GRADLEW="$ROOT_DIR/gradlew"
 ADB_BIN="${ADB:-adb}"
 PACKAGE_NAME="cn.waijade.nexuswid.debug"
 MAIN_ACTIVITY="cn.waijade.nexuswid.MainActivity"
-APK_PATH="$ROOT_DIR/androidApp/build/outputs/apk/debug/androidApp-debug.apk"
+APK_PATH="$ROOT_DIR/androidApp/build/outputs/apk/debug/app-debug.apk"
 BUILD_MODE="debug_incremental"
 BUILD_MODE_LABEL="增量 Debug"
 BUILD_TASK=":androidApp:assembleDebug"
@@ -85,10 +85,11 @@ main() {
     log_info "执行增量构建: ${BUILD_TASK}"
     "$GRADLEW" "$BUILD_TASK" -x lint --configure-on-demand --parallel --daemon
 
+    rename_apk_common "$APK_PATH" "debug"
     print_apk_size
 
     if start_apk_server_common "$APK_PATH"; then
-        log_info "下载地址: https://apk.waijade.cn/app-debug.apk"
+        log_info "下载地址: https://apk.waijade.cn/app-debug.apk?t=$(date +%s)"
     else
         log_warn "APK 服务启动失败，跳过本地分发"
     fi

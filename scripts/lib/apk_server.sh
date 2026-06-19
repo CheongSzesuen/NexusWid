@@ -8,6 +8,19 @@
 #   1. 强制释放 9190 端口（kill -> 等待 -> kill -9 兜底）
 #   2. 启动 python http.server 暴露 APK 文件所在目录
 #   3. 自检 APK 文件可访问，失败时打印日志路径并退出非零
+# 将 Gradle 默认输出的 APK 重命名为统一名称
+# 用法: rename_apk_common <期望路径> <构建变体>
+# 示例: rename_apk_common "$APK_PATH" "debug"
+rename_apk_common() {
+    local target_path="$1"
+    local variant="$2"
+    local dir; dir="$(dirname "$target_path")"
+    local gradle_output="$dir/androidApp-${variant}.apk"
+    if [[ -f "$gradle_output" ]] && [[ "$gradle_output" != "$target_path" ]]; then
+        mv -f "$gradle_output" "$target_path"
+    fi
+}
+
 start_apk_server_common() {
     local apk_path="$1"
     local port=9190
