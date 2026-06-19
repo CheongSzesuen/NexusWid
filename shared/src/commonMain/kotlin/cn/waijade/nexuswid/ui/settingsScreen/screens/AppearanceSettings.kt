@@ -72,6 +72,7 @@ import nexuswid.shared.generated.resources.appearance
 import nexuswid.shared.generated.resources.back
 import nexuswid.shared.generated.resources.black_theme
 import nexuswid.shared.generated.resources.black_theme_desc
+import nexuswid.shared.generated.resources.bottom_bar_style
 import nexuswid.shared.generated.resources.check
 import nexuswid.shared.generated.resources.clear
 import nexuswid.shared.generated.resources.color
@@ -86,6 +87,8 @@ import nexuswid.shared.generated.resources.dynamic_color
 import nexuswid.shared.generated.resources.dynamic_color_desc
 import nexuswid.shared.generated.resources.light
 import nexuswid.shared.generated.resources.light_mode
+import nexuswid.shared.generated.resources.liquid_glass_bottom_bar
+import nexuswid.shared.generated.resources.liquid_glass_bottom_bar_desc
 import nexuswid.shared.generated.resources.palette
 import nexuswid.shared.generated.resources.settings
 import nexuswid.shared.generated.resources.system_default
@@ -389,6 +392,54 @@ fun AppearanceSettings(
                         },
                         colors = listItemColors,
                         shapes = segmentedListItemShapes(2, 3)
+                    )
+                }
+
+                item { Spacer(Modifier.height(12.dp)) }
+
+                item {
+                    SegmentedListItem(
+                        onClick = {
+                            onAction(
+                                SettingsAction.SaveLiquidGlassBottomBar(
+                                    !settingsState.liquidGlassBottomBar
+                                )
+                            )
+                        },
+                        leadingContent = {
+                            Icon(painterResource(Res.drawable.contrast), null)
+                        },
+                        overlineContent = { Text(stringResource(Res.string.bottom_bar_style)) },
+                        content = { Text(stringResource(Res.string.liquid_glass_bottom_bar)) },
+                        supportingContent = {
+                            Text(stringResource(Res.string.liquid_glass_bottom_bar_desc))
+                        },
+                        trailingContent = {
+                            Switch(
+                                checked = settingsState.liquidGlassBottomBar,
+                                onCheckedChange = {
+                                    onAction(SettingsAction.SaveLiquidGlassBottomBar(it))
+                                },
+                                thumbContent = {
+                                    if (settingsState.liquidGlassBottomBar) {
+                                        Icon(
+                                            painter = painterResource(Res.drawable.check),
+                                            contentDescription = null,
+                                            modifier = Modifier.size(SwitchDefaults.IconSize),
+                                        )
+                                    } else {
+                                        Icon(
+                                            painter = painterResource(Res.drawable.clear),
+                                            contentDescription = null,
+                                            modifier = Modifier.size(SwitchDefaults.IconSize),
+                                        )
+                                    }
+                                },
+                                colors = switchColors
+                            )
+                        },
+                        colors = listItemColors,
+                        shapes = segmentedListItemShapes(0, 1)
                     )
                 }
 

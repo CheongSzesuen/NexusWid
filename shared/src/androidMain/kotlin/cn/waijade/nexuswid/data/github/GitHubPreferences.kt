@@ -41,12 +41,19 @@ class GitHubPreferences(context: Context) : WidgetPreferences {
             prefs.edit().putString(KEY_WIDGET_HEATMAP_COLOR_MODE, value.name).commit()
         }
 
+    override var liquidGlassBottomBar: Boolean
+        get() = prefs.getBoolean(KEY_LIQUID_GLASS_BOTTOM_BAR, false)
+        set(value) {
+            prefs.edit().putBoolean(KEY_LIQUID_GLASS_BOTTOM_BAR, value).commit()
+        }
+
     companion object {
         private const val PREFS_NAME = "github_preferences"
         private const val KEY_USERNAME = "github_username"
         private const val KEY_TOKEN = "github_token"
         private const val KEY_WEEK_STARTS_ON_MONDAY = "week_starts_on_monday"
         private const val KEY_WIDGET_HEATMAP_COLOR_MODE = "widget_heatmap_color_mode"
+        private const val KEY_LIQUID_GLASS_BOTTOM_BAR = "liquid_glass_bottom_bar"
         private const val DEFAULT_WIDGET_HEATMAP_COLOR_MODE = "SYSTEM"
     }
 }

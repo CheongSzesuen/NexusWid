@@ -26,4 +26,8 @@ class StateRepository {
     fun updateWeekStartsOnMonday(enabled: Boolean) {
         settingsState.update { it.copy(weekStartsOnMonday = enabled) }
     }
+
+    fun updateLiquidGlassBottomBar(enabled: Boolean) {
+        settingsState.update { it.copy(liquidGlassBottomBar = enabled) }
+    }
 }
