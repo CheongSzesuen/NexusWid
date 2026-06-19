@@ -63,3 +63,19 @@ enum class PullRequestType(val query: String, val displayName: String) {
     MENTIONED("mentions:@me", "Mentioned"),
     REVIEW_REQUESTED("review-requested:@me", "Review")
 }
+
+data class PullRequestItem(
+    val repoFullName: String,
+    val number: Int,
+    val title: String,
+    val htmlUrl: String,
+    val pullsApiUrl: String,
+    val checkStatus: CheckStatus
+)
+
+enum class CheckStatus {
+    SUCCESS,
+    FAILURE,
+    PENDING,
+    NONE
+}
