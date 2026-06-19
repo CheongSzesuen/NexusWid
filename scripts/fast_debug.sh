@@ -20,6 +20,9 @@ log_warn() { echo "[$(timestamp)] [WARN] $*" >&2; }
 log_error() { echo "[$(timestamp)] [ERROR] $*" >&2; }
 die() { log_error "$*"; exit 1; }
 
+# shellcheck source=lib/apk_server.sh
+source "$ROOT_DIR/scripts/lib/apk_server.sh"
+
 require_cmd() {
     command -v "$1" >/dev/null 2>&1 || die "缺少命令: $1"
 }
@@ -30,9 +33,9 @@ select_device() {
         return
     fi
 
-    mapfile -t devices < <("$ADB_BIN" devices | awk '/\tdevice$/{print $1}')
+    mapfile -t devices < <("$ADB_BIN" devices | awk '/\tdevice$/{print $1}' 2>/dev/null || true)
     if [[ ${#devices[@]} -eq 0 ]]; then
-        die "未检测到可用设备（状态为 device）"
+        return
     fi
     if [[ ${#devices[@]} -gt 1 ]]; then
         log_warn "检测到多个设备，默认使用第一个: ${devices[0]}"
@@ -59,8 +62,11 @@ main() {
 
     local serial
     serial="$(select_device)"
-    local adb_cmd=("$ADB_BIN" -s "$serial")
-    log_info "目标设备: $serial"
+    if [[ -n "$serial" ]]; then
+        log_info "目标设备: $serial"
+    else
+        log_warn "未检测到设备，跳过安装与启动"
+    fi
 
     if [[ "$(uname -s)" == Linux ]] && ! java -version 2>&1 | grep -q 'version "\(17\|18\|19\|20\|21\)\.'; then
         for jdk in /usr/lib/jvm/java-17-openjdk /usr/lib/jvm/java-21-openjdk; do
@@ -81,17 +87,26 @@ main() {
 
     print_apk_size
 
-    log_info "安装 APK"
-    "${adb_cmd[@]}" install -r -t "$APK_PATH"
+    if start_apk_server_common "$APK_PATH"; then
+        log_info "下载地址: https://apk.waijade.cn/app-debug.apk"
+    else
+        log_warn "APK 服务启动失败，跳过本地分发"
+    fi
 
-    log_info "重启应用进程"
-    "${adb_cmd[@]}" shell am force-stop "$PACKAGE_NAME"
-    sleep 1
+    if [[ -n "$serial" ]]; then
+        local adb_cmd=("$ADB_BIN" -s "$serial")
+        log_info "安装 APK"
+        "${adb_cmd[@]}" install -r -t "$APK_PATH"
 
-    log_info "启动应用"
-    "${adb_cmd[@]}" shell am start -n "${PACKAGE_NAME}/${MAIN_ACTIVITY}" \
-        -a android.intent.action.MAIN \
-        -c android.intent.category.LAUNCHER >/dev/null
+        log_info "重启应用进程"
+        "${adb_cmd[@]}" shell am force-stop "$PACKAGE_NAME"
+        sleep 1
+
+        log_info "启动应用"
+        "${adb_cmd[@]}" shell am start -n "${PACKAGE_NAME}/${MAIN_ACTIVITY}" \
+            -a android.intent.action.MAIN \
+            -c android.intent.category.LAUNCHER >/dev/null
+    fi
 
     log_info "完成"
 }

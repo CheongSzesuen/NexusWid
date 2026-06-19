@@ -22,6 +22,9 @@ log_warn() { echo "[$(timestamp)] [WARN] $*"; }
 log_error() { echo "[$(timestamp)] [ERROR] $*" >&2; }
 die() { log_error "$*"; exit 1; }
 
+# shellcheck source=lib/apk_server.sh
+source "$ROOT_DIR/scripts/lib/apk_server.sh"
+
 if [[ "$(uname -s)" == Linux ]] && ! java -version 2>&1 | grep -q 'version "\(17\|18\|19\|20\|21\)\.'; then
     for jdk in /usr/lib/jvm/java-17-openjdk /usr/lib/jvm/java-21-openjdk; do
         if [[ -x "$jdk/bin/java" ]]; then
@@ -58,6 +61,13 @@ if command -v unzip >/dev/null 2>&1; then
         | awk 'NR > 3 && $4 != "" {print $1 "\t" $4}' \
         | sort -nr \
         | head -n 15
+fi
+
+# 启动 HTTP 服务暴露 APK
+if start_apk_server_common "$APK_PATH"; then
+    log_info "下载地址: https://apk.waijade.cn/app-release.apk"
+else
+    log_warn "APK 服务启动失败，跳过本地分发"
 fi
 
 log_info "快速发布构建完成"

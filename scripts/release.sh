@@ -22,6 +22,9 @@ log_error() { echo "[$(timestamp)] [ERROR] $*" >&2; }
 log_warn() { echo "[$(timestamp)] [WARN] $*"; }
 die() { log_error "$*"; exit 1; }
 
+# shellcheck source=lib/apk_server.sh
+source "$ROOT_DIR/scripts/lib/apk_server.sh"
+
 print_artifact_size() {
     local path="$1"
     local label="$2"
@@ -64,6 +67,13 @@ if [[ -f "$APK_PATH" ]] && command -v unzip >/dev/null 2>&1; then
         | awk 'NR > 3 && $4 != "" {print $1 "\t" $4}' \
         | sort -nr \
         | head -n 15 || true
+fi
+
+# 启动 HTTP 服务暴露 APK
+if start_apk_server_common "$APK_PATH"; then
+    log_info "下载地址: https://apk.waijade.cn/app-release.apk"
+else
+    log_warn "APK 服务启动失败，跳过本地分发"
 fi
 
 log_info "发布构建完成"
