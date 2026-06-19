@@ -80,6 +80,7 @@ class ReviewsRequestedWidgetProvider : AppWidgetProvider() {
         private fun fetchReviewRequestedCount(context: Context): Int {
             val prefs = GitHubPreferences(context)
             val token = prefs.token.takeIf { it.isNotBlank() } ?: return -1
+            val pullRequestTypes = prefs.selectedPullRequestTypes
 
             return runBlocking(Dispatchers.IO) {
                 runCatching {
@@ -90,7 +91,7 @@ class ReviewsRequestedWidgetProvider : AppWidgetProvider() {
                         }
                     }
                     val apiService = GitHubApiService(httpClient, json)
-                    apiService.getReviewRequestedCount(token).getOrThrow()
+                    apiService.getPullRequestCount(token, pullRequestTypes).getOrThrow()
                 }.getOrElse {
                     Log.e(TAG, "fetchReviewRequestedCount: error", it)
                     -1

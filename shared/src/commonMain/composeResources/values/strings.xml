@@ -43,5 +43,5 @@
     <string name="github_token_hint">用于避免公共 API 速率限制</string>
     <string name="github_username_placeholder">输入 GitHub 用户名</string>
     <string name="contribution_widget_preview_hint">拖动预览边框可调节宽度，列数会随宽度自动变化</string>
-    <string name="widget_reviews_requested">Review 请求</string>
+    <string name="widget_reviews_requested">Pull Requests</string>
 </resources>

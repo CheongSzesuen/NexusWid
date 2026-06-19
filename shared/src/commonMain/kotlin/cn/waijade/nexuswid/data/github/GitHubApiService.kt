@@ -43,11 +43,13 @@ class GitHubApiService(
         days
     }
 
-    suspend fun getReviewRequestedCount(
-        token: String
+    suspend fun getPullRequestCount(
+        token: String,
+        pullRequestTypes: Set<PullRequestType>
     ): Result<Int> = runCatching {
-        val url = "https://api.github.com/search/issues?q=is:pr+is:open+review-requested:@me&per_page=1"
-        println("GitHubApiService: fetching review requested count")
+        val typeQuery = pullRequestTypes.joinToString("+") { it.query }
+        val url = "https://api.github.com/search/issues?q=is:pr+is:open+$typeQuery&per_page=1"
+        println("GitHubApiService: fetching pull request count with types: ${pullRequestTypes.map { it.name }}")
 
         val response = httpClient.get(url) {
             header("User-Agent", "NexusWid/1.0")
@@ -55,7 +57,7 @@ class GitHubApiService(
             header("Accept", "application/vnd.github+json")
         }
 
-        println("GitHubApiService: review requested response status=${response.status}")
+        println("GitHubApiService: pull request response status=${response.status}")
 
         if (!response.status.isSuccess()) {
             throw Exception("GitHub API error: ${response.status}")
@@ -64,7 +66,7 @@ class GitHubApiService(
         val bodyText = response.bodyAsText()
         val jsonElement = json.parseToJsonElement(bodyText)
         val totalCount = jsonElement.jsonObject["total_count"]?.jsonPrimitive?.int ?: 0
-        println("GitHubApiService: review requested count=$totalCount")
+        println("GitHubApiService: pull request count=$totalCount")
 
         totalCount
     }

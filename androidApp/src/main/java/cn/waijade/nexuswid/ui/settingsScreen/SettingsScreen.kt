@@ -144,6 +144,10 @@ fun SettingsScreenRoot(
                         settingsViewModel.onAction(SettingsAction.SaveWeekStartsOnMonday(enabled))
                         ContributionHeatmapWidgetProvider.updateAll(context)
                     },
+                    selectedPullRequestTypes = settingsState.selectedPullRequestTypes,
+                    onPullRequestTypesChange = { types ->
+                        settingsViewModel.onAction(SettingsAction.SavePullRequestTypes(types))
+                    },
                     modifier = modifier,
                 )
             }

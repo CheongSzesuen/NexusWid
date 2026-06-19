@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -36,6 +37,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.FilledTonalIconButton
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.LargeFlexibleTopAppBar
@@ -81,6 +83,7 @@ import androidx.compose.ui.util.fastForEachIndexed
 import androidx.window.core.layout.WindowSizeClass.Companion.WIDTH_DP_EXPANDED_LOWER_BOUND
 import cn.waijade.nexuswid.data.HeatmapColorMode
 import cn.waijade.nexuswid.data.HeatmapTheme
+import cn.waijade.nexuswid.data.github.PullRequestType
 import cn.waijade.nexuswid.ui.mergePaddingValues
 import cn.waijade.nexuswid.ui.theme.CustomColors.detailPaneTopBarColors
 import cn.waijade.nexuswid.ui.theme.CustomColors.listItemColors
@@ -129,6 +132,8 @@ fun WidgetSettingsScreen(
     onHeatmapColorModeChange: (HeatmapColorMode) -> Unit,
     weekStartsOnMonday: Boolean,
     onWeekStartsOnMondayChange: (Boolean) -> Unit,
+    selectedPullRequestTypes: Set<PullRequestType>,
+    onPullRequestTypesChange: (Set<PullRequestType>) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
@@ -452,6 +457,34 @@ fun WidgetSettingsScreen(
                                     ) {
                                         ReviewsRequestedPreviewCard(
                                             modifier = Modifier.fillMaxSize()
+                                        )
+                                    }
+                                }
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Text(
+                                    text = "包含的 PR 类型",
+                                    style = MaterialTheme.typography.labelMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.padding(bottom = 4.dp)
+                                )
+                                FlowRow(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                                ) {
+                                    PullRequestType.entries.forEach { type ->
+                                        val isSelected = selectedPullRequestTypes.contains(type)
+                                        FilterChip(
+                                            selected = isSelected,
+                                            onClick = {
+                                                val newTypes = if (isSelected) {
+                                                    selectedPullRequestTypes - type
+                                                } else {
+                                                    selectedPullRequestTypes + type
+                                                }
+                                                onPullRequestTypesChange(newTypes)
+                                            },
+                                            label = { Text(type.displayName) }
                                         )
                                     }
                                 }

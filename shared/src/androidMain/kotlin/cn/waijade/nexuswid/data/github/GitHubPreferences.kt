@@ -21,6 +21,22 @@ class GitHubPreferences(context: Context) : WidgetPreferences {
     val isConfigured: Boolean
         get() = username.isNotBlank()
 
+    override var selectedPullRequestTypes: Set<PullRequestType>
+        get() {
+            val typeNames = prefs.getStringSet(KEY_PULL_REQUEST_TYPES, DEFAULT_PULL_REQUEST_TYPES)
+                ?: DEFAULT_PULL_REQUEST_TYPES
+            return typeNames.mapNotNull { name ->
+                try {
+                    PullRequestType.valueOf(name)
+                } catch (_: IllegalArgumentException) {
+                    null
+                }
+            }.toSet()
+        }
+        set(value) {
+            prefs.edit().putStringSet(KEY_PULL_REQUEST_TYPES, value.map { it.name }.toSet()).commit()
+        }
+
     override var weekStartsOnMonday: Boolean
         get() = prefs.getBoolean(KEY_WEEK_STARTS_ON_MONDAY, false)
         set(value) {
@@ -54,6 +70,10 @@ class GitHubPreferences(context: Context) : WidgetPreferences {
         private const val KEY_WEEK_STARTS_ON_MONDAY = "week_starts_on_monday"
         private const val KEY_WIDGET_HEATMAP_COLOR_MODE = "widget_heatmap_color_mode"
         private const val KEY_LIQUID_GLASS_BOTTOM_BAR = "liquid_glass_bottom_bar"
+        private const val KEY_PULL_REQUEST_TYPES = "pull_request_types"
         private const val DEFAULT_WIDGET_HEATMAP_COLOR_MODE = "SYSTEM"
+        private val DEFAULT_PULL_REQUEST_TYPES = setOf(
+            PullRequestType.REVIEW_REQUESTED.name
+        )
     }
 }

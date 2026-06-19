@@ -56,3 +56,10 @@ data class GitHubError(
 data class ReviewRequestedSearchResult(
     val total_count: Int
 )
+
+enum class PullRequestType(val query: String, val displayName: String) {
+    CREATED("author:@me", "Created"),
+    ASSIGNED("assignee:@me", "Assigned"),
+    MENTIONED("mentions:@me", "Mentioned"),
+    REVIEW_REQUESTED("review-requested:@me", "Review Requested")
+}

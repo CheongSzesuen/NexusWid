@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import cn.waijade.nexuswid.data.HeatmapColorMode
 import cn.waijade.nexuswid.data.StateRepository
 import cn.waijade.nexuswid.data.WidgetPreferences
+import cn.waijade.nexuswid.data.github.PullRequestType
 import cn.waijade.nexuswid.ui.Screen
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
@@ -23,6 +24,7 @@ class SettingsViewModel(
         stateRepository.updateHeatmapColorMode(widgetPreferences.widgetHeatmapColorMode)
         stateRepository.updateWeekStartsOnMonday(widgetPreferences.weekStartsOnMonday)
         stateRepository.updateLiquidGlassBottomBar(widgetPreferences.liquidGlassBottomBar)
+        stateRepository.updateSelectedPullRequestTypes(widgetPreferences.selectedPullRequestTypes)
     }
 
     fun onAction(action: SettingsAction) {
@@ -33,6 +35,7 @@ class SettingsViewModel(
             is SettingsAction.SaveHeatmapColorMode -> saveHeatmapColorMode(action.mode)
             is SettingsAction.SaveWeekStartsOnMonday -> saveWeekStartsOnMonday(action.enabled)
             is SettingsAction.SaveLiquidGlassBottomBar -> saveLiquidGlassBottomBar(action.enabled)
+            is SettingsAction.SavePullRequestTypes -> savePullRequestTypes(action.types)
         }
     }
 
@@ -72,6 +75,13 @@ class SettingsViewModel(
         viewModelScope.launch {
             stateRepository.updateLiquidGlassBottomBar(enabled)
             widgetPreferences.liquidGlassBottomBar = enabled
+        }
+    }
+
+    private fun savePullRequestTypes(types: Set<PullRequestType>) {
+        viewModelScope.launch {
+            stateRepository.updateSelectedPullRequestTypes(types)
+            widgetPreferences.selectedPullRequestTypes = types
         }
     }
 }

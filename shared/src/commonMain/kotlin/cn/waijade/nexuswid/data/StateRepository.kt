@@ -1,5 +1,6 @@
 package cn.waijade.nexuswid.data
 
+import cn.waijade.nexuswid.data.github.PullRequestType
 import cn.waijade.nexuswid.ui.settingsScreen.viewModel.SettingsState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
@@ -29,5 +30,9 @@ class StateRepository {
 
     fun updateLiquidGlassBottomBar(enabled: Boolean) {
         settingsState.update { it.copy(liquidGlassBottomBar = enabled) }
+    }
+
+    fun updateSelectedPullRequestTypes(types: Set<PullRequestType>) {
+        settingsState.update { it.copy(selectedPullRequestTypes = types) }
     }
 }
