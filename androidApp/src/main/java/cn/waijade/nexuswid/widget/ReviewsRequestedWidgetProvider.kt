@@ -111,13 +111,13 @@ class ReviewsRequestedWidgetProvider : AppWidgetProvider() {
             appWidgetId: Int
         ) {
             val options = appWidgetManager.getAppWidgetOptions(appWidgetId)
-            val minWidth = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, 110)
-            val minHeight = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT, 110)
+            val minWidth = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, 250)
+            val minHeight = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT, 250)
             val maxWidth = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MAX_WIDTH, minWidth)
             val maxHeight = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT, minHeight)
 
-            val widthDp = maxWidth.coerceAtLeast(110).toFloat()
-            val heightDp = maxHeight.coerceAtLeast(110).toFloat()
+            val widthDp = maxWidth.coerceAtLeast(250).toFloat()
+            val heightDp = maxHeight.coerceAtLeast(250).toFloat()
 
             val count = fetchReviewRequestedCount(context)
 
