@@ -1,5 +1,6 @@
 package cn.waijade.nexuswid.widget
 
+import android.app.PendingIntent
 import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProvider
 import android.content.ComponentName
@@ -36,6 +37,7 @@ private const val TAG = "ReviewsRequestedWidget"
 private const val WIDGET_CORNER_RADIUS_DP = 36f
 private const val ROOT_PADDING_DP = 20f
 private const val MAX_BITMAP_EDGE_PX = 900f
+private const val ACTION_REFRESH = "cn.waijade.nexuswid.ACTION_REFRESH_REVIEWS_REQUESTED"
 
 class ReviewsRequestedWidgetProvider : AppWidgetProvider() {
 
@@ -63,6 +65,10 @@ class ReviewsRequestedWidgetProvider : AppWidgetProvider() {
         super.onReceive(context, intent)
         when (intent.action) {
             Intent.ACTION_CONFIGURATION_CHANGED -> updateAll(context)
+            ACTION_REFRESH -> {
+                Log.d(TAG, "Refresh action received")
+                updateAll(context)
+            }
         }
     }
 
@@ -105,13 +111,13 @@ class ReviewsRequestedWidgetProvider : AppWidgetProvider() {
             appWidgetId: Int
         ) {
             val options = appWidgetManager.getAppWidgetOptions(appWidgetId)
-            val minWidth = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, 250)
-            val minHeight = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT, 250)
+            val minWidth = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, 110)
+            val minHeight = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT, 110)
             val maxWidth = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MAX_WIDTH, minWidth)
             val maxHeight = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT, minHeight)
 
-            val widthDp = maxWidth.coerceAtLeast(250).toFloat()
-            val heightDp = maxHeight.coerceAtLeast(250).toFloat()
+            val widthDp = maxWidth.coerceAtLeast(110).toFloat()
+            val heightDp = maxHeight.coerceAtLeast(110).toFloat()
 
             val count = fetchReviewRequestedCount(context)
 
@@ -124,6 +130,19 @@ class ReviewsRequestedWidgetProvider : AppWidgetProvider() {
 
             val remoteViews = RemoteViews(context.packageName, R.layout.widget_reviews_requested)
             remoteViews.setImageViewBitmap(R.id.widget_reviews_image, bitmap)
+
+            // 设置点击刷新
+            val refreshIntent = Intent(context, ReviewsRequestedWidgetProvider::class.java).apply {
+                action = ACTION_REFRESH
+            }
+            val refreshPendingIntent = PendingIntent.getBroadcast(
+                context,
+                appWidgetId,
+                refreshIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            )
+            remoteViews.setOnClickPendingIntent(R.id.widget_root, refreshPendingIntent)
+
             appWidgetManager.updateAppWidget(appWidgetId, remoteViews)
         }
 
