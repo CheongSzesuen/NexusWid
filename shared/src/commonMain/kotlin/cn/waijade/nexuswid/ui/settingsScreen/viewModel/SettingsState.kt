@@ -10,5 +10,6 @@ data class SettingsState(
     val colorScheme: String = Color.White.toString(),
     val blackTheme: Boolean = false,
     val heatmapColorMode: HeatmapColorMode = HeatmapColorMode.SYSTEM,
-    val weekStartsOnMonday: Boolean = false
+    val weekStartsOnMonday: Boolean = false,
+    val liquidGlassBottomBar: Boolean = false
 )

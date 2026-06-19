@@ -79,6 +79,8 @@ dependencies {
     implementation(libs.androidx.ui)
     implementation(libs.androidx.material3)
     implementation(libs.androidx.material.icons.core)
+    implementation(libs.backdrop)
+    implementation(libs.kyant.shapes)
 
     implementation(libs.androidx.glance.appwidget)
     implementation(libs.androidx.glance.material3)

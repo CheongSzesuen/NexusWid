@@ -22,6 +22,7 @@ class SettingsViewModel(
     init {
         stateRepository.updateHeatmapColorMode(widgetPreferences.widgetHeatmapColorMode)
         stateRepository.updateWeekStartsOnMonday(widgetPreferences.weekStartsOnMonday)
+        stateRepository.updateLiquidGlassBottomBar(widgetPreferences.liquidGlassBottomBar)
     }
 
     fun onAction(action: SettingsAction) {
@@ -31,6 +32,7 @@ class SettingsViewModel(
             is SettingsAction.SaveBlackTheme -> saveBlackTheme(action.enabled)
             is SettingsAction.SaveHeatmapColorMode -> saveHeatmapColorMode(action.mode)
             is SettingsAction.SaveWeekStartsOnMonday -> saveWeekStartsOnMonday(action.enabled)
+            is SettingsAction.SaveLiquidGlassBottomBar -> saveLiquidGlassBottomBar(action.enabled)
         }
     }
 
@@ -63,6 +65,13 @@ class SettingsViewModel(
         viewModelScope.launch {
             stateRepository.updateWeekStartsOnMonday(enabled)
             widgetPreferences.weekStartsOnMonday = enabled
+        }
+    }
+
+    private fun saveLiquidGlassBottomBar(enabled: Boolean) {
+        viewModelScope.launch {
+            stateRepository.updateLiquidGlassBottomBar(enabled)
+            widgetPreferences.liquidGlassBottomBar = enabled
         }
     }
 }

@@ -17,6 +17,9 @@
     <string name="dynamic_color_desc">使用 Material You 动态取色</string>
     <string name="black_theme">黑色主题</string>
     <string name="black_theme_desc">使用纯黑色背景</string>
+    <string name="bottom_bar_style">底栏样式</string>
+    <string name="liquid_glass_bottom_bar">液态玻璃底栏</string>
+    <string name="liquid_glass_bottom_bar_desc">关闭时使用默认 MD3 Expressive 底栏</string>
     <string name="license">开源许可</string>
     <string name="back">返回</string>
     <string name="email">邮箱</string>
