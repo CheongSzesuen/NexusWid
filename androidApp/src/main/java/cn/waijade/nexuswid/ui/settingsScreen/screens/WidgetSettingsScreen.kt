@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -29,6 +30,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material.icons.outlined.DateRange
 import androidx.compose.material3.ButtonGroupDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
@@ -54,18 +56,18 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.StrokeJoin
-import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
@@ -74,6 +76,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.fastForEachIndexed
 import androidx.window.core.layout.WindowSizeClass.Companion.WIDTH_DP_EXPANDED_LOWER_BOUND
 import cn.waijade.nexuswid.data.HeatmapColorMode
@@ -309,74 +312,9 @@ fun WidgetSettingsScreen(
                             Icon(painterResource(Res.drawable.palette), null)
                         },
                         colors = listItemColors,
-                        shapes = segmentedListItemShapes(0, 1)
+                        shapes = segmentedListItemShapes(0, 3)
                     )
                 }
-
-                item {
-                    Text(
-                        text = stringResource(Res.string.contribution_widget_preview_hint),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 4.dp)
-                    )
-                }
-
-                item { Spacer(Modifier.height(12.dp)) }
-
-                item {
-                    SegmentedListItem(
-                        onClick = {},
-                        content = { Text(stringResource(Res.string.widget_reviews_requested)) },
-                        supportingContent = {
-                            Column(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(top = 8.dp)
-                            ) {
-                                ReviewsRequestedPreviewCard(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .height(160.dp)
-                                )
-                                Spacer(modifier = Modifier.height(8.dp))
-                                Box(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    contentAlignment = Alignment.CenterEnd
-                                ) {
-                                    FilledTonalButton(
-                                        onClick = {
-                                            val message =
-                                                when (requestPinReviewsRequestedWidget(context)) {
-                                                    PinWidgetRequestResult.REQUESTED -> "请在系统弹窗中确认添加小组件"
-                                                    PinWidgetRequestResult.NOT_SUPPORTED -> "当前桌面不支持一键添加小组件"
-                                                    PinWidgetRequestResult.UNSUPPORTED_ANDROID -> "当前安卓版本不支持一键添加"
-                                                    PinWidgetRequestResult.FAILED -> "添加请求发送失败，请手动添加"
-                                                }
-                                            Toast.makeText(context, message, Toast.LENGTH_SHORT)
-                                                .show()
-                                        }
-                                    ) {
-                                        Icon(
-                                            imageVector = Icons.Outlined.Add,
-                                            contentDescription = null,
-                                            modifier = Modifier.height(18.dp)
-                                        )
-                                        Spacer(modifier = Modifier.width(6.dp))
-                                        Text(stringResource(Res.string.add_to_home_screen))
-                                    }
-                                }
-                            }
-                        },
-                        leadingContent = {
-                            Icon(painterResource(Res.drawable.palette), null)
-                        },
-                        colors = listItemColors,
-                        shapes = segmentedListItemShapes(0, 1)
-                    )
-                }
-
-                item { Spacer(Modifier.height(12.dp)) }
 
                 item {
                     SegmentedListItem(
@@ -419,7 +357,7 @@ fun WidgetSettingsScreen(
                             }
                         },
                         colors = listItemColors,
-                        shapes = segmentedListItemShapes(0, 2)
+                        shapes = segmentedListItemShapes(1, 3)
                     )
                 }
 
@@ -427,7 +365,7 @@ fun WidgetSettingsScreen(
                     SegmentedListItem(
                         onClick = {},
                         leadingContent = {
-                            Icon(painterResource(Res.drawable.palette), null)
+                            Icon(Icons.Outlined.DateRange, null)
                         },
                         content = { Text(stringResource(Res.string.week_start_day)) },
                         supportingContent = {
@@ -459,7 +397,70 @@ fun WidgetSettingsScreen(
                             }
                         },
                         colors = listItemColors,
-                        shapes = segmentedListItemShapes(1, 2)
+                        shapes = segmentedListItemShapes(2, 3)
+                    )
+                }
+
+                item {
+                    Text(
+                        text = stringResource(Res.string.contribution_widget_preview_hint),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 4.dp)
+                    )
+                }
+
+                item { Spacer(Modifier.height(12.dp)) }
+
+                item {
+                    SegmentedListItem(
+                        onClick = {},
+                        content = { Text(stringResource(Res.string.widget_reviews_requested)) },
+                        supportingContent = {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(top = 8.dp)
+                            ) {
+                                ReviewsRequestedPreviewCard(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .aspectRatio(1f)
+                                )
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Box(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    contentAlignment = Alignment.CenterEnd
+                                ) {
+                                    FilledTonalButton(
+                                        onClick = {
+                                            val message =
+                                                when (requestPinReviewsRequestedWidget(context)) {
+                                                    PinWidgetRequestResult.REQUESTED -> "请在系统弹窗中确认添加小组件"
+                                                    PinWidgetRequestResult.NOT_SUPPORTED -> "当前桌面不支持一键添加小组件"
+                                                    PinWidgetRequestResult.UNSUPPORTED_ANDROID -> "当前安卓版本不支持一键添加"
+                                                    PinWidgetRequestResult.FAILED -> "添加请求发送失败，请手动添加"
+                                                }
+                                            Toast.makeText(context, message, Toast.LENGTH_SHORT)
+                                                .show()
+                                        }
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Outlined.Add,
+                                            contentDescription = null,
+                                            modifier = Modifier.height(18.dp)
+                                        )
+                                        Spacer(modifier = Modifier.width(6.dp))
+                                        Text(stringResource(Res.string.add_to_home_screen))
+                                    }
+                                }
+                            }
+                        },
+                        leadingContent = {
+                            Icon(painterResource(Res.drawable.palette), null)
+                        },
+                        colors = listItemColors,
+                        shapes = segmentedListItemShapes(0, 0)
                     )
                 }
 
@@ -635,12 +636,17 @@ private fun ReviewsRequestedPreviewCard(
         BoxWithConstraints(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(28.dp)
+                .padding(24.dp)
         ) {
-            val iconSize = 20.dp
+            val contentHeight = maxHeight
+            val contentWidth = maxWidth
+            val iconSize = (contentHeight * 0.15f).coerceAtMost(contentWidth * 0.3f)
+            val labelSize = (contentHeight * 0.16f).coerceAtMost(22.dp)
+            val countTextSize = (contentHeight * 0.5f).coerceAtMost(contentWidth * 0.5f)
+
             Column(
                 modifier = Modifier.fillMaxSize(),
-                verticalArrangement = Arrangement.Top,
+                verticalArrangement = Arrangement.SpaceBetween,
                 horizontalAlignment = Alignment.Start
             ) {
                 Icon(
@@ -651,26 +657,31 @@ private fun ReviewsRequestedPreviewCard(
                         .width(iconSize)
                         .height(iconSize)
                 )
-                Spacer(modifier = Modifier.height(16.dp))
                 Text(
                     text = "3",
                     color = Color.White,
                     style = MaterialTheme.typography.displayLarge.copy(
                         fontWeight = FontWeight.Bold,
-                        fontFamily = FontFamily.Monospace
+                        fontFamily = FontFamily.Monospace,
+                        fontSize = countTextSize.value.sp
                     )
                 )
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = "Reviews",
-                    color = Color.White.copy(alpha = 0.7f),
-                    style = MaterialTheme.typography.bodySmall
-                )
-                Text(
-                    text = "Requested",
-                    color = Color.White.copy(alpha = 0.7f),
-                    style = MaterialTheme.typography.bodySmall
-                )
+                Column {
+                    Text(
+                        text = "Reviews",
+                        color = Color.White.copy(alpha = 0.7f),
+                        style = MaterialTheme.typography.bodySmall.copy(
+                            fontSize = labelSize.value.sp
+                        )
+                    )
+                    Text(
+                        text = "Requested",
+                        color = Color.White.copy(alpha = 0.7f),
+                        style = MaterialTheme.typography.bodySmall.copy(
+                            fontSize = labelSize.value.sp
+                        )
+                    )
+                }
             }
         }
     }
