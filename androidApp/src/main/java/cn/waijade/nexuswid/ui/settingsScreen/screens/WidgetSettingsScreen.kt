@@ -718,7 +718,7 @@ private fun requestPinPullRequestsWidget(context: Context): PinWidgetRequestResu
 }
 
 @Composable
-private fun HeatmapPreviewCard(
+fun HeatmapPreviewCard(
     colorMode: HeatmapColorMode,
     weekStartsOnMonday: Boolean,
     contributionLevels: Map<String, Int>,
@@ -883,7 +883,7 @@ private fun PRPreviewRow(
 }
 
 @Composable
-private fun PullRequestsPreviewCard(
+fun PullRequestsPreviewCard(
     modifier: Modifier = Modifier
 ) {
     val githubGreen = Color(0xFF1F883D)
@@ -951,7 +951,7 @@ private fun PullRequestsPreviewCard(
 }
 
 @Composable
-private fun ReviewsRequestedPreviewCard(
+fun ReviewsRequestedPreviewCard(
     modifier: Modifier = Modifier
 ) {
     Surface(

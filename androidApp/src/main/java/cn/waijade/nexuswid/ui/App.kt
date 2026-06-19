@@ -256,6 +256,17 @@ fun AppScreen(
                     entry<Screen.Home> {
                         HomeScreen(
                             contentPadding = contentPadding,
+                            onWidgetClick = { widgetType ->
+                                backStack.add(Screen.Widget(widgetType))
+                            }
+                        )
+                    }
+
+                    entry<Screen.Widget> { widget ->
+                        WidgetDetailScreen(
+                            widgetType = widget.widgetType,
+                            contentPadding = contentPadding,
+                            onBack = { backStack.onBack() }
                         )
                     }
 

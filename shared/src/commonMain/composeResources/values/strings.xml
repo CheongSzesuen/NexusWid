@@ -45,4 +45,10 @@
     <string name="contribution_widget_preview_hint">拖动预览边框可调节宽度，列数会随宽度自动变化</string>
     <string name="widget_reviews_requested">Review 请求</string>
     <string name="widget_pull_requests">Pull Requests</string>
+    <string name="contribution_heatmap">贡献热力图</string>
+    <string name="contribution_heatmap_description">显示GitHub贡献热力图</string>
+    <string name="pull_requests">拉取请求</string>
+    <string name="pull_requests_description">显示拉取请求列表</string>
+    <string name="reviews_requested">审查请求</string>
+    <string name="reviews_requested_description">显示请求的代码审查</string>
 </resources>

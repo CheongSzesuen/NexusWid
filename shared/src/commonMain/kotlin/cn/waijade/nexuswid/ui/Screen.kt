@@ -11,6 +11,9 @@ sealed class Screen : NavKey {
     object Home : Screen()
 
     @Serializable
+    data class Widget(val widgetType: String) : Screen()
+
+    @Serializable
     sealed class Settings : Screen() {
         @Serializable
         object Main : Settings()
@@ -48,4 +51,11 @@ data class SettingsNavItem(
     val icon: DrawableResource,
     val label: StringResource,
     val innerSettings: List<StringResource>
+)
+
+data class WidgetPreviewItem(
+    val id: String,
+    val title: StringResource,
+    val description: StringResource,
+    val icon: DrawableResource
 )
