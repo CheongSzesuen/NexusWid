@@ -148,7 +148,7 @@ class ReviewsRequestedWidgetProvider : AppWidgetProvider() {
             val canvas = Canvas(bitmap)
 
             val bgRadius = WIDGET_CORNER_RADIUS_DP * density
-            val padding = 18f * density
+            val padding = 24f * density
 
             // Black background
             val bgPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
@@ -185,7 +185,7 @@ class ReviewsRequestedWidgetProvider : AppWidgetProvider() {
             val reviewsY = requestedY - labelSize * 1.3f
 
             // Count number - vertically centered between icon bottom and labels top
-            val countText = if (count >= 0) count.toString() else "--"
+            val countText = if (count >= 0) count.toString() else "_"
             val countTextSize = (contentHeight * 0.5f).coerceAtMost(contentWidth * 0.5f)
             val countPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
                 color = Color.WHITE

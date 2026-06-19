@@ -635,7 +635,7 @@ private fun ReviewsRequestedPreviewCard(
         BoxWithConstraints(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(20.dp)
+                .padding(28.dp)
         ) {
             val iconSize = 20.dp
             Column(
