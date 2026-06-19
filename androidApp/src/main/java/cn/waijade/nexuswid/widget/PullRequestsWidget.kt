@@ -19,10 +19,7 @@ import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.GlanceAppWidgetReceiver
 import androidx.glance.appwidget.SizeMode
 import androidx.glance.appwidget.action.ActionCallback
-import androidx.glance.appwidget.action.actionRunCallback
 import androidx.glance.appwidget.cornerRadius
-import androidx.glance.appwidget.lazy.LazyColumn
-import androidx.glance.appwidget.lazy.items
 import androidx.glance.appwidget.provideContent
 import androidx.glance.background
 import androidx.glance.layout.Alignment
@@ -142,7 +139,6 @@ private fun PullRequestsContent(data: PullRequestsData) {
             .cornerRadius(28.dp)
             .background(ComposeColor(0xFF0D1117))
             .padding(horizontal = 16.dp, vertical = 14.dp)
-            .clickable(actionRunCallback<RefreshPullRequestsAction>())
     ) {
         Column(modifier = GlanceModifier.fillMaxSize()) {
             HeaderRow(title)
@@ -182,7 +178,7 @@ private fun HeaderRow(title: String) {
         Image(
             provider = ImageProvider(R.drawable.ic_mark_github),
             contentDescription = null,
-            modifier = GlanceModifier.size(20.dp)
+            modifier = GlanceModifier.size(24.dp)
         )
     }
 }
@@ -205,8 +201,8 @@ private fun EmptyHint(text: String) {
 
 @Composable
 private fun PullRequestList(items: List<PullRequestItem>) {
-    LazyColumn(modifier = GlanceModifier.fillMaxSize()) {
-        items(items, itemId = { (it.repoFullName + it.number).hashCode().toLong() }) { pr ->
+    Column(modifier = GlanceModifier.fillMaxSize()) {
+        items.forEach { pr ->
             PullRequestRow(pr)
         }
     }
@@ -214,15 +210,11 @@ private fun PullRequestList(items: List<PullRequestItem>) {
 
 @Composable
 private fun PullRequestRow(pr: PullRequestItem) {
-    val openIntent = Intent(Intent.ACTION_VIEW, Uri.parse(pr.htmlUrl)).apply {
-        flags = Intent.FLAG_ACTIVITY_NEW_TASK
-    }
     Column(
         modifier = GlanceModifier
             .fillMaxWidth()
             .wrapContentHeight()
             .padding(vertical = 4.dp)
-            .clickable(actionStartActivity(openIntent))
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically
@@ -231,7 +223,7 @@ private fun PullRequestRow(pr: PullRequestItem) {
                 text = "${pr.repoFullName} #${pr.number}",
                 style = TextStyle(
                     color = ColorProvider(ComposeColor(0xFF8B949E)),
-                    fontSize = 11.sp
+                    fontSize = 13.sp
                 ),
                 maxLines = 1
             )
@@ -243,7 +235,7 @@ private fun PullRequestRow(pr: PullRequestItem) {
             text = pr.title,
             style = TextStyle(
                 color = ColorProvider(ComposeColor.White),
-                fontSize = 12.sp,
+                fontSize = 14.sp,
                 fontWeight = FontWeight.Medium
             ),
             maxLines = 1
@@ -263,10 +255,10 @@ private fun CheckStatusIcon(status: CheckStatus) {
         Image(
             provider = ImageProvider(res),
             contentDescription = null,
-            modifier = GlanceModifier.size(14.dp)
+            modifier = GlanceModifier.size(16.dp)
         )
     } else {
-        Spacer(GlanceModifier.size(14.dp))
+        Spacer(GlanceModifier.size(16.dp))
     }
 }
 
@@ -283,14 +275,4 @@ private fun headerTitle(count: Int, types: Set<PullRequestType>): String {
 
 class PullRequestsWidgetReceiver : GlanceAppWidgetReceiver() {
     override val glanceAppWidget: GlanceAppWidget = PullRequestsWidget()
-}
-
-class RefreshPullRequestsAction : ActionCallback {
-    override suspend fun onAction(
-        context: Context,
-        glanceId: GlanceId,
-        parameters: ActionParameters
-    ) {
-        PullRequestsWidget().update(context, glanceId)
-    }
 }

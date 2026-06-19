@@ -851,7 +851,7 @@ private fun PRPreviewRow(
             Text(
                 text = "$repo #$prNumber",
                 color = grayText,
-                fontSize = 11.sp,
+                fontSize = 13.sp,
                 maxLines = 1
             )
             Spacer(Modifier.width(4.dp))
@@ -867,14 +867,14 @@ private fun PRPreviewRow(
                     PRPreviewStatus.SUCCESS -> Color(0xFF1F883D)
                     PRPreviewStatus.FAILURE -> Color(0xFFCF222E)
                 },
-                modifier = Modifier.size(14.dp)
+                modifier = Modifier.size(16.dp)
             )
         }
         Spacer(Modifier.height(1.dp))
         Text(
             text = title,
             color = Color.White,
-            fontSize = 12.sp,
+            fontSize = 14.sp,
             fontWeight = FontWeight.Medium,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis
@@ -924,7 +924,7 @@ private fun PullRequestsPreviewCard(
                         painter = painterResource(cn.waijade.nexuswid.R.drawable.ic_mark_github),
                         contentDescription = null,
                         tint = Color.White,
-                        modifier = Modifier.size(18.dp)
+                        modifier = Modifier.size(24.dp)
                     )
                 }
 
