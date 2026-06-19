@@ -205,7 +205,7 @@ class ReviewsRequestedWidgetProvider : AppWidgetProvider() {
             val reviewsY = requestedY - labelSize * 1.3f
 
             // Count number - vertically centered between icon bottom and labels top
-            val countText = if (count >= 0) count.toString() else "_"
+            val countText = if (count >= 0) formatCount(count) else "_"
             val countTextSize = (contentHeight * 0.5f).coerceAtMost(contentWidth * 0.5f)
             val countPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
                 color = Color.WHITE
@@ -228,6 +228,14 @@ class ReviewsRequestedWidgetProvider : AppWidgetProvider() {
             canvas.drawText("Reviews", padding, reviewsY, labelPaint)
 
             return bitmap
+        }
+
+        private fun formatCount(count: Int): String {
+            return when {
+                count >= 10000 -> "${count / 10000}w+"
+                count >= 1000 -> "${count / 1000}k+"
+                else -> count.toString()
+            }
         }
     }
 }
