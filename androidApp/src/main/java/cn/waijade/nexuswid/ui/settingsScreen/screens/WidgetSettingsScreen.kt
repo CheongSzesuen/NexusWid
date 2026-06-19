@@ -110,6 +110,7 @@ import nexuswid.shared.generated.resources.system_default
 import nexuswid.shared.generated.resources.week_start_day
 import nexuswid.shared.generated.resources.week_start_monday
 import nexuswid.shared.generated.resources.week_start_sunday
+import nexuswid.shared.generated.resources.widget
 import nexuswid.shared.generated.resources.widget_contribution
 import nexuswid.shared.generated.resources.widget_reviews_requested
 import org.jetbrains.compose.resources.painterResource
@@ -180,7 +181,7 @@ fun WidgetSettingsScreen(
                 LargeFlexibleTopAppBar(
                     title = {
                         Text(
-                            stringResource(Res.string.widget_contribution),
+                            stringResource(Res.string.widget),
                             fontFamily = LocalAppFonts.current.topBarTitle
                         )
                     },
@@ -220,6 +221,15 @@ fun WidgetSettingsScreen(
                     .padding(horizontal = 16.dp)
             ) {
                 item { Spacer(Modifier.height(14.dp)) }
+
+                item {
+                    Text(
+                        text = stringResource(Res.string.widget_contribution),
+                        style = MaterialTheme.typography.titleSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 4.dp)
+                    )
+                }
 
                 item {
                     SegmentedListItem(
@@ -413,6 +423,15 @@ fun WidgetSettingsScreen(
                 item { Spacer(Modifier.height(12.dp)) }
 
                 item {
+                    Text(
+                        text = stringResource(Res.string.widget_reviews_requested),
+                        style = MaterialTheme.typography.titleSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 4.dp)
+                    )
+                }
+
+                item {
                     SegmentedListItem(
                         onClick = {},
                         content = { Text(stringResource(Res.string.widget_reviews_requested)) },
@@ -422,11 +441,20 @@ fun WidgetSettingsScreen(
                                     .fillMaxWidth()
                                     .padding(top = 8.dp)
                             ) {
-                                ReviewsRequestedPreviewCard(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .aspectRatio(1f)
-                                )
+                                Box(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Box(
+                                        modifier = Modifier
+                                            .width(160.dp)
+                                            .height(160.dp)
+                                    ) {
+                                        ReviewsRequestedPreviewCard(
+                                            modifier = Modifier.fillMaxSize()
+                                        )
+                                    }
+                                }
                                 Spacer(modifier = Modifier.height(8.dp))
                                 Box(
                                     modifier = Modifier.fillMaxWidth(),
@@ -630,19 +658,19 @@ private fun ReviewsRequestedPreviewCard(
 ) {
     Surface(
         modifier = modifier,
-        shape = RoundedCornerShape(PREVIEW_CORNER_RADIUS_DP.dp),
+        shape = RoundedCornerShape(16.dp),
         color = Color.Black
     ) {
         BoxWithConstraints(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(24.dp)
+                .padding(20.dp)
         ) {
             val contentHeight = maxHeight
             val contentWidth = maxWidth
             val iconSize = (contentHeight * 0.15f).coerceAtMost(contentWidth * 0.3f)
-            val labelSize = (contentHeight * 0.16f).coerceAtMost(22.dp)
-            val countTextSize = (contentHeight * 0.5f).coerceAtMost(contentWidth * 0.5f)
+            val labelSize = (contentHeight * 0.12f).coerceAtMost(18.dp)
+            val countTextSize = (contentHeight * 0.45f).coerceAtMost(contentWidth * 0.5f)
 
             Column(
                 modifier = Modifier.fillMaxSize(),
