@@ -96,6 +96,7 @@ import cn.waijade.nexuswid.ui.theme.NexusShapeDefaults.segmentedListItemShapes
 import cn.waijade.nexuswid.widget.ContributionHeatmapWidgetProvider
 import cn.waijade.nexuswid.widget.HeatmapGridCalculator
 import cn.waijade.nexuswid.widget.HeatmapWidgetDataStore
+import cn.waijade.nexuswid.widget.PullRequestsWidgetReceiver
 import cn.waijade.nexuswid.widget.ReviewsRequestedWidgetProvider
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -117,6 +118,7 @@ import nexuswid.shared.generated.resources.week_start_monday
 import nexuswid.shared.generated.resources.week_start_sunday
 import nexuswid.shared.generated.resources.widget
 import nexuswid.shared.generated.resources.widget_contribution
+import nexuswid.shared.generated.resources.widget_pull_requests
 import nexuswid.shared.generated.resources.widget_reviews_requested
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
@@ -543,6 +545,115 @@ fun WidgetSettingsScreen(
                         shapes = segmentedListItemShapes(1, 2)
                     )
                 }
+
+                item { Spacer(Modifier.height(12.dp)) }
+
+                item {
+                    Text(
+                        text = stringResource(Res.string.widget_pull_requests),
+                        style = MaterialTheme.typography.titleSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 4.dp)
+                    )
+                }
+
+                item {
+                    SegmentedListItem(
+                        onClick = {},
+                        content = { Text(stringResource(Res.string.widget_pull_requests)) },
+                        supportingContent = {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(top = 8.dp)
+                            ) {
+                                Box(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .height(180.dp)
+                                    ) {
+                                        PullRequestsPreviewCard(
+                                            modifier = Modifier.fillMaxSize()
+                                        )
+                                    }
+                                }
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Box(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    contentAlignment = Alignment.CenterEnd
+                                ) {
+                                    FilledTonalButton(
+                                        onClick = {
+                                            val message =
+                                                when (requestPinPullRequestsWidget(context)) {
+                                                    PinWidgetRequestResult.REQUESTED -> "请在系统弹窗中确认添加小组件"
+                                                    PinWidgetRequestResult.NOT_SUPPORTED -> "当前桌面不支持一键添加小组件"
+                                                    PinWidgetRequestResult.UNSUPPORTED_ANDROID -> "当前安卓版本不支持一键添加"
+                                                    PinWidgetRequestResult.FAILED -> "添加请求发送失败，请手动添加"
+                                                }
+                                            Toast.makeText(context, message, Toast.LENGTH_SHORT)
+                                                .show()
+                                        }
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Outlined.Add,
+                                            contentDescription = null,
+                                            modifier = Modifier.height(18.dp)
+                                        )
+                                        Spacer(modifier = Modifier.width(6.dp))
+                                        Text(stringResource(Res.string.add_to_home_screen))
+                                    }
+                                }
+                            }
+                        },
+                        leadingContent = {
+                            Icon(painterResource(Res.drawable.palette), null)
+                        },
+                        colors = listItemColors,
+                        shapes = segmentedListItemShapes(0, 2)
+                    )
+                }
+
+                item {
+                    SegmentedListItem(
+                        onClick = {},
+                        content = { Text("包含的 PR 类型") },
+                        supportingContent = {
+                            FlowRow(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(top = 8.dp),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                verticalArrangement = Arrangement.spacedBy(4.dp)
+                            ) {
+                                PullRequestType.entries.forEach { type ->
+                                    val isSelected = selectedPullRequestTypes.contains(type)
+                                    FilterChip(
+                                        selected = isSelected,
+                                        onClick = {
+                                            val newTypes = if (isSelected) {
+                                                selectedPullRequestTypes - type
+                                            } else {
+                                                selectedPullRequestTypes + type
+                                            }
+                                            onPullRequestTypesChange(newTypes)
+                                        },
+                                        label = { Text(type.displayName) }
+                                    )
+                                }
+                            }
+                        },
+                        leadingContent = {
+                            Icon(painterResource(Res.drawable.palette), null)
+                        },
+                        colors = listItemColors,
+                        shapes = segmentedListItemShapes(1, 2)
+                    )
+                }
             }
         }
     }
@@ -582,6 +693,23 @@ private fun requestPinReviewsRequestedWidget(context: Context): PinWidgetRequest
         return PinWidgetRequestResult.NOT_SUPPORTED
     }
     val provider = ComponentName(context, ReviewsRequestedWidgetProvider::class.java)
+    return if (appWidgetManager.requestPinAppWidget(provider, null, null)) {
+        PinWidgetRequestResult.REQUESTED
+    } else {
+        PinWidgetRequestResult.FAILED
+    }
+}
+
+private fun requestPinPullRequestsWidget(context: Context): PinWidgetRequestResult {
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+        return PinWidgetRequestResult.UNSUPPORTED_ANDROID
+    }
+    val appWidgetManager = context.getSystemService(AppWidgetManager::class.java)
+        ?: return PinWidgetRequestResult.FAILED
+    if (!appWidgetManager.isRequestPinAppWidgetSupported) {
+        return PinWidgetRequestResult.NOT_SUPPORTED
+    }
+    val provider = ComponentName(context, PullRequestsWidgetReceiver::class.java)
     return if (appWidgetManager.requestPinAppWidget(provider, null, null)) {
         PinWidgetRequestResult.REQUESTED
     } else {
@@ -697,6 +825,129 @@ private fun HeatmapPreviewCard(
                         }
                     }
                 }
+            }
+        }
+    }
+}
+
+private enum class PRPreviewStatus { SUCCESS, FAILURE }
+
+@Composable
+private fun PRPreviewRow(
+    repo: String,
+    prNumber: Int,
+    title: String,
+    status: PRPreviewStatus,
+    grayText: Color
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 6.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "$repo #$prNumber",
+                color = grayText,
+                fontSize = 11.sp,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f)
+            )
+            Spacer(Modifier.width(6.dp))
+            Icon(
+                painter = painterResource(
+                    when (status) {
+                        PRPreviewStatus.SUCCESS -> cn.waijade.nexuswid.R.drawable.ic_check_circle_green
+                        PRPreviewStatus.FAILURE -> cn.waijade.nexuswid.R.drawable.ic_x_circle_red
+                    }
+                ),
+                contentDescription = null,
+                tint = when (status) {
+                    PRPreviewStatus.SUCCESS -> Color(0xFF1F883D)
+                    PRPreviewStatus.FAILURE -> Color(0xFFCF222E)
+                },
+                modifier = Modifier.size(14.dp)
+            )
+        }
+        Spacer(Modifier.height(2.dp))
+        Text(
+            text = title,
+            color = Color.White,
+            fontSize = 13.sp,
+            fontWeight = FontWeight.Medium,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
+    }
+}
+
+@Composable
+private fun PullRequestsPreviewCard(
+    modifier: Modifier = Modifier
+) {
+    val githubGreen = Color(0xFF1F883D)
+    val grayText = Color(0xFF8B949E)
+
+    Surface(
+        modifier = modifier,
+        shape = RoundedCornerShape(16.dp),
+        color = Color(0xFF0D1117)
+    ) {
+        BoxWithConstraints(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(14.dp)
+        ) {
+            Column(
+                modifier = Modifier.fillMaxSize()
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        painter = painterResource(cn.waijade.nexuswid.R.drawable.ic_git_pull_request_green),
+                        contentDescription = null,
+                        tint = githubGreen,
+                        modifier = Modifier.size(16.dp)
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    Text(
+                        text = "2 reviews requested",
+                        color = Color.White,
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Medium,
+                        modifier = Modifier.weight(1f)
+                    )
+                    Icon(
+                        painter = painterResource(cn.waijade.nexuswid.R.drawable.ic_mark_github),
+                        contentDescription = null,
+                        tint = Color.White,
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
+
+                Spacer(Modifier.height(10.dp))
+
+                PRPreviewRow(
+                    repo = "github/docs",
+                    prNumber = 4287,
+                    title = "Fix broken links in API reference",
+                    status = PRPreviewStatus.SUCCESS,
+                    grayText = grayText
+                )
+
+                PRPreviewRow(
+                    repo = "kubernetes/kubernetes",
+                    prNumber = 131204,
+                    title = "Update node autoscaler config",
+                    status = PRPreviewStatus.FAILURE,
+                    grayText = grayText
+                )
             }
         }
     }
