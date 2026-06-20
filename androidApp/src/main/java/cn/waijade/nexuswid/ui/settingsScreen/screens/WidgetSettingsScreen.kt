@@ -97,7 +97,6 @@ import cn.waijade.nexuswid.widget.ContributionHeatmapWidgetProvider
 import cn.waijade.nexuswid.widget.HeatmapGridCalculator
 import cn.waijade.nexuswid.widget.HeatmapWidgetDataStore
 import cn.waijade.nexuswid.widget.PullRequestsWidgetReceiver
-import cn.waijade.nexuswid.widget.ReviewsRequestedWidgetProvider
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import nexuswid.shared.generated.resources.Res
@@ -433,123 +432,6 @@ fun WidgetSettingsScreen(
 
                 item {
                     Text(
-                        text = stringResource(Res.string.widget_reviews_requested),
-                        style = MaterialTheme.typography.titleSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 4.dp)
-                    )
-                }
-
-                item {
-                    SegmentedListItem(
-                        onClick = {},
-                        content = { Text(stringResource(Res.string.widget_reviews_requested)) },
-                        supportingContent = {
-                            Column(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(top = 8.dp)
-                            ) {
-                                Box(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Box(
-                                        modifier = Modifier
-                                            .width(160.dp)
-                                            .height(160.dp)
-                                    ) {
-                                        ReviewsRequestedPreviewCard(
-                                            modifier = Modifier.fillMaxSize()
-                                        )
-                                    }
-                                }
-                                Spacer(modifier = Modifier.height(4.dp))
-                                Text(
-                                    text = "数字缩略: 1k = 1000, 1M = 1000000",
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    modifier = Modifier.fillMaxWidth(),
-                                    textAlign = TextAlign.Center
-                                )
-                                Spacer(modifier = Modifier.height(8.dp))
-                                Box(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    contentAlignment = Alignment.CenterEnd
-                                ) {
-                                    FilledTonalButton(
-                                        onClick = {
-                                            val message =
-                                                when (requestPinReviewsRequestedWidget(context)) {
-                                                    PinWidgetRequestResult.REQUESTED -> "请在系统弹窗中确认添加小组件"
-                                                    PinWidgetRequestResult.NOT_SUPPORTED -> "当前桌面不支持一键添加小组件"
-                                                    PinWidgetRequestResult.UNSUPPORTED_ANDROID -> "当前安卓版本不支持一键添加"
-                                                    PinWidgetRequestResult.FAILED -> "添加请求发送失败，请手动添加"
-                                                }
-                                            Toast.makeText(context, message, Toast.LENGTH_SHORT)
-                                                .show()
-                                        }
-                                    ) {
-                                        Icon(
-                                            imageVector = Icons.Outlined.Add,
-                                            contentDescription = null,
-                                            modifier = Modifier.height(18.dp)
-                                        )
-                                        Spacer(modifier = Modifier.width(6.dp))
-                                        Text(stringResource(Res.string.add_to_home_screen))
-                                    }
-                                }
-                            }
-                        },
-                        leadingContent = {
-                            Icon(painterResource(Res.drawable.palette), null)
-                        },
-                        colors = listItemColors,
-                        shapes = segmentedListItemShapes(0, 2)
-                    )
-                }
-
-                item {
-                    SegmentedListItem(
-                        onClick = {},
-                        content = { Text("包含的 PR 类型") },
-                        supportingContent = {
-                            FlowRow(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(top = 8.dp),
-                                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                verticalArrangement = Arrangement.spacedBy(4.dp)
-                            ) {
-                                PullRequestType.entries.forEach { type ->
-                                    val isSelected = selectedPullRequestTypes.contains(type)
-                                    FilterChip(
-                                        selected = isSelected,
-                                        onClick = {
-                                            val newTypes = if (isSelected) {
-                                                selectedPullRequestTypes - type
-                                            } else {
-                                                selectedPullRequestTypes + type
-                                            }
-                                            onPullRequestTypesChange(newTypes)
-                                        },
-                                        label = { Text(type.displayName) }
-                                    )
-                                }
-                            }
-                        },
-                        leadingContent = {
-                            Icon(painterResource(Res.drawable.palette), null)
-                        },
-                        colors = listItemColors,
-                        shapes = segmentedListItemShapes(1, 2)
-                    )
-                }
-
-                item { Spacer(Modifier.height(12.dp)) }
-
-                item {
-                    Text(
                         text = stringResource(Res.string.widget_pull_requests),
                         style = MaterialTheme.typography.titleSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -676,23 +558,6 @@ private fun requestPinContributionHeatmapWidget(context: Context): PinWidgetRequ
         return PinWidgetRequestResult.NOT_SUPPORTED
     }
     val provider = ComponentName(context, ContributionHeatmapWidgetProvider::class.java)
-    return if (appWidgetManager.requestPinAppWidget(provider, null, null)) {
-        PinWidgetRequestResult.REQUESTED
-    } else {
-        PinWidgetRequestResult.FAILED
-    }
-}
-
-private fun requestPinReviewsRequestedWidget(context: Context): PinWidgetRequestResult {
-    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
-        return PinWidgetRequestResult.UNSUPPORTED_ANDROID
-    }
-    val appWidgetManager = context.getSystemService(AppWidgetManager::class.java)
-        ?: return PinWidgetRequestResult.FAILED
-    if (!appWidgetManager.isRequestPinAppWidgetSupported) {
-        return PinWidgetRequestResult.NOT_SUPPORTED
-    }
-    val provider = ComponentName(context, ReviewsRequestedWidgetProvider::class.java)
     return if (appWidgetManager.requestPinAppWidget(provider, null, null)) {
         PinWidgetRequestResult.REQUESTED
     } else {

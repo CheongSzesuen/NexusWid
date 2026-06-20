@@ -43,13 +43,11 @@
                 android:resource="@xml/contribution_widget_info" />
         </receiver>
         <receiver
-            android:name=".widget.ReviewsRequestedWidgetProvider"
+            android:name=".widget.ReviewsRequestedWidgetReceiver"
             android:exported="true"
             android:label="@string/widget_reviews_requested">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
-                <action android:name="android.intent.action.CONFIGURATION_CHANGED" />
-                <action android:name="cn.waijade.nexuswid.ACTION_REFRESH_REVIEWS_REQUESTED" />
             </intent-filter>
             <meta-data
                 android:name="android.appwidget.provider"

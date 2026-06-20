@@ -151,7 +151,7 @@ fun DebugSettingsScreen(
                                         githubPreferences.debugCountValue = newValue.toInt()
                                         // 触发小组件更新
                                         val intent = Intent(AppWidgetManager.ACTION_APPWIDGET_UPDATE).apply {
-                                            val componentName = ComponentName(context.packageName, "cn.waijade.nexuswid.widget.ReviewsRequestedWidgetProvider")
+                                            val componentName = ComponentName(context.packageName, "cn.waijade.nexuswid.widget.ReviewsRequestedWidgetReceiver")
                                             val appWidgetManager = AppWidgetManager.getInstance(context)
                                             val appWidgetIds = appWidgetManager.getAppWidgetIds(componentName)
                                             putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, appWidgetIds)
