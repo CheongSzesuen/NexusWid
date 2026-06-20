@@ -102,6 +102,7 @@ import cn.waijade.nexuswid.widget.ContributionHeatmapWidgetProvider
 import cn.waijade.nexuswid.widget.HeatmapGridCalculator
 import cn.waijade.nexuswid.widget.HeatmapWidgetDataStore
 import cn.waijade.nexuswid.widget.IssuesWidgetReceiver
+import cn.waijade.nexuswid.widget.NotificationsWidgetReceiver
 import cn.waijade.nexuswid.widget.PullRequestsWidgetReceiver
 import cn.waijade.nexuswid.widget.ReviewsRequestedWidgetReceiver
 import kotlinx.coroutines.Dispatchers
@@ -811,6 +812,77 @@ fun WidgetSettingsScreen(
                     )
                 }
 
+                item { Spacer(Modifier.height(12.dp)) }
+
+                item {
+                    Text(
+                        text = "Notifications",
+                        style = MaterialTheme.typography.titleSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 4.dp)
+                    )
+                }
+
+                item {
+                    SegmentedListItem(
+                        onClick = {},
+                        content = { Text("Notifications") },
+                        supportingContent = {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(top = 8.dp)
+                            ) {
+                                Box(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .height(180.dp)
+                                    ) {
+                                        NotificationsPreviewCard(
+                                            colorMode = widgetColorMode,
+                                            modifier = Modifier.fillMaxSize()
+                                        )
+                                    }
+                                }
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Box(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    contentAlignment = Alignment.CenterEnd
+                                ) {
+                                    FilledTonalButton(
+                                        onClick = {
+                                            val message = when (requestPinNotificationsWidget(context)) {
+                                                PinWidgetRequestResult.REQUESTED -> "请在系统弹窗中确认添加小组件"
+                                                PinWidgetRequestResult.NOT_SUPPORTED -> "当前桌面不支持一键添加小组件"
+                                                PinWidgetRequestResult.UNSUPPORTED_ANDROID -> "当前安卓版本不支持一键添加"
+                                                PinWidgetRequestResult.FAILED -> "添加请求发送失败，请手动添加"
+                                            }
+                                            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+                                        }
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Outlined.Add,
+                                            contentDescription = null,
+                                            modifier = Modifier.height(18.dp)
+                                        )
+                                        Spacer(modifier = Modifier.width(6.dp))
+                                        Text(stringResource(Res.string.add_to_home_screen))
+                                    }
+                                }
+                            }
+                        },
+                        leadingContent = {
+                            Icon(painterResource(Res.drawable.palette), null)
+                        },
+                        colors = listItemColors,
+                        shapes = segmentedListItemShapes(0, 1)
+                    )
+                }
+
                 item { Spacer(Modifier.height(8.dp)) }
 
                 item {
@@ -953,6 +1025,23 @@ private fun requestPinActionsWidget(context: Context): PinWidgetRequestResult {
         return PinWidgetRequestResult.NOT_SUPPORTED
     }
     val provider = ComponentName(context, ActionsWidgetReceiver::class.java)
+    return if (appWidgetManager.requestPinAppWidget(provider, null, null)) {
+        PinWidgetRequestResult.REQUESTED
+    } else {
+        PinWidgetRequestResult.FAILED
+    }
+}
+
+private fun requestPinNotificationsWidget(context: Context): PinWidgetRequestResult {
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+        return PinWidgetRequestResult.UNSUPPORTED_ANDROID
+    }
+    val appWidgetManager = context.getSystemService(AppWidgetManager::class.java)
+        ?: return PinWidgetRequestResult.FAILED
+    if (!appWidgetManager.isRequestPinAppWidgetSupported) {
+        return PinWidgetRequestResult.NOT_SUPPORTED
+    }
+    val provider = ComponentName(context, NotificationsWidgetReceiver::class.java)
     return if (appWidgetManager.requestPinAppWidget(provider, null, null)) {
         PinWidgetRequestResult.REQUESTED
     } else {
@@ -1499,5 +1588,150 @@ fun ReviewsRequestedPreviewCard(
                 }
             }
         }
+    }
+}
+
+@Composable
+fun NotificationsPreviewCard(
+    colorMode: HeatmapColorMode,
+    modifier: Modifier = Modifier
+) {
+    val systemDark = androidx.compose.foundation.isSystemInDarkTheme()
+    val isDark = when (colorMode) {
+        HeatmapColorMode.SYSTEM -> systemDark
+        HeatmapColorMode.LIGHT -> false
+        HeatmapColorMode.DARK -> true
+    }
+    val bgColor = if (isDark) Color(0xFF0D1117) else Color(0xFFF6F8FA)
+    val textPrimary = if (isDark) Color.White else Color(0xFF1F2328)
+    val grayText = if (isDark) Color(0xFF8B949E) else Color(0xFF656D76)
+
+    Surface(
+        modifier = modifier,
+        shape = RoundedCornerShape(16.dp),
+        color = bgColor
+    ) {
+        BoxWithConstraints(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(14.dp)
+        ) {
+            Column(
+                modifier = Modifier.fillMaxSize()
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        painter = painterResource(
+                            if (isDark) cn.waijade.nexuswid.R.drawable.ic_notifications
+                            else cn.waijade.nexuswid.R.drawable.ic_notifications_dark
+                        ),
+                        contentDescription = null,
+                        tint = Color.Unspecified,
+                        modifier = Modifier.size(16.dp)
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    Text(
+                        text = "3 unread",
+                        color = textPrimary,
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Medium,
+                        modifier = Modifier.weight(1f)
+                    )
+                    Icon(
+                        painter = painterResource(
+                            if (isDark) cn.waijade.nexuswid.R.drawable.ic_mark_github
+                            else cn.waijade.nexuswid.R.drawable.ic_mark_github_dark
+                        ),
+                        contentDescription = null,
+                        tint = Color.Unspecified,
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
+
+                Spacer(Modifier.height(10.dp))
+
+                NotificationsPreviewRow(
+                    repo = "AstralSightStudios/AstroBox-Repo",
+                    title = "Add new quick app entry for 恐龙快跑",
+                    reason = "commented",
+                    isUnread = true,
+                    grayText = grayText,
+                    titleColor = textPrimary
+                )
+
+                NotificationsPreviewRow(
+                    repo = "google/accompanist",
+                    title = "Update SwipeRefresh to use Material3",
+                    reason = "review requested",
+                    isUnread = true,
+                    grayText = grayText,
+                    titleColor = textPrimary
+                )
+
+                NotificationsPreviewRow(
+                    repo = "kubernetes/kubernetes",
+                    title = "Fix node autoscaler memory leak",
+                    reason = "mentioned",
+                    isUnread = false,
+                    grayText = grayText,
+                    titleColor = textPrimary
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun NotificationsPreviewRow(
+    repo: String,
+    title: String,
+    reason: String,
+    isUnread: Boolean,
+    grayText: Color,
+    titleColor: Color
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp)
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = repo,
+                color = grayText,
+                fontSize = 12.sp,
+                maxLines = 1,
+                modifier = Modifier.weight(1f)
+            )
+            Spacer(Modifier.width(4.dp))
+            Text(
+                text = reason,
+                color = grayText,
+                fontSize = 10.sp,
+                maxLines = 1
+            )
+            if (isUnread) {
+                Spacer(Modifier.width(4.dp))
+                Box(
+                    modifier = Modifier
+                        .size(6.dp)
+                        .background(Color(0xFF1F883D), RoundedCornerShape(3.dp))
+                )
+            }
+        }
+        Spacer(Modifier.height(1.dp))
+        Text(
+            text = title,
+            color = titleColor,
+            fontSize = 13.sp,
+            fontWeight = FontWeight.Medium,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
     }
 }

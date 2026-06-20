@@ -128,3 +128,44 @@ data class WorkflowSummary(
     val branch: String?,
     val updatedAt: String?
 )
+
+enum class NotificationReason(val displayName: String) {
+    ASSIGN("assigned"),
+    AUTHOR("authored"),
+    COMMENT("commented"),
+    CI_ACTIVITY("CI"),
+    INVITATION("invited"),
+    MANUAL("subscribed"),
+    MENTION("mentioned"),
+    REVIEW_REQUESTED("review requested"),
+    SECURITY_ALERT("security"),
+    STATE_CHANGE("state changed"),
+    SUBSCRIBED("watching"),
+    TEAM_MENTION("team mentioned"),
+    APPROVAL_REQUESTED("approval requested"),
+    MEMBER_FEATURE_REQUESTED("feature requested"),
+    SECURITY_ADVISORY_CREDIT("advisory credit")
+}
+
+enum class NotificationSubjectType(val displayName: String) {
+    ISSUE("Issue"),
+    PULL_REQUEST("PR"),
+    COMMIT("Commit"),
+    RELEASE("Release"),
+    DISCUSSION("Discussion"),
+    CHECK_SUITE("Check"),
+    OTHER("Other")
+}
+
+data class NotificationItem(
+    val id: String,
+    val repoFullName: String,
+    val title: String,
+    val subjectType: NotificationSubjectType,
+    val reason: NotificationReason,
+    val isUnread: Boolean,
+    val updatedAt: String,
+    val htmlUrl: String,
+    val subjectApiUrl: String = "",
+    val state: String? = null
+)
