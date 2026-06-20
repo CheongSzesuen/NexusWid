@@ -51,4 +51,5 @@
     <string name="pull_requests_description">显示拉取请求列表</string>
     <string name="reviews_requested">审查请求</string>
     <string name="reviews_requested_description">显示请求的代码审查</string>
+    <string name="widget_issues">Issues</string>
 </resources>

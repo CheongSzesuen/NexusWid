@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.SharedPreferences
 import cn.waijade.nexuswid.data.HeatmapColorMode
 import cn.waijade.nexuswid.data.WidgetPreferences
+import cn.waijade.nexuswid.data.github.IssueType
 
 class GitHubPreferences(context: Context) : WidgetPreferences {
     private val prefs: SharedPreferences = context.getSharedPreferences(
@@ -35,6 +36,22 @@ class GitHubPreferences(context: Context) : WidgetPreferences {
         }
         set(value) {
             prefs.edit().putStringSet(KEY_PULL_REQUEST_TYPES, value.map { it.name }.toSet()).commit()
+        }
+
+    override var selectedIssueTypes: Set<IssueType>
+        get() {
+            val typeNames = prefs.getStringSet(KEY_ISSUE_TYPES, DEFAULT_ISSUE_TYPES)
+                ?: DEFAULT_ISSUE_TYPES
+            return typeNames.mapNotNull { name ->
+                try {
+                    IssueType.valueOf(name)
+                } catch (_: IllegalArgumentException) {
+                    null
+                }
+            }.toSet()
+        }
+        set(value) {
+            prefs.edit().putStringSet(KEY_ISSUE_TYPES, value.map { it.name }.toSet()).commit()
         }
 
     override var weekStartsOnMonday: Boolean
@@ -104,6 +121,7 @@ class GitHubPreferences(context: Context) : WidgetPreferences {
         private const val KEY_WIDGET_COLOR_MODE = "widget_color_mode"
         private const val KEY_LIQUID_GLASS_BOTTOM_BAR = "liquid_glass_bottom_bar"
         private const val KEY_PULL_REQUEST_TYPES = "pull_request_types"
+        private const val KEY_ISSUE_TYPES = "issue_types"
         private const val KEY_DEBUG_COUNT_TEXT_SCALE = "debug_count_text_scale"
         private const val KEY_DEBUG_COUNT_VALUE = "debug_count_value"
         private const val KEY_DEBUG_USE_TEST_DATA = "debug_use_test_data"
@@ -111,6 +129,9 @@ class GitHubPreferences(context: Context) : WidgetPreferences {
         private const val DEFAULT_WIDGET_COLOR_MODE = "SYSTEM"
         private val DEFAULT_PULL_REQUEST_TYPES = setOf(
             PullRequestType.REVIEW_REQUESTED.name
+        )
+        private val DEFAULT_ISSUE_TYPES = setOf(
+            IssueType.ASSIGNED.name
         )
     }
 }

@@ -79,3 +79,17 @@ enum class CheckStatus {
     PENDING,
     NONE
 }
+
+enum class IssueType(val query: String, val displayName: String) {
+    ASSIGNED("assignee:@me", "Assigned"),
+    CREATED("author:@me", "Created"),
+    MENTIONED("mentions:@me", "Mentioned")
+}
+
+data class IssueItem(
+    val repoFullName: String,
+    val number: Int,
+    val title: String,
+    val htmlUrl: String,
+    val state: String
+)

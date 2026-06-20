@@ -1,5 +1,6 @@
 package cn.waijade.nexuswid.data
 
+import cn.waijade.nexuswid.data.github.IssueType
 import cn.waijade.nexuswid.data.github.PullRequestType
 
 interface WidgetPreferences {
@@ -8,4 +9,5 @@ interface WidgetPreferences {
     var weekStartsOnMonday: Boolean
     var liquidGlassBottomBar: Boolean
     var selectedPullRequestTypes: Set<PullRequestType>
+    var selectedIssueTypes: Set<IssueType>
 }

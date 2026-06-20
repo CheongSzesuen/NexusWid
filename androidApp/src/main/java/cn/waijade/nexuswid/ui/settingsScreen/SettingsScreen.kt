@@ -40,6 +40,7 @@ import cn.waijade.nexuswid.ui.theme.CustomColors.topBarColors
 import cn.waijade.nexuswid.ui.utils.onBack
 import cn.waijade.nexuswid.ui.utils.onTopLevelNavigate
 import cn.waijade.nexuswid.widget.ContributionHeatmapWidgetProvider
+import cn.waijade.nexuswid.widget.IssuesWidget
 import cn.waijade.nexuswid.widget.PullRequestsWidget
 import cn.waijade.nexuswid.widget.ReviewsRequestedWidget
 import kotlinx.coroutines.GlobalScope
@@ -157,12 +158,17 @@ fun SettingsScreenRoot(
                     onPullRequestTypesChange = { types ->
                         settingsViewModel.onAction(SettingsAction.SavePullRequestTypes(types))
                     },
+                    selectedIssueTypes = settingsState.selectedIssueTypes,
+                    onIssueTypesChange = { types ->
+                        settingsViewModel.onAction(SettingsAction.SaveIssueTypes(types))
+                    },
                     widgetColorMode = settingsState.widgetColorMode,
                     onWidgetColorModeChange = { mode ->
                         settingsViewModel.onAction(SettingsAction.SaveWidgetColorMode(mode))
                         GlobalScope.launch {
                             ReviewsRequestedWidget.updateAll(context)
                             PullRequestsWidget.updateAll(context)
+                            IssuesWidget.updateAll(context)
                         }
                     },
                     modifier = modifier,

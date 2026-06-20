@@ -1,5 +1,6 @@
 package cn.waijade.nexuswid.data
 
+import cn.waijade.nexuswid.data.github.IssueType
 import cn.waijade.nexuswid.data.github.PullRequestType
 import cn.waijade.nexuswid.ui.settingsScreen.viewModel.SettingsState
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -38,5 +39,9 @@ class StateRepository {
 
     fun updateSelectedPullRequestTypes(types: Set<PullRequestType>) {
         settingsState.update { it.copy(selectedPullRequestTypes = types) }
+    }
+
+    fun updateSelectedIssueTypes(types: Set<IssueType>) {
+        settingsState.update { it.copy(selectedIssueTypes = types) }
     }
 }

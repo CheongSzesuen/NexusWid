@@ -85,6 +85,7 @@ import androidx.compose.ui.util.fastForEachIndexed
 import androidx.window.core.layout.WindowSizeClass.Companion.WIDTH_DP_EXPANDED_LOWER_BOUND
 import cn.waijade.nexuswid.data.HeatmapColorMode
 import cn.waijade.nexuswid.data.HeatmapTheme
+import cn.waijade.nexuswid.data.github.IssueType
 import cn.waijade.nexuswid.data.github.PullRequestType
 import cn.waijade.nexuswid.ui.mergePaddingValues
 import cn.waijade.nexuswid.ui.theme.CustomColors.detailPaneTopBarColors
@@ -96,6 +97,7 @@ import cn.waijade.nexuswid.ui.theme.NexusShapeDefaults.segmentedListItemShapes
 import cn.waijade.nexuswid.widget.ContributionHeatmapWidgetProvider
 import cn.waijade.nexuswid.widget.HeatmapGridCalculator
 import cn.waijade.nexuswid.widget.HeatmapWidgetDataStore
+import cn.waijade.nexuswid.widget.IssuesWidgetReceiver
 import cn.waijade.nexuswid.widget.PullRequestsWidgetReceiver
 import cn.waijade.nexuswid.widget.ReviewsRequestedWidgetReceiver
 import kotlinx.coroutines.Dispatchers
@@ -138,6 +140,8 @@ fun WidgetSettingsScreen(
     onWeekStartsOnMondayChange: (Boolean) -> Unit,
     selectedPullRequestTypes: Set<PullRequestType>,
     onPullRequestTypesChange: (Set<PullRequestType>) -> Unit,
+    selectedIssueTypes: Set<IssueType>,
+    onIssueTypesChange: (Set<IssueType>) -> Unit,
     widgetColorMode: HeatmapColorMode,
     onWidgetColorModeChange: (HeatmapColorMode) -> Unit,
     modifier: Modifier = Modifier
@@ -516,6 +520,116 @@ fun WidgetSettingsScreen(
 
                 item {
                     Text(
+                        text = "Issues",
+                        style = MaterialTheme.typography.titleSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 4.dp)
+                    )
+                }
+
+                item {
+                    SegmentedListItem(
+                        onClick = {},
+                        content = { Text("Issues") },
+                        supportingContent = {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(top = 8.dp)
+                            ) {
+                                Box(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .height(180.dp)
+                                    ) {
+                                        IssuesPreviewCard(
+                                            colorMode = widgetColorMode,
+                                            modifier = Modifier.fillMaxSize()
+                                        )
+                                    }
+                                }
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Box(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    contentAlignment = Alignment.CenterEnd
+                                ) {
+                                    FilledTonalButton(
+                                        onClick = {
+                                            val message =
+                                                when (requestPinIssuesWidget(context)) {
+                                                    PinWidgetRequestResult.REQUESTED -> "请在系统弹窗中确认添加小组件"
+                                                    PinWidgetRequestResult.NOT_SUPPORTED -> "当前桌面不支持一键添加小组件"
+                                                    PinWidgetRequestResult.UNSUPPORTED_ANDROID -> "当前安卓版本不支持一键添加"
+                                                    PinWidgetRequestResult.FAILED -> "添加请求发送失败，请手动添加"
+                                                }
+                                            Toast.makeText(context, message, Toast.LENGTH_SHORT)
+                                                .show()
+                                        }
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Outlined.Add,
+                                            contentDescription = null,
+                                            modifier = Modifier.height(18.dp)
+                                        )
+                                        Spacer(modifier = Modifier.width(6.dp))
+                                        Text(stringResource(Res.string.add_to_home_screen))
+                                    }
+                                }
+                            }
+                        },
+                        leadingContent = {
+                            Icon(painterResource(Res.drawable.palette), null)
+                        },
+                        colors = listItemColors,
+                        shapes = segmentedListItemShapes(0, 2)
+                    )
+                }
+
+                item {
+                    SegmentedListItem(
+                        onClick = {},
+                        content = { Text("包含的 Issue 类型") },
+                        supportingContent = {
+                            FlowRow(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(top = 8.dp),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                verticalArrangement = Arrangement.spacedBy(4.dp)
+                            ) {
+                                IssueType.entries.forEach { type ->
+                                    val isSelected = selectedIssueTypes.contains(type)
+                                    FilterChip(
+                                        selected = isSelected,
+                                        onClick = {
+                                            val newTypes = if (isSelected) {
+                                                selectedIssueTypes - type
+                                            } else {
+                                                selectedIssueTypes + type
+                                            }
+                                            onIssueTypesChange(newTypes)
+                                        },
+                                        label = { Text(type.displayName) }
+                                    )
+                                }
+                            }
+                        },
+                        leadingContent = {
+                            Icon(painterResource(Res.drawable.palette), null)
+                        },
+                        colors = listItemColors,
+                        shapes = segmentedListItemShapes(1, 2)
+                    )
+                }
+
+                item { Spacer(Modifier.height(12.dp)) }
+
+                item {
+                    Text(
                         text = stringResource(Res.string.widget_pull_requests),
                         style = MaterialTheme.typography.titleSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -730,6 +844,23 @@ private fun requestPinPullRequestsWidget(context: Context): PinWidgetRequestResu
         return PinWidgetRequestResult.NOT_SUPPORTED
     }
     val provider = ComponentName(context, PullRequestsWidgetReceiver::class.java)
+    return if (appWidgetManager.requestPinAppWidget(provider, null, null)) {
+        PinWidgetRequestResult.REQUESTED
+    } else {
+        PinWidgetRequestResult.FAILED
+    }
+}
+
+private fun requestPinIssuesWidget(context: Context): PinWidgetRequestResult {
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+        return PinWidgetRequestResult.UNSUPPORTED_ANDROID
+    }
+    val appWidgetManager = context.getSystemService(AppWidgetManager::class.java)
+        ?: return PinWidgetRequestResult.FAILED
+    if (!appWidgetManager.isRequestPinAppWidgetSupported) {
+        return PinWidgetRequestResult.NOT_SUPPORTED
+    }
+    val provider = ComponentName(context, IssuesWidgetReceiver::class.java)
     return if (appWidgetManager.requestPinAppWidget(provider, null, null)) {
         PinWidgetRequestResult.REQUESTED
     } else {
@@ -978,6 +1109,114 @@ fun PullRequestsPreviewCard(
                     status = PRPreviewStatus.FAILURE,
                     grayText = grayText
                 )
+            }
+        }
+    }
+}
+
+@Composable
+fun IssuesPreviewCard(
+    colorMode: HeatmapColorMode,
+    modifier: Modifier = Modifier
+) {
+    val systemDark = androidx.compose.foundation.isSystemInDarkTheme()
+    val isDark = when (colorMode) {
+        HeatmapColorMode.SYSTEM -> systemDark
+        HeatmapColorMode.LIGHT -> false
+        HeatmapColorMode.DARK -> true
+    }
+    val githubGreen = Color(0xFF1F883D)
+    val bgColor = if (isDark) Color(0xFF0D1117) else Color(0xFFF6F8FA)
+    val textPrimary = if (isDark) Color.White else Color(0xFF1F2328)
+    val grayText = if (isDark) Color(0xFF8B949E) else Color(0xFF656D76)
+
+    Surface(
+        modifier = modifier,
+        shape = RoundedCornerShape(16.dp),
+        color = bgColor
+    ) {
+        BoxWithConstraints(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(14.dp)
+        ) {
+            Column(
+                modifier = Modifier.fillMaxSize()
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        painter = painterResource(cn.waijade.nexuswid.R.drawable.ic_git_issue_green),
+                        contentDescription = null,
+                        tint = githubGreen,
+                        modifier = Modifier.size(16.dp)
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    Text(
+                        text = "5 assigned issues",
+                        color = textPrimary,
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Medium,
+                        modifier = Modifier.weight(1f)
+                    )
+                    Icon(
+                        painter = painterResource(
+                            if (isDark) cn.waijade.nexuswid.R.drawable.ic_mark_github
+                            else cn.waijade.nexuswid.R.drawable.ic_mark_github_dark
+                        ),
+                        contentDescription = null,
+                        tint = Color.Unspecified,
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
+
+                Spacer(Modifier.height(10.dp))
+
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 4.dp)
+                ) {
+                    Text(
+                        text = "github/docs #4287",
+                        color = grayText,
+                        fontSize = 13.sp,
+                        maxLines = 1
+                    )
+                    Spacer(Modifier.height(1.dp))
+                    Text(
+                        text = "Fix broken links in API reference",
+                        color = textPrimary,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Medium,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 4.dp)
+                ) {
+                    Text(
+                        text = "kubernetes/kubernetes #131204",
+                        color = grayText,
+                        fontSize = 13.sp,
+                        maxLines = 1
+                    )
+                    Spacer(Modifier.height(1.dp))
+                    Text(
+                        text = "Update node autoscaler config",
+                        color = textPrimary,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Medium,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
             }
         }
     }

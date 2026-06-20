@@ -8,4 +8,5 @@
     <string name="github_username">用户名</string>
     <string name="github_token">Token</string>
     <string name="widget">小组件</string>
+    <string name="widget_issues">Issues</string>
 </resources>

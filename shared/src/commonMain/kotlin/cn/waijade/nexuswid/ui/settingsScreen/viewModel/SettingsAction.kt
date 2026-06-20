@@ -2,6 +2,7 @@ package cn.waijade.nexuswid.ui.settingsScreen.viewModel
 
 import androidx.compose.ui.graphics.Color
 import cn.waijade.nexuswid.data.HeatmapColorMode
+import cn.waijade.nexuswid.data.github.IssueType
 import cn.waijade.nexuswid.data.github.PullRequestType
 
 sealed interface SettingsAction {
@@ -13,4 +14,5 @@ sealed interface SettingsAction {
     data class SaveWeekStartsOnMonday(val enabled: Boolean) : SettingsAction
     data class SaveLiquidGlassBottomBar(val enabled: Boolean) : SettingsAction
     data class SavePullRequestTypes(val types: Set<PullRequestType>) : SettingsAction
+    data class SaveIssueTypes(val types: Set<IssueType>) : SettingsAction
 }

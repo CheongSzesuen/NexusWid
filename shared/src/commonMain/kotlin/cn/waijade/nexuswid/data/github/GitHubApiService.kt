@@ -170,6 +170,46 @@ class GitHubApiService(
         }
     }
 
+    suspend fun getIssueList(
+        token: String,
+        issueTypes: Set<IssueType>,
+        limit: Int = 20
+    ): Result<List<IssueItem>> = runCatching {
+        if (issueTypes.isEmpty()) return@runCatching emptyList()
+        val typeQuery = issueTypes.joinToString("+") { it.query }
+        val url = "https://api.github.com/search/issues?q=is:open+is:issue+$typeQuery&sort=updated&per_page=$limit"
+
+        val response = httpClient.get(url) {
+            header("User-Agent", "NexusWid/1.0")
+            header("Authorization", "bearer $token")
+            header("Accept", "application/vnd.github+json")
+        }
+
+        if (!response.status.isSuccess()) {
+            throw Exception("GitHub API error: ${response.status}")
+        }
+
+        val bodyText = response.bodyAsText()
+        val items = json.parseToJsonElement(bodyText).jsonObject["items"]?.jsonArray
+            ?: return@runCatching emptyList()
+
+        items.mapNotNull { item ->
+            val obj = item.jsonObject
+            val number = obj["number"]?.jsonPrimitive?.int ?: return@mapNotNull null
+            val title = obj["title"]?.jsonPrimitive?.content ?: return@mapNotNull null
+            val htmlUrl = obj["html_url"]?.jsonPrimitive?.content ?: return@mapNotNull null
+            val state = obj["state"]?.jsonPrimitive?.content ?: "open"
+            val repoFullName = extractRepoFullName(htmlUrl) ?: return@mapNotNull null
+            IssueItem(
+                repoFullName = repoFullName,
+                number = number,
+                title = title,
+                htmlUrl = htmlUrl,
+                state = state
+            )
+        }
+    }
+
     private fun extractRepoFullName(htmlUrl: String): String? {
         val parts = htmlUrl.removePrefix("https://github.com/").split("/")
         if (parts.size < 2) return null
