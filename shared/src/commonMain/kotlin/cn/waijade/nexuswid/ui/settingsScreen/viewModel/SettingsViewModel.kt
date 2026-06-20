@@ -22,6 +22,7 @@ class SettingsViewModel(
 
     init {
         stateRepository.updateHeatmapColorMode(widgetPreferences.widgetHeatmapColorMode)
+        stateRepository.updateWidgetColorMode(widgetPreferences.widgetColorMode)
         stateRepository.updateWeekStartsOnMonday(widgetPreferences.weekStartsOnMonday)
         stateRepository.updateLiquidGlassBottomBar(widgetPreferences.liquidGlassBottomBar)
         stateRepository.updateSelectedPullRequestTypes(widgetPreferences.selectedPullRequestTypes)
@@ -33,6 +34,7 @@ class SettingsViewModel(
             is SettingsAction.SaveColorScheme -> saveColorScheme(action.color)
             is SettingsAction.SaveBlackTheme -> saveBlackTheme(action.enabled)
             is SettingsAction.SaveHeatmapColorMode -> saveHeatmapColorMode(action.mode)
+            is SettingsAction.SaveWidgetColorMode -> saveWidgetColorMode(action.mode)
             is SettingsAction.SaveWeekStartsOnMonday -> saveWeekStartsOnMonday(action.enabled)
             is SettingsAction.SaveLiquidGlassBottomBar -> saveLiquidGlassBottomBar(action.enabled)
             is SettingsAction.SavePullRequestTypes -> savePullRequestTypes(action.types)
@@ -61,6 +63,13 @@ class SettingsViewModel(
         viewModelScope.launch {
             stateRepository.updateHeatmapColorMode(mode)
             widgetPreferences.widgetHeatmapColorMode = mode
+        }
+    }
+
+    private fun saveWidgetColorMode(mode: HeatmapColorMode) {
+        viewModelScope.launch {
+            stateRepository.updateWidgetColorMode(mode)
+            widgetPreferences.widgetColorMode = mode
         }
     }
 

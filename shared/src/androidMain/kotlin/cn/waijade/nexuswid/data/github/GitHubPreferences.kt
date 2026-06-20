@@ -57,6 +57,20 @@ class GitHubPreferences(context: Context) : WidgetPreferences {
             prefs.edit().putString(KEY_WIDGET_HEATMAP_COLOR_MODE, value.name).commit()
         }
 
+    override var widgetColorMode: HeatmapColorMode
+        get() {
+            val name = prefs.getString(KEY_WIDGET_COLOR_MODE, DEFAULT_WIDGET_COLOR_MODE)
+                ?: DEFAULT_WIDGET_COLOR_MODE
+            return try {
+                HeatmapColorMode.valueOf(name)
+            } catch (_: IllegalArgumentException) {
+                HeatmapColorMode.SYSTEM
+            }
+        }
+        set(value) {
+            prefs.edit().putString(KEY_WIDGET_COLOR_MODE, value.name).commit()
+        }
+
     override var liquidGlassBottomBar: Boolean
         get() = prefs.getBoolean(KEY_LIQUID_GLASS_BOTTOM_BAR, false)
         set(value) {
@@ -87,12 +101,14 @@ class GitHubPreferences(context: Context) : WidgetPreferences {
         private const val KEY_TOKEN = "github_token"
         private const val KEY_WEEK_STARTS_ON_MONDAY = "week_starts_on_monday"
         private const val KEY_WIDGET_HEATMAP_COLOR_MODE = "widget_heatmap_color_mode"
+        private const val KEY_WIDGET_COLOR_MODE = "widget_color_mode"
         private const val KEY_LIQUID_GLASS_BOTTOM_BAR = "liquid_glass_bottom_bar"
         private const val KEY_PULL_REQUEST_TYPES = "pull_request_types"
         private const val KEY_DEBUG_COUNT_TEXT_SCALE = "debug_count_text_scale"
         private const val KEY_DEBUG_COUNT_VALUE = "debug_count_value"
         private const val KEY_DEBUG_USE_TEST_DATA = "debug_use_test_data"
         private const val DEFAULT_WIDGET_HEATMAP_COLOR_MODE = "SYSTEM"
+        private const val DEFAULT_WIDGET_COLOR_MODE = "SYSTEM"
         private val DEFAULT_PULL_REQUEST_TYPES = setOf(
             PullRequestType.REVIEW_REQUESTED.name
         )

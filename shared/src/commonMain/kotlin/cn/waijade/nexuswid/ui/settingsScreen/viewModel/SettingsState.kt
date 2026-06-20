@@ -11,6 +11,7 @@ data class SettingsState(
     val colorScheme: String = Color.White.toString(),
     val blackTheme: Boolean = false,
     val heatmapColorMode: HeatmapColorMode = HeatmapColorMode.SYSTEM,
+    val widgetColorMode: HeatmapColorMode = HeatmapColorMode.SYSTEM,
     val weekStartsOnMonday: Boolean = false,
     val liquidGlassBottomBar: Boolean = false,
     val selectedPullRequestTypes: Set<PullRequestType> = setOf(PullRequestType.REVIEW_REQUESTED)

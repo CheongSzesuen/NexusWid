@@ -138,6 +138,8 @@ fun WidgetSettingsScreen(
     onWeekStartsOnMondayChange: (Boolean) -> Unit,
     selectedPullRequestTypes: Set<PullRequestType>,
     onPullRequestTypesChange: (Set<PullRequestType>) -> Unit,
+    widgetColorMode: HeatmapColorMode,
+    onWidgetColorModeChange: (HeatmapColorMode) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
@@ -460,6 +462,7 @@ fun WidgetSettingsScreen(
                                             .height(160.dp)
                                     ) {
                                         ReviewsRequestedPreviewCard(
+                                            colorMode = widgetColorMode,
                                             modifier = Modifier.fillMaxSize()
                                         )
                                     }
@@ -540,6 +543,7 @@ fun WidgetSettingsScreen(
                                             .height(180.dp)
                                     ) {
                                         PullRequestsPreviewCard(
+                                            colorMode = widgetColorMode,
                                             modifier = Modifier.fillMaxSize()
                                         )
                                     }
@@ -615,6 +619,59 @@ fun WidgetSettingsScreen(
                         },
                         colors = listItemColors,
                         shapes = segmentedListItemShapes(1, 2)
+                    )
+                }
+
+                item { Spacer(Modifier.height(8.dp)) }
+
+                item {
+                    Text(
+                        text = "PR 组件外观",
+                        style = MaterialTheme.typography.titleSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 4.dp)
+                    )
+                }
+
+                item {
+                    SegmentedListItem(
+                        onClick = {},
+                        content = { Text("颜色模式") },
+                        supportingContent = {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(top = 8.dp),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                colorModeOptions.forEach { (mode, icon, label) ->
+                                    ToggleButton(
+                                        checked = widgetColorMode == mode,
+                                        onCheckedChange = {
+                                            if (widgetColorMode != mode) {
+                                                onWidgetColorModeChange(mode)
+                                            }
+                                        },
+                                    ) {
+                                        Icon(
+                                            painter = painterResource(icon),
+                                            contentDescription = null,
+                                            modifier = Modifier.size(18.dp)
+                                        )
+                                        Spacer(Modifier.width(6.dp))
+                                        Text(
+                                            text = stringResource(label),
+                                            style = MaterialTheme.typography.labelSmall
+                                        )
+                                    }
+                                }
+                            }
+                        },
+                        leadingContent = {
+                            Icon(painterResource(Res.drawable.palette), null)
+                        },
+                        colors = listItemColors,
+                        shapes = segmentedListItemShapes(0, 0)
                     )
                 }
             }
@@ -847,15 +904,25 @@ private fun PRPreviewRow(
 
 @Composable
 fun PullRequestsPreviewCard(
+    colorMode: HeatmapColorMode,
     modifier: Modifier = Modifier
 ) {
+    val systemDark = androidx.compose.foundation.isSystemInDarkTheme()
+    val isDark = when (colorMode) {
+        HeatmapColorMode.SYSTEM -> systemDark
+        HeatmapColorMode.LIGHT -> false
+        HeatmapColorMode.DARK -> true
+    }
     val githubGreen = Color(0xFF1F883D)
-    val grayText = Color(0xFF8B949E)
+    val bgColor = if (isDark) Color(0xFF0D1117) else Color(0xFFF6F8FA)
+    val textPrimary = if (isDark) Color.White else Color(0xFF1F2328)
+    val grayText = if (isDark) Color(0xFF8B949E) else Color(0xFF656D76)
+    val ghLogoTint = if (isDark) Color.White else Color(0xFF1F2328)
 
     Surface(
         modifier = modifier,
         shape = RoundedCornerShape(16.dp),
-        color = Color(0xFF0D1117)
+        color = bgColor
     ) {
         BoxWithConstraints(
             modifier = Modifier
@@ -878,15 +945,18 @@ fun PullRequestsPreviewCard(
                     Spacer(Modifier.width(8.dp))
                     Text(
                         text = "2 reviews requested",
-                        color = Color.White,
+                        color = textPrimary,
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Medium,
                         modifier = Modifier.weight(1f)
                     )
                     Icon(
-                        painter = painterResource(cn.waijade.nexuswid.R.drawable.ic_mark_github),
+                        painter = painterResource(
+                            if (isDark) cn.waijade.nexuswid.R.drawable.ic_mark_github
+                            else cn.waijade.nexuswid.R.drawable.ic_mark_github_dark
+                        ),
                         contentDescription = null,
-                        tint = Color.White,
+                        tint = Color.Unspecified,
                         modifier = Modifier.size(24.dp)
                     )
                 }
@@ -915,12 +985,25 @@ fun PullRequestsPreviewCard(
 
 @Composable
 fun ReviewsRequestedPreviewCard(
+    colorMode: HeatmapColorMode,
     modifier: Modifier = Modifier
 ) {
+    val systemDark = androidx.compose.foundation.isSystemInDarkTheme()
+    val isDark = when (colorMode) {
+        HeatmapColorMode.SYSTEM -> systemDark
+        HeatmapColorMode.LIGHT -> false
+        HeatmapColorMode.DARK -> true
+    }
+    val bgColor = if (isDark) Color.Black else Color(0xFFF6F8FA)
+    val textColor = if (isDark) Color.White else Color(0xFF1F2328)
+    val labelColor = if (isDark) Color.White.copy(alpha = 0.7f) else Color(0xFF656D76)
+    val iconRes = if (isDark) cn.waijade.nexuswid.R.drawable.ic_git_pull_request
+        else cn.waijade.nexuswid.R.drawable.ic_git_pull_request_dark
+
     Surface(
         modifier = modifier,
         shape = RoundedCornerShape(16.dp),
-        color = Color.Black
+        color = bgColor
     ) {
         BoxWithConstraints(
             modifier = Modifier
@@ -939,16 +1022,16 @@ fun ReviewsRequestedPreviewCard(
                 horizontalAlignment = Alignment.Start
             ) {
                 Icon(
-                    painter = painterResource(cn.waijade.nexuswid.R.drawable.ic_git_pull_request),
+                    painter = painterResource(iconRes),
                     contentDescription = null,
-                    tint = Color.White,
+                    tint = Color.Unspecified,
                     modifier = Modifier
                         .width(iconSize)
                         .height(iconSize)
                 )
                 Text(
                     text = "3",
-                    color = Color.White,
+                    color = textColor,
                     style = MaterialTheme.typography.displayLarge.copy(
                         fontWeight = FontWeight.Bold,
                         fontFamily = FontFamily.Monospace,
@@ -958,14 +1041,14 @@ fun ReviewsRequestedPreviewCard(
                 Column {
                     Text(
                         text = "Reviews",
-                        color = Color.White.copy(alpha = 0.7f),
+                        color = labelColor,
                         style = MaterialTheme.typography.bodySmall.copy(
                             fontSize = labelSize.value.sp
                         )
                     )
                     Text(
                         text = "Requested",
-                        color = Color.White.copy(alpha = 0.7f),
+                        color = labelColor,
                         style = MaterialTheme.typography.bodySmall.copy(
                             fontSize = labelSize.value.sp
                         )

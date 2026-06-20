@@ -2,13 +2,13 @@ package cn.waijade.nexuswid.widget
 
 import android.content.Context
 import android.content.Intent
+import android.content.res.Configuration
 import android.net.Uri
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
-import androidx.glance.GlanceTheme
 import androidx.glance.Image
 import androidx.glance.ImageProvider
 import androidx.glance.LocalSize
@@ -16,6 +16,7 @@ import androidx.glance.action.ActionParameters
 import androidx.glance.action.clickable
 import androidx.glance.appwidget.action.actionStartActivity
 import androidx.glance.appwidget.GlanceAppWidget
+import androidx.glance.appwidget.GlanceAppWidgetManager
 import androidx.glance.appwidget.GlanceAppWidgetReceiver
 import androidx.glance.appwidget.SizeMode
 import androidx.glance.appwidget.action.ActionCallback
@@ -42,6 +43,7 @@ import androidx.glance.text.TextStyle
 import androidx.compose.ui.graphics.Color as ComposeColor
 import androidx.glance.unit.ColorProvider
 import cn.waijade.nexuswid.R
+import cn.waijade.nexuswid.data.HeatmapColorMode
 import cn.waijade.nexuswid.data.github.CheckStatus
 import cn.waijade.nexuswid.data.github.GitHubApiService
 import cn.waijade.nexuswid.data.github.GitHubPreferences
@@ -63,10 +65,10 @@ class PullRequestsWidget : GlanceAppWidget() {
 
     override suspend fun provideGlance(context: Context, id: GlanceId) {
         val data = loadData(context)
+        val prefs = GitHubPreferences(context)
+        val isDark = resolveIsDark(context, prefs.widgetColorMode)
         provideContent {
-            GlanceTheme {
-                PullRequestsContent(data)
-            }
+            PullRequestsContent(data, isDark)
         }
     }
 
@@ -114,6 +116,15 @@ class PullRequestsWidget : GlanceAppWidget() {
             types = types
         )
     }
+
+    companion object {
+        suspend fun updateAll(context: Context) {
+            val manager = GlanceAppWidgetManager(context)
+            manager.getGlanceIds(PullRequestsWidget::class.java).forEach { id ->
+                PullRequestsWidget().update(context, id)
+            }
+        }
+    }
 }
 
 private data class PullRequestsData(
@@ -123,7 +134,7 @@ private data class PullRequestsData(
 )
 
 @Composable
-private fun PullRequestsContent(data: PullRequestsData) {
+private fun PullRequestsContent(data: PullRequestsData, isDark: Boolean) {
     val size = LocalSize.current
     val rowHeight = 56.dp
     val headerHeight = 44.dp
@@ -133,29 +144,36 @@ private fun PullRequestsContent(data: PullRequestsData) {
     val visibleItems = data.items.take(rows)
     val title = headerTitle(data.count, data.types)
 
+    val bgColor = if (isDark) ComposeColor(0xFF0D1117) else ComposeColor(0xFFF6F8FA)
+    val headerTextColor = if (isDark) ComposeColor.White else ComposeColor(0xFF1F2328)
+    val repoTextColor = if (isDark) ComposeColor(0xFF8B949E) else ComposeColor(0xFF656D76)
+    val rowTitleColor = if (isDark) ComposeColor.White else ComposeColor(0xFF1F2328)
+    val emptyTextColor = if (isDark) ComposeColor(0xFF8B949E) else ComposeColor(0xFF656D76)
+    val ghLogoRes = if (isDark) R.drawable.ic_mark_github else R.drawable.ic_mark_github_dark
+
     Box(
         modifier = GlanceModifier
             .fillMaxSize()
             .cornerRadius(28.dp)
-            .background(ComposeColor(0xFF0D1117))
+            .background(bgColor)
             .padding(horizontal = 16.dp, vertical = 14.dp)
     ) {
         Column(modifier = GlanceModifier.fillMaxSize()) {
-            HeaderRow(title)
+            HeaderRow(title, headerTextColor, ghLogoRes)
             Spacer(GlanceModifier.height(10.dp))
             if (data.count < 0) {
-                EmptyHint("Sign in GitHub to see pull requests")
+                EmptyHint("Sign in GitHub to see pull requests", emptyTextColor)
             } else if (visibleItems.isEmpty()) {
-                EmptyHint("No pull requests")
+                EmptyHint("No pull requests", emptyTextColor)
             } else {
-                PullRequestList(visibleItems)
+                PullRequestList(visibleItems, repoTextColor, rowTitleColor)
             }
         }
     }
 }
 
 @Composable
-private fun HeaderRow(title: String) {
+private fun HeaderRow(title: String, textColor: ComposeColor, ghLogoRes: Int) {
     Row(
         modifier = GlanceModifier.fillMaxWidth().height(28.dp),
         verticalAlignment = Alignment.CenterVertically
@@ -169,14 +187,14 @@ private fun HeaderRow(title: String) {
         Text(
             text = title,
             style = TextStyle(
-                color = ColorProvider(ComposeColor.White),
+                color = ColorProvider(textColor),
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Medium
             ),
             modifier = GlanceModifier.defaultWeight()
         )
         Image(
-            provider = ImageProvider(R.drawable.ic_mark_github),
+            provider = ImageProvider(ghLogoRes),
             contentDescription = null,
             modifier = GlanceModifier.size(24.dp)
         )
@@ -184,7 +202,7 @@ private fun HeaderRow(title: String) {
 }
 
 @Composable
-private fun EmptyHint(text: String) {
+private fun EmptyHint(text: String, color: ComposeColor) {
     Box(
         modifier = GlanceModifier.fillMaxSize(),
         contentAlignment = Alignment.Center
@@ -192,7 +210,7 @@ private fun EmptyHint(text: String) {
         Text(
             text = text,
             style = TextStyle(
-                color = ColorProvider(ComposeColor(0xFF8B949E)),
+                color = ColorProvider(color),
                 fontSize = 12.sp
             )
         )
@@ -200,16 +218,16 @@ private fun EmptyHint(text: String) {
 }
 
 @Composable
-private fun PullRequestList(items: List<PullRequestItem>) {
+private fun PullRequestList(items: List<PullRequestItem>, repoTextColor: ComposeColor, rowTitleColor: ComposeColor) {
     Column(modifier = GlanceModifier.fillMaxSize()) {
         items.forEach { pr ->
-            PullRequestRow(pr)
+            PullRequestRow(pr, repoTextColor, rowTitleColor)
         }
     }
 }
 
 @Composable
-private fun PullRequestRow(pr: PullRequestItem) {
+private fun PullRequestRow(pr: PullRequestItem, repoTextColor: ComposeColor, rowTitleColor: ComposeColor) {
     Column(
         modifier = GlanceModifier
             .fillMaxWidth()
@@ -222,7 +240,7 @@ private fun PullRequestRow(pr: PullRequestItem) {
             Text(
                 text = "${pr.repoFullName} #${pr.number}",
                 style = TextStyle(
-                    color = ColorProvider(ComposeColor(0xFF8B949E)),
+                    color = ColorProvider(repoTextColor),
                     fontSize = 13.sp
                 ),
                 maxLines = 1
@@ -234,12 +252,23 @@ private fun PullRequestRow(pr: PullRequestItem) {
         Text(
             text = pr.title,
             style = TextStyle(
-                color = ColorProvider(ComposeColor.White),
+                color = ColorProvider(rowTitleColor),
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Medium
             ),
             maxLines = 1
         )
+    }
+}
+
+private fun resolveIsDark(context: Context, mode: HeatmapColorMode): Boolean {
+    return when (mode) {
+        HeatmapColorMode.LIGHT -> false
+        HeatmapColorMode.DARK -> true
+        HeatmapColorMode.SYSTEM -> {
+            val nightMask = context.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
+            nightMask == Configuration.UI_MODE_NIGHT_YES
+        }
     }
 }
 

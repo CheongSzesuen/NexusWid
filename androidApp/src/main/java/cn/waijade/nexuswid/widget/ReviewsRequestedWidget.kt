@@ -1,6 +1,7 @@
 package cn.waijade.nexuswid.widget
 
 import android.content.Context
+import android.content.res.Configuration
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -13,6 +14,7 @@ import androidx.glance.LocalSize
 import androidx.glance.action.ActionParameters
 import androidx.glance.action.clickable
 import androidx.glance.appwidget.GlanceAppWidget
+import androidx.glance.appwidget.GlanceAppWidgetManager
 import androidx.glance.appwidget.GlanceAppWidgetReceiver
 import androidx.glance.appwidget.SizeMode
 import androidx.glance.appwidget.action.ActionCallback
@@ -33,6 +35,7 @@ import androidx.glance.text.TextStyle
 import androidx.compose.ui.graphics.Color as ComposeColor
 import androidx.glance.unit.ColorProvider
 import cn.waijade.nexuswid.R
+import cn.waijade.nexuswid.data.HeatmapColorMode
 import cn.waijade.nexuswid.data.github.GitHubApiService
 import cn.waijade.nexuswid.data.github.GitHubPreferences
 import cn.waijade.nexuswid.data.github.PullRequestType
@@ -48,8 +51,10 @@ class ReviewsRequestedWidget : GlanceAppWidget() {
 
     override suspend fun provideGlance(context: Context, id: GlanceId) {
         val count = loadCount(context)
+        val prefs = GitHubPreferences(context)
+        val isDark = resolveIsDark(context, prefs.widgetColorMode)
         provideContent {
-            ReviewsRequestedContent(count)
+            ReviewsRequestedContent(count, isDark)
         }
     }
 
@@ -70,6 +75,15 @@ class ReviewsRequestedWidget : GlanceAppWidget() {
             apiService.getPullRequestCount(token, pullRequestTypes).getOrThrow()
         }.getOrElse { -1 }
     }
+
+    companion object {
+        suspend fun updateAll(context: Context) {
+            val manager = GlanceAppWidgetManager(context)
+            manager.getGlanceIds(ReviewsRequestedWidget::class.java).forEach { id ->
+                ReviewsRequestedWidget().update(context, id)
+            }
+        }
+    }
 }
 
 class RefreshReviewsRequestedAction : ActionCallback {
@@ -79,7 +93,7 @@ class RefreshReviewsRequestedAction : ActionCallback {
 }
 
 @Composable
-private fun ReviewsRequestedContent(count: Int) {
+private fun ReviewsRequestedContent(count: Int, isDark: Boolean) {
     val size = LocalSize.current
     val edge: Dp = size.width.coerceAtMost(size.height)
     val pad = 14.dp
@@ -94,6 +108,11 @@ private fun ReviewsRequestedContent(count: Int) {
     val maxByWidth: Dp = contentEdge / (countText.length * 0.55f + 0.5f)
     val clampedFontSize: Dp = maxByHeight.coerceAtMost(maxByWidth).coerceIn(10.dp, 64.dp)
 
+    val bgColor = if (isDark) ComposeColor(0xFF000000) else ComposeColor(0xFFF6F8FA)
+    val textColor = if (isDark) ComposeColor.White else ComposeColor(0xFF1F2328)
+    val labelColor = if (isDark) ComposeColor.White.copy(alpha = 0.7f) else ComposeColor(0xFF656D76)
+    val iconRes = if (isDark) R.drawable.ic_git_pull_request else R.drawable.ic_git_pull_request_dark
+
     Box(
         modifier = GlanceModifier.fillMaxSize(),
         contentAlignment = Alignment.Center
@@ -102,13 +121,13 @@ private fun ReviewsRequestedContent(count: Int) {
             modifier = GlanceModifier
                 .size(edge)
                 .cornerRadius(28.dp)
-                .background(ComposeColor(0xFF000000))
+                .background(bgColor)
                 .padding(pad)
                 .clickable(onClick = actionRunCallback<RefreshReviewsRequestedAction>())
         ) {
         Column(modifier = GlanceModifier.fillMaxSize()) {
             Image(
-                provider = ImageProvider(R.drawable.ic_git_pull_request),
+                provider = ImageProvider(iconRes),
                 contentDescription = null,
                 modifier = GlanceModifier.size(iconSize)
             )
@@ -121,7 +140,7 @@ private fun ReviewsRequestedContent(count: Int) {
                 Text(
                     text = countText,
                     style = TextStyle(
-                        color = ColorProvider(ComposeColor.White),
+                        color = ColorProvider(textColor),
                         fontSize = clampedFontSize.value.sp,
                         fontWeight = FontWeight.Bold
                     ),
@@ -132,20 +151,31 @@ private fun ReviewsRequestedContent(count: Int) {
                 Text(
                     text = "Reviews",
                     style = TextStyle(
-                        color = ColorProvider(ComposeColor.White.copy(alpha = 0.7f)),
+                        color = ColorProvider(labelColor),
                         fontSize = labelSize.value.sp
                     )
                 )
                 Text(
                     text = "Requested",
                     style = TextStyle(
-                        color = ColorProvider(ComposeColor.White.copy(alpha = 0.7f)),
+                        color = ColorProvider(labelColor),
                         fontSize = labelSize.value.sp
                     )
                 )
             }
         }
     }
+    }
+}
+
+private fun resolveIsDark(context: Context, mode: HeatmapColorMode): Boolean {
+    return when (mode) {
+        HeatmapColorMode.LIGHT -> false
+        HeatmapColorMode.DARK -> true
+        HeatmapColorMode.SYSTEM -> {
+            val nightMask = context.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
+            nightMask == Configuration.UI_MODE_NIGHT_YES
+        }
     }
 }
 

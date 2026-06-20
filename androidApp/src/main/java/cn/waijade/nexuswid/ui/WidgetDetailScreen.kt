@@ -146,12 +146,14 @@ fun SharedTransitionScope.WidgetDetailScreen(
 
                     "reviews_requested" -> {
                         ReviewsRequestedPreviewCard(
+                            colorMode = HeatmapColorMode.SYSTEM,
                             modifier = Modifier.fillMaxSize()
                         )
                     }
 
                     "pull_requests" -> {
                         PullRequestsPreviewCard(
+                            colorMode = HeatmapColorMode.SYSTEM,
                             modifier = Modifier.fillMaxSize()
                         )
                     }

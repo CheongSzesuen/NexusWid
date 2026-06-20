@@ -127,6 +127,7 @@ fun SharedTransitionScope.HomeScreen(
                 onClick = { onWidgetClick("pull_requests") }
             ) {
                 PullRequestsPreviewCard(
+                    colorMode = HeatmapColorMode.SYSTEM,
                     modifier = Modifier.fillMaxSize()
                 )
             }
@@ -140,6 +141,7 @@ fun SharedTransitionScope.HomeScreen(
                 onClick = { onWidgetClick("reviews_requested") }
             ) {
                 ReviewsRequestedPreviewCard(
+                    colorMode = HeatmapColorMode.SYSTEM,
                     modifier = Modifier.fillMaxSize()
                 )
             }

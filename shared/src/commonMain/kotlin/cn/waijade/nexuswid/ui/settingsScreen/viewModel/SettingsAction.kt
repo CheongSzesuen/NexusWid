@@ -9,6 +9,7 @@ sealed interface SettingsAction {
     data class SaveColorScheme(val color: Color) : SettingsAction
     data class SaveBlackTheme(val enabled: Boolean) : SettingsAction
     data class SaveHeatmapColorMode(val mode: HeatmapColorMode) : SettingsAction
+    data class SaveWidgetColorMode(val mode: HeatmapColorMode) : SettingsAction
     data class SaveWeekStartsOnMonday(val enabled: Boolean) : SettingsAction
     data class SaveLiquidGlassBottomBar(val enabled: Boolean) : SettingsAction
     data class SavePullRequestTypes(val types: Set<PullRequestType>) : SettingsAction

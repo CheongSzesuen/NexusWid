@@ -24,6 +24,10 @@ class StateRepository {
         settingsState.update { it.copy(heatmapColorMode = mode) }
     }
 
+    fun updateWidgetColorMode(mode: HeatmapColorMode) {
+        settingsState.update { it.copy(widgetColorMode = mode) }
+    }
+
     fun updateWeekStartsOnMonday(enabled: Boolean) {
         settingsState.update { it.copy(weekStartsOnMonday = enabled) }
     }
