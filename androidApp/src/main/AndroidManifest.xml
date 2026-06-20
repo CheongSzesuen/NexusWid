@@ -26,6 +26,12 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity
+            android:name=".ActionsConfigActivity"
+            android:exported="true"
+            android:theme="@style/Theme.NexusWid"
+            android:taskAffinity=""
+            android:excludeFromRecents="true" />
 
         <receiver
             android:name=".widget.ContributionHeatmapWidgetProvider"
@@ -74,6 +80,17 @@
             <meta-data
                 android:name="android.appwidget.provider"
                 android:resource="@xml/issues_widget_info" />
+        </receiver>
+        <receiver
+            android:name=".widget.ActionsWidgetReceiver"
+            android:exported="true"
+            android:label="@string/widget_actions">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/actions_widget_info" />
         </receiver>
     </application>
 </manifest>

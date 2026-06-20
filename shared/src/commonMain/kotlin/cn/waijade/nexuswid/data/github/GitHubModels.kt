@@ -93,3 +93,38 @@ data class IssueItem(
     val htmlUrl: String,
     val state: String
 )
+
+data class RepoItem(
+    val fullName: String,
+    val name: String,
+    val ownerLogin: String,
+    val description: String?,
+    val language: String?,
+    val updatedAt: String,
+    val isPrivate: Boolean
+)
+
+data class WorkflowRunItem(
+    val workflowName: String,
+    val branch: String,
+    val commitMessage: String,
+    val status: String,
+    val conclusion: String?,
+    val htmlUrl: String,
+    val event: String,
+    val updatedAt: String? = null,
+    val runNumber: Int = 0,
+    val actor: String? = null,
+    val runStartedAt: String? = null
+)
+
+data class WorkflowSummary(
+    val id: Long,
+    val name: String,
+    val path: String,
+    val state: String,
+    val status: String?,
+    val conclusion: String?,
+    val branch: String?,
+    val updatedAt: String?
+)

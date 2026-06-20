@@ -42,6 +42,8 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.LargeFlexibleTopAppBar
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SegmentedListItem
@@ -94,6 +96,8 @@ import cn.waijade.nexuswid.ui.theme.CustomColors.topBarColors
 import cn.waijade.nexuswid.ui.theme.LocalAppFonts
 import cn.waijade.nexuswid.ui.theme.NexusShapeDefaults.PANE_MAX_WIDTH
 import cn.waijade.nexuswid.ui.theme.NexusShapeDefaults.segmentedListItemShapes
+import cn.waijade.nexuswid.widget.ActionsWidget
+import cn.waijade.nexuswid.widget.ActionsWidgetReceiver
 import cn.waijade.nexuswid.widget.ContributionHeatmapWidgetProvider
 import cn.waijade.nexuswid.widget.HeatmapGridCalculator
 import cn.waijade.nexuswid.widget.HeatmapWidgetDataStore
@@ -736,6 +740,77 @@ fun WidgetSettingsScreen(
                     )
                 }
 
+                item { Spacer(Modifier.height(12.dp)) }
+
+                item {
+                    Text(
+                        text = "Actions",
+                        style = MaterialTheme.typography.titleSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 4.dp)
+                    )
+                }
+
+                item {
+                    SegmentedListItem(
+                        onClick = {},
+                        content = { Text("Actions") },
+                        supportingContent = {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(top = 8.dp)
+                            ) {
+                                Box(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .height(180.dp)
+                                    ) {
+                                        ActionsPreviewCard(
+                                            colorMode = widgetColorMode,
+                                            modifier = Modifier.fillMaxSize()
+                                        )
+                                    }
+                                }
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Box(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    contentAlignment = Alignment.CenterEnd
+                                ) {
+                                    FilledTonalButton(
+                                        onClick = {
+                                            val message = when (requestPinActionsWidget(context)) {
+                                                PinWidgetRequestResult.REQUESTED -> "请在系统弹窗中确认添加小组件"
+                                                PinWidgetRequestResult.NOT_SUPPORTED -> "当前桌面不支持一键添加小组件"
+                                                PinWidgetRequestResult.UNSUPPORTED_ANDROID -> "当前安卓版本不支持一键添加"
+                                                PinWidgetRequestResult.FAILED -> "添加请求发送失败，请手动添加"
+                                            }
+                                            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+                                        }
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Outlined.Add,
+                                            contentDescription = null,
+                                            modifier = Modifier.height(18.dp)
+                                        )
+                                        Spacer(modifier = Modifier.width(6.dp))
+                                        Text(stringResource(Res.string.add_to_home_screen))
+                                    }
+                                }
+                            }
+                        },
+                        leadingContent = {
+                            Icon(painterResource(Res.drawable.palette), null)
+                        },
+                        colors = listItemColors,
+                        shapes = segmentedListItemShapes(0, 1)
+                    )
+                }
+
                 item { Spacer(Modifier.height(8.dp)) }
 
                 item {
@@ -865,6 +940,135 @@ private fun requestPinIssuesWidget(context: Context): PinWidgetRequestResult {
         PinWidgetRequestResult.REQUESTED
     } else {
         PinWidgetRequestResult.FAILED
+    }
+}
+
+private fun requestPinActionsWidget(context: Context): PinWidgetRequestResult {
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+        return PinWidgetRequestResult.UNSUPPORTED_ANDROID
+    }
+    val appWidgetManager = context.getSystemService(AppWidgetManager::class.java)
+        ?: return PinWidgetRequestResult.FAILED
+    if (!appWidgetManager.isRequestPinAppWidgetSupported) {
+        return PinWidgetRequestResult.NOT_SUPPORTED
+    }
+    val provider = ComponentName(context, ActionsWidgetReceiver::class.java)
+    return if (appWidgetManager.requestPinAppWidget(provider, null, null)) {
+        PinWidgetRequestResult.REQUESTED
+    } else {
+        PinWidgetRequestResult.FAILED
+    }
+}
+
+@Composable
+fun ActionsPreviewCard(
+    colorMode: HeatmapColorMode,
+    modifier: Modifier = Modifier
+) {
+    val systemDark = androidx.compose.foundation.isSystemInDarkTheme()
+    val isDark = when (colorMode) {
+        HeatmapColorMode.SYSTEM -> systemDark
+        HeatmapColorMode.LIGHT -> false
+        HeatmapColorMode.DARK -> true
+    }
+    val bgColor = if (isDark) Color(0xFF0D1117) else Color(0xFFF6F8FA)
+    val textPrimary = if (isDark) Color.White else Color(0xFF1F2328)
+    val grayText = if (isDark) Color(0xFF8B949E) else Color(0xFF656D76)
+
+    Surface(
+        modifier = modifier,
+        shape = RoundedCornerShape(16.dp),
+        color = bgColor
+    ) {
+        BoxWithConstraints(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(14.dp)
+        ) {
+            Column(
+                modifier = Modifier.fillMaxSize()
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        painter = painterResource(cn.waijade.nexuswid.R.drawable.ic_play_green),
+                        contentDescription = null,
+                        tint = Color(0xFF1F883D),
+                        modifier = Modifier.size(16.dp)
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    Text(
+                        text = "owner/repo",
+                        color = textPrimary,
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Medium,
+                        modifier = Modifier.weight(1f)
+                    )
+                    Icon(
+                        painter = painterResource(
+                            if (isDark) cn.waijade.nexuswid.R.drawable.ic_mark_github
+                            else cn.waijade.nexuswid.R.drawable.ic_mark_github_dark
+                        ),
+                        contentDescription = null,
+                        tint = Color.Unspecified,
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
+
+                Spacer(Modifier.height(10.dp))
+
+                ActionsPreviewRow("CI", "main", true, grayText, textPrimary)
+                ActionsPreviewRow("Lint", "main", false, grayText, textPrimary)
+            }
+        }
+    }
+}
+
+@Composable
+private fun ActionsPreviewRow(
+    workflowName: String,
+    branch: String,
+    success: Boolean,
+    grayText: Color,
+    titleColor: Color
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp)
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "$workflowName  $branch",
+                color = grayText,
+                fontSize = 12.sp,
+                maxLines = 1,
+                modifier = Modifier.weight(1f)
+            )
+            Spacer(Modifier.width(4.dp))
+            Icon(
+                painter = painterResource(
+                    if (success) cn.waijade.nexuswid.R.drawable.ic_check_circle_green
+                    else cn.waijade.nexuswid.R.drawable.ic_x_circle_red
+                ),
+                contentDescription = null,
+                tint = if (success) Color(0xFF1F883D) else Color(0xFFCF222E),
+                modifier = Modifier.size(16.dp)
+            )
+        }
+        Spacer(Modifier.height(1.dp))
+        Text(
+            text = if (success) "Fix: update dependencies" else "Add: new feature without tests",
+            color = titleColor,
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Medium,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
     }
 }
 

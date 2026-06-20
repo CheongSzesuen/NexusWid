@@ -210,6 +210,193 @@ class GitHubApiService(
         }
     }
 
+    suspend fun getWorkflowRuns(
+        token: String,
+        repo: String,
+        limit: Int = 10
+    ): Result<List<WorkflowRunItem>> = runCatching {
+        val url = "https://api.github.com/repos/$repo/actions/runs?per_page=$limit"
+        println("GitHubApiService: fetching workflow runs for $repo")
+
+        val response = httpClient.get(url) {
+            header("User-Agent", "NexusWid/1.0")
+            header("Authorization", "bearer $token")
+            header("Accept", "application/vnd.github+json")
+        }
+
+        if (!response.status.isSuccess()) {
+            throw Exception("GitHub API error: ${response.status}")
+        }
+
+        val bodyText = response.bodyAsText()
+        val runs = json.parseToJsonElement(bodyText).jsonObject["workflow_runs"]?.jsonArray
+            ?: return@runCatching emptyList()
+
+        runs.mapNotNull { item ->
+            val obj = item.jsonObject
+            val workflowName = obj["name"]?.jsonPrimitive?.content ?: return@mapNotNull null
+            val branch = obj["head_branch"]?.jsonPrimitive?.content ?: ""
+            val commitObj = obj["head_commit"]?.jsonObject
+            val commitMessage = commitObj?.get("message")?.jsonPrimitive?.content ?: ""
+            val status = obj["status"]?.jsonPrimitive?.content ?: "unknown"
+            val conclusion = obj["conclusion"]?.jsonPrimitive?.content
+            val htmlUrl = obj["html_url"]?.jsonPrimitive?.content ?: ""
+            val event = obj["event"]?.jsonPrimitive?.content ?: ""
+            val updatedAt = obj["updated_at"]?.jsonPrimitive?.content
+            val runNumber = obj["run_number"]?.jsonPrimitive?.int ?: 0
+            val actor = obj["actor"]?.jsonObject?.get("login")?.jsonPrimitive?.content
+            val runStartedAt = obj["run_started_at"]?.jsonPrimitive?.content
+            WorkflowRunItem(
+                workflowName = workflowName,
+                branch = branch,
+                commitMessage = commitMessage,
+                status = status,
+                conclusion = conclusion,
+                htmlUrl = htmlUrl,
+                event = event,
+                updatedAt = updatedAt,
+                runNumber = runNumber,
+                actor = actor,
+                runStartedAt = runStartedAt
+            )
+        }
+    }
+
+    suspend fun getUserRepos(
+        token: String,
+        limit: Int = 100
+    ): Result<List<RepoItem>> = runCatching {
+        val url = "https://api.github.com/user/repos?per_page=$limit&sort=updated&type=owner"
+        println("GitHubApiService: fetching user repos")
+
+        val response = httpClient.get(url) {
+            header("User-Agent", "NexusWid/1.0")
+            header("Authorization", "bearer $token")
+            header("Accept", "application/vnd.github+json")
+        }
+
+        if (!response.status.isSuccess()) {
+            throw Exception("GitHub API error: ${response.status}")
+        }
+
+        val jsonArray = json.parseToJsonElement(response.bodyAsText()).jsonArray
+        jsonArray.mapNotNull { item ->
+            val obj = item.jsonObject
+            val fullName = obj["full_name"]?.jsonPrimitive?.content ?: return@mapNotNull null
+            val name = obj["name"]?.jsonPrimitive?.content ?: return@mapNotNull null
+            val ownerLogin = obj["owner"]?.jsonObject?.get("login")?.jsonPrimitive?.content ?: ""
+            val description = obj["description"]?.jsonPrimitive?.content
+            val language = obj["language"]?.jsonPrimitive?.content
+            val updatedAt = obj["updated_at"]?.jsonPrimitive?.content ?: ""
+            val isPrivate = obj["private"]?.jsonPrimitive?.content?.toBooleanStrictOrNull() ?: false
+            RepoItem(
+                fullName = fullName,
+                name = name,
+                ownerLogin = ownerLogin,
+                description = description,
+                language = language,
+                updatedAt = updatedAt,
+                isPrivate = isPrivate
+            )
+        }
+    }
+
+    suspend fun searchRepos(
+        token: String,
+        query: String,
+        limit: Int = 30
+    ): Result<List<RepoItem>> = runCatching {
+        val safeQuery = query.replace(" ", "+").replace("#", "%23")
+        val url = "https://api.github.com/search/repositories?q=$safeQuery&per_page=$limit&sort=stars"
+        println("GitHubApiService: searching repos for '$query'")
+
+        val response = httpClient.get(url) {
+            header("User-Agent", "NexusWid/1.0")
+            header("Authorization", "bearer $token")
+            header("Accept", "application/vnd.github+json")
+        }
+
+        if (!response.status.isSuccess()) {
+            throw Exception("GitHub API error: ${response.status}")
+        }
+
+        val items = json.parseToJsonElement(response.bodyAsText()).jsonObject["items"]?.jsonArray
+            ?: return@runCatching emptyList()
+
+        items.mapNotNull { item ->
+            val obj = item.jsonObject
+            val fullName = obj["full_name"]?.jsonPrimitive?.content ?: return@mapNotNull null
+            val name = obj["name"]?.jsonPrimitive?.content ?: return@mapNotNull null
+            val ownerLogin = obj["owner"]?.jsonObject?.get("login")?.jsonPrimitive?.content ?: ""
+            val description = obj["description"]?.jsonPrimitive?.content
+            val language = obj["language"]?.jsonPrimitive?.content
+            val updatedAt = obj["updated_at"]?.jsonPrimitive?.content ?: ""
+            val isPrivate = obj["private"]?.jsonPrimitive?.content?.toBooleanStrictOrNull() ?: false
+            RepoItem(
+                fullName = fullName,
+                name = name,
+                ownerLogin = ownerLogin,
+                description = description,
+                language = language,
+                updatedAt = updatedAt,
+                isPrivate = isPrivate
+            )
+        }
+    }
+
+    suspend fun getWorkflowsWithLatestRun(
+        token: String,
+        repo: String
+    ): Result<List<WorkflowSummary>> = runCatching {
+        val workflowsUrl = "https://api.github.com/repos/$repo/actions/workflows?per_page=50"
+        println("GitHubApiService: fetching workflows for $repo")
+
+        val wfResponse = httpClient.get(workflowsUrl) {
+            header("User-Agent", "NexusWid/1.0")
+            header("Authorization", "bearer $token")
+            header("Accept", "application/vnd.github+json")
+        }
+        if (!wfResponse.status.isSuccess()) {
+            throw Exception("GitHub API error: ${wfResponse.status}")
+        }
+
+        val workflows = json.parseToJsonElement(wfResponse.bodyAsText())
+            .jsonObject["workflows"]?.jsonArray ?: return@runCatching emptyList()
+
+        workflows.mapNotNull { item ->
+            val obj = item.jsonObject
+            val id = obj["id"]?.jsonPrimitive?.content?.toLongOrNull() ?: return@mapNotNull null
+            val name = obj["name"]?.jsonPrimitive?.content ?: return@mapNotNull null
+            val path = obj["path"]?.jsonPrimitive?.content ?: ""
+            val state = obj["state"]?.jsonPrimitive?.content ?: ""
+
+            val runsUrl = "https://api.github.com/repos/$repo/actions/workflows/$id/runs?per_page=1"
+            val runResp = runCatching {
+                httpClient.get(runsUrl) {
+                    header("User-Agent", "NexusWid/1.0")
+                    header("Authorization", "bearer $token")
+                    header("Accept", "application/vnd.github+json")
+                }
+            }
+            val runObj = runResp.getOrNull()?.let { resp ->
+                if (!resp.status.isSuccess()) null
+                else json.parseToJsonElement(resp.bodyAsText())
+                    .jsonObject["workflow_runs"]?.jsonArray?.firstOrNull()?.jsonObject
+            }
+
+            WorkflowSummary(
+                id = id,
+                name = name,
+                path = path,
+                state = state,
+                status = runObj?.get("status")?.jsonPrimitive?.content,
+                conclusion = runObj?.get("conclusion")?.jsonPrimitive?.content,
+                branch = runObj?.get("head_branch")?.jsonPrimitive?.content,
+                updatedAt = runObj?.get("updated_at")?.jsonPrimitive?.content
+            )
+        }
+    }
+
     private fun extractRepoFullName(htmlUrl: String): String? {
         val parts = htmlUrl.removePrefix("https://github.com/").split("/")
         if (parts.size < 2) return null
