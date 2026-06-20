@@ -97,7 +97,7 @@ import cn.waijade.nexuswid.widget.ContributionHeatmapWidgetProvider
 import cn.waijade.nexuswid.widget.HeatmapGridCalculator
 import cn.waijade.nexuswid.widget.HeatmapWidgetDataStore
 import cn.waijade.nexuswid.widget.PullRequestsWidgetReceiver
-import cn.waijade.nexuswid.widget.ReviewsRequestedWidgetProvider
+import cn.waijade.nexuswid.widget.ReviewsRequestedWidgetReceiver
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import nexuswid.shared.generated.resources.Res
@@ -692,7 +692,7 @@ private fun requestPinReviewsRequestedWidget(context: Context): PinWidgetRequest
     if (!appWidgetManager.isRequestPinAppWidgetSupported) {
         return PinWidgetRequestResult.NOT_SUPPORTED
     }
-    val provider = ComponentName(context, ReviewsRequestedWidgetProvider::class.java)
+    val provider = ComponentName(context, ReviewsRequestedWidgetReceiver::class.java)
     return if (appWidgetManager.requestPinAppWidget(provider, null, null)) {
         PinWidgetRequestResult.REQUESTED
     } else {
