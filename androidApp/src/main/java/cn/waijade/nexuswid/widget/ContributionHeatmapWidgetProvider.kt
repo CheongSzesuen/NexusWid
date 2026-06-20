@@ -1,5 +1,6 @@
 package cn.waijade.nexuswid.widget
 
+import android.app.PendingIntent
 import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProvider
 import android.content.ComponentName
@@ -167,6 +168,15 @@ class ContributionHeatmapWidgetProvider : AppWidgetProvider() {
 
             val remoteViews = RemoteViews(context.packageName, R.layout.widget_contribution_heatmap)
             remoteViews.setImageViewBitmap(R.id.widget_heatmap_image, bitmap)
+            val refreshIntent = Intent(context, ContributionHeatmapWidgetProvider::class.java).apply {
+                action = AppWidgetManager.ACTION_APPWIDGET_UPDATE
+                putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, intArrayOf(appWidgetId))
+            }
+            val refreshPendingIntent = PendingIntent.getBroadcast(
+                context, appWidgetId, refreshIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            )
+            remoteViews.setOnClickPendingIntent(R.id.widget_root, refreshPendingIntent)
             appWidgetManager.updateAppWidget(appWidgetId, remoteViews)
         }
 

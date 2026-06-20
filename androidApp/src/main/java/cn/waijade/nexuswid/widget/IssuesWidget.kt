@@ -16,6 +16,10 @@ import androidx.glance.appwidget.GlanceAppWidgetReceiver
 import androidx.glance.appwidget.SizeMode
 import androidx.glance.appwidget.cornerRadius
 import androidx.glance.appwidget.provideContent
+import androidx.glance.action.ActionParameters
+import androidx.glance.action.clickable
+import androidx.glance.appwidget.action.ActionCallback
+import androidx.glance.appwidget.action.actionRunCallback
 import androidx.glance.background
 import androidx.glance.layout.Alignment
 import androidx.glance.layout.Box
@@ -150,6 +154,7 @@ private fun IssuesContent(data: IssuesData, isDark: Boolean) {
             .cornerRadius(28.dp)
             .background(bgColor)
             .padding(horizontal = 16.dp, vertical = 14.dp)
+            .clickable(onClick = actionRunCallback<RefreshIssuesAction>())
     ) {
         Column(modifier = GlanceModifier.fillMaxSize()) {
             HeaderRow(title, headerTextColor, ghLogoRes, issueIconRes)
@@ -267,6 +272,12 @@ private fun headerTitle(count: Int, types: Set<IssueType>): String {
         "$n assigned issues"
     } else {
         "$n issues"
+    }
+}
+
+class RefreshIssuesAction : ActionCallback {
+    override suspend fun onAction(context: Context, glanceId: GlanceId, parameters: ActionParameters) {
+        IssuesWidget().update(context, glanceId)
     }
 }
 

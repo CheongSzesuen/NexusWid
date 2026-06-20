@@ -14,12 +14,12 @@ import androidx.glance.ImageProvider
 import androidx.glance.LocalSize
 import androidx.glance.action.ActionParameters
 import androidx.glance.action.clickable
-import androidx.glance.appwidget.action.actionStartActivity
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.GlanceAppWidgetManager
 import androidx.glance.appwidget.GlanceAppWidgetReceiver
 import androidx.glance.appwidget.SizeMode
 import androidx.glance.appwidget.action.ActionCallback
+import androidx.glance.appwidget.action.actionRunCallback
 import androidx.glance.appwidget.cornerRadius
 import androidx.glance.appwidget.provideContent
 import androidx.glance.background
@@ -157,6 +157,7 @@ private fun PullRequestsContent(data: PullRequestsData, isDark: Boolean) {
             .cornerRadius(28.dp)
             .background(bgColor)
             .padding(horizontal = 16.dp, vertical = 14.dp)
+            .clickable(onClick = actionRunCallback<RefreshPullRequestsAction>())
     ) {
         Column(modifier = GlanceModifier.fillMaxSize()) {
             HeaderRow(title, headerTextColor, ghLogoRes)
@@ -299,6 +300,12 @@ private fun headerTitle(count: Int, types: Set<PullRequestType>): String {
         "$n reviews requested"
     } else {
         "$n pull requests"
+    }
+}
+
+class RefreshPullRequestsAction : ActionCallback {
+    override suspend fun onAction(context: Context, glanceId: GlanceId, parameters: ActionParameters) {
+        PullRequestsWidget().update(context, glanceId)
     }
 }
 
