@@ -99,16 +99,26 @@ class PullRequestsWidget : GlanceAppWidget() {
         }
         val service = GitHubApiService(httpClient, json)
 
-        val list = runCatching {
+        val result = runCatching {
             service.getPullRequestList(
                 token = token,
                 pullRequestTypes = types,
                 limit = PR_LIST_LIMIT,
                 withCheckStatus = MAX_VISIBLE_ROWS
             ).getOrThrow()
-        }.getOrElse { emptyList() }
+        }
 
         httpClient.close()
+
+        val list = result.getOrElse {
+            return PullRequestsData(
+                count = WidgetDataCache.loadPullRequests(context).size,
+                items = WidgetDataCache.loadPullRequests(context),
+                types = types
+            )
+        }
+
+        WidgetDataCache.savePullRequests(context, list)
 
         return PullRequestsData(
             count = list.size,

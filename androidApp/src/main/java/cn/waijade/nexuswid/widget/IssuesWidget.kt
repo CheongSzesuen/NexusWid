@@ -96,15 +96,25 @@ class IssuesWidget : GlanceAppWidget() {
         }
         val service = GitHubApiService(httpClient, json)
 
-        val list = runCatching {
+        val result = runCatching {
             service.getIssueList(
                 token = token,
                 issueTypes = types,
                 limit = ISSUE_LIST_LIMIT
             ).getOrThrow()
-        }.getOrElse { emptyList() }
+        }
 
         httpClient.close()
+
+        val list = result.getOrElse {
+            return IssuesData(
+                count = WidgetDataCache.loadIssues(context).size,
+                items = WidgetDataCache.loadIssues(context),
+                types = types
+            )
+        }
+
+        WidgetDataCache.saveIssues(context, list)
 
         return IssuesData(
             count = list.size,

@@ -111,10 +111,16 @@ class ActionsWidget : GlanceAppWidget() {
 
         return result.fold(
             onSuccess = { runs ->
+                WidgetDataCache.saveActions(context, widgetId, runs)
                 ActionsData(repo = repo, widgetId = widgetId, runs = runs, error = null)
             },
             onFailure = { e ->
-                ActionsData(repo = repo, widgetId = widgetId, runs = emptyList(), error = e.message ?: "Failed to load")
+                val cached = WidgetDataCache.loadActions(context, widgetId)
+                if (cached.isNotEmpty()) {
+                    ActionsData(repo = repo, widgetId = widgetId, runs = cached, error = null)
+                } else {
+                    ActionsData(repo = repo, widgetId = widgetId, runs = emptyList(), error = e.message ?: "Failed to load")
+                }
             }
         )
     }

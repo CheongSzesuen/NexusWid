@@ -57,6 +57,7 @@ data class ReviewRequestedSearchResult(
     val total_count: Int
 )
 
+@Serializable
 enum class PullRequestType(val query: String, val displayName: String) {
     CREATED("author:@me", "Created"),
     ASSIGNED("assignee:@me", "Assigned"),
@@ -64,6 +65,7 @@ enum class PullRequestType(val query: String, val displayName: String) {
     REVIEW_REQUESTED("review-requested:@me", "Review")
 }
 
+@Serializable
 data class PullRequestItem(
     val repoFullName: String,
     val number: Int,
@@ -73,6 +75,7 @@ data class PullRequestItem(
     val checkStatus: CheckStatus
 )
 
+@Serializable
 enum class CheckStatus {
     SUCCESS,
     FAILURE,
@@ -80,12 +83,14 @@ enum class CheckStatus {
     NONE
 }
 
+@Serializable
 enum class IssueType(val query: String, val displayName: String) {
     ASSIGNED("assignee:@me", "Assigned"),
     CREATED("author:@me", "Created"),
     MENTIONED("mentions:@me", "Mentioned")
 }
 
+@Serializable
 data class IssueItem(
     val repoFullName: String,
     val number: Int,
@@ -94,6 +99,7 @@ data class IssueItem(
     val state: String
 )
 
+@Serializable
 data class RepoItem(
     val fullName: String,
     val name: String,
@@ -104,6 +110,7 @@ data class RepoItem(
     val isPrivate: Boolean
 )
 
+@Serializable
 data class WorkflowRunItem(
     val workflowName: String,
     val branch: String,
@@ -118,6 +125,7 @@ data class WorkflowRunItem(
     val runStartedAt: String? = null
 )
 
+@Serializable
 data class WorkflowSummary(
     val id: Long,
     val name: String,
@@ -129,6 +137,7 @@ data class WorkflowSummary(
     val updatedAt: String?
 )
 
+@Serializable
 enum class NotificationReason(val displayName: String) {
     ASSIGN("assigned"),
     AUTHOR("authored"),
@@ -147,6 +156,7 @@ enum class NotificationReason(val displayName: String) {
     SECURITY_ADVISORY_CREDIT("advisory credit")
 }
 
+@Serializable
 enum class NotificationSubjectType(val displayName: String) {
     ISSUE("Issue"),
     PULL_REQUEST("PR"),
@@ -157,6 +167,7 @@ enum class NotificationSubjectType(val displayName: String) {
     OTHER("Other")
 }
 
+@Serializable
 data class NotificationItem(
     val id: String,
     val repoFullName: String,

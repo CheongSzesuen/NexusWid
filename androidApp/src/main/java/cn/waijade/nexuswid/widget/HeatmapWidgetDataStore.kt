@@ -20,6 +20,7 @@ private const val TAG = "HeatmapWidgetDataStore"
 
 class HeatmapWidgetDataStore(context: Context) {
     private val githubPreferences = GitHubPreferences(context.applicationContext)
+    private val appContext = context.applicationContext
     private val json = Json { ignoreUnknownKeys = true }
     private val httpClient = HttpClient(OkHttp) {
         install(ContentNegotiation) {
@@ -40,7 +41,7 @@ class HeatmapWidgetDataStore(context: Context) {
 
     fun getContributionLevels(): Map<String, Int> {
         return runBlocking(Dispatchers.IO) {
-            runCatching {
+            val result = runCatching {
                 val username = githubPreferences.username
                 val token = githubPreferences.token.takeIf { it.isNotBlank() }
 
@@ -66,12 +67,36 @@ class HeatmapWidgetDataStore(context: Context) {
 
                 Log.d(TAG, "getContributionLevels: levelsByDate size=${levelsByDate.size}")
 
+                saveContributionCache(levelsByDate)
                 levelsByDate
-            }.getOrElse {
-                Log.e(TAG, "getContributionLevels: error", it)
-                emptyMap()
+            }
+
+            result.getOrElse {
+                Log.e(TAG, "getContributionLevels: error, loading from cache", it)
+                loadContributionCache()
             }
         }
+    }
+
+    private fun saveContributionCache(levelsByDate: Map<String, Int>) {
+        runCatching {
+            val encoded = levelsByDate.entries.joinToString(",") { "${it.key}=${it.value}" }
+            appContext.getSharedPreferences(CACHE_PREFS_NAME, Context.MODE_PRIVATE)
+                .edit()
+                .putString(KEY_CONTRIBUTION_LEVELS, encoded)
+                .apply()
+        }
+    }
+
+    private fun loadContributionCache(): Map<String, Int> {
+        return runCatching {
+            val raw = appContext.getSharedPreferences(CACHE_PREFS_NAME, Context.MODE_PRIVATE)
+                .getString(KEY_CONTRIBUTION_LEVELS, null) ?: return emptyMap()
+            raw.split(",").associate { entry ->
+                val parts = entry.split("=")
+                parts[0] to (parts[1].toIntOrNull() ?: 0)
+            }
+        }.getOrElse { emptyMap() }
     }
 
     fun buildGridFromLevels(
@@ -100,5 +125,10 @@ class HeatmapWidgetDataStore(context: Context) {
             }
         }
         return grid
+    }
+
+    companion object {
+        private const val CACHE_PREFS_NAME = "widget_data_cache"
+        private const val KEY_CONTRIBUTION_LEVELS = "cached_contribution_levels"
     }
 }

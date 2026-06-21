@@ -146,14 +146,26 @@ class NotificationsWidget : GlanceAppWidget() {
         }
         val service = GitHubApiService(httpClient, json)
 
-        val list = runCatching {
+        val result = runCatching {
             service.getNotifications(
                 token = token,
                 limit = NOTIFICATION_LIST_LIMIT
             ).getOrThrow()
-        }.getOrElse { emptyList() }
+        }
 
         httpClient.close()
+
+        val list = result.getOrElse {
+            val cached = WidgetDataCache.loadNotifications(context)
+            val unreadCount = cached.count { it.isUnread }
+            return NotificationsData(
+                count = cached.size,
+                unreadCount = unreadCount,
+                items = cached
+            )
+        }
+
+        WidgetDataCache.saveNotifications(context, list)
 
         val unreadCount = list.count { it.isUnread }
 

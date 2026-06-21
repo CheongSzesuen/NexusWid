@@ -72,8 +72,13 @@ class ReviewsRequestedWidget : GlanceAppWidget() {
                 install(ContentNegotiation) { json(json) }
             }
             val apiService = GitHubApiService(httpClient, json)
-            apiService.getPullRequestCount(token, pullRequestTypes).getOrThrow()
-        }.getOrElse { -1 }
+            val count = apiService.getPullRequestCount(token, pullRequestTypes).getOrThrow()
+            httpClient.close()
+            WidgetDataCache.saveReviewsCount(context, count)
+            count
+        }.getOrElse {
+            WidgetDataCache.loadReviewsCount(context)
+        }
     }
 
     companion object {
