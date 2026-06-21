@@ -10,18 +10,28 @@ import nexuswid.shared.generated.resources.github
 import nexuswid.shared.generated.resources.github_token
 import nexuswid.shared.generated.resources.github_username
 import nexuswid.shared.generated.resources.heatmap_color_mode
+import nexuswid.shared.generated.resources.ic_afdian
 import nexuswid.shared.generated.resources.ic_github
 import nexuswid.shared.generated.resources.palette
 import nexuswid.shared.generated.resources.theme
 import nexuswid.shared.generated.resources.week_start_day
 import nexuswid.shared.generated.resources.widget
 import nexuswid.shared.generated.resources.widget_contribution
+import nexuswid.shared.generated.resources.afdian
+import nexuswid.shared.generated.resources.afdian_cookie
 
 val githubSettingsScreen = SettingsNavItem(
     Screen.Settings.GitHub,
     Res.drawable.ic_github,
     Res.string.github,
     listOf(Res.string.github_username, Res.string.github_token)
+)
+
+val afdianSettingsScreen = SettingsNavItem(
+    Screen.Settings.Afdian,
+    Res.drawable.ic_afdian,
+    Res.string.afdian,
+    listOf(Res.string.afdian_cookie)
 )
 
 val settingsScreens = listOf(

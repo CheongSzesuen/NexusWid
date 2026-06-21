@@ -33,6 +33,7 @@ import androidx.window.core.layout.WindowSizeClass.Companion.WIDTH_DP_EXPANDED_L
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import cn.waijade.nexuswid.githubSettingsScreen
+import cn.waijade.nexuswid.afdianSettingsScreen
 import cn.waijade.nexuswid.settingsScreens
 import cn.waijade.nexuswid.ui.Screen
 import cn.waijade.nexuswid.ui.mergePaddingValues
@@ -111,7 +112,32 @@ fun SettingsMainScreen(
                     trailingContent = if (!widthExpanded) {
                         { Icon(painterResource(Res.drawable.arrow_forward_big), null) }
                     } else null,
-                    shapes = segmentedListItemShapes(0, 1),
+                    shapes = segmentedListItemShapes(0, 2),
+                    colors = listItemColors,
+                    selected = currentScreen == item.route,
+                    onClick = { onNavigate(item.route) }
+                ) { Text(stringResource(item.label)) }
+            }
+
+            item {
+                val item = afdianSettingsScreen
+                SegmentedListItem(
+                    leadingContent = {
+                        Icon(painterResource(item.icon), null)
+                    },
+                    supportingContent = {
+                        val innerStrings = item.innerSettings.map { stringResource(it) }
+                        val joinedText = remember(innerStrings) { innerStrings.joinToString(", ") }
+                        Text(
+                            joinedText,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    },
+                    trailingContent = if (!widthExpanded) {
+                        { Icon(painterResource(Res.drawable.arrow_forward_big), null) }
+                    } else null,
+                    shapes = segmentedListItemShapes(1, 2),
                     colors = listItemColors,
                     selected = currentScreen == item.route,
                     onClick = { onNavigate(item.route) }

@@ -11,4 +11,9 @@
     <string name="widget_issues">Issues</string>
     <string name="widget_actions">Actions</string>
     <string name="widget_notifications">Notifications</string>
+    <string name="widget_afdian_total">爱发电总收益</string>
+    <string name="widget_afdian_monthly">爱发电本月收益</string>
+    <string name="afdian">爱发电</string>
+    <string name="afdian_user_id">User ID</string>
+    <string name="afdian_token">Token</string>
 </resources>

@@ -31,6 +31,9 @@ sealed class Screen : NavKey {
         object GitHub : Settings()
 
         @Serializable
+        object Afdian : Settings()
+
+        @Serializable
         object Widget : Settings()
 
         @Serializable

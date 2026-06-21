@@ -53,4 +53,10 @@
     <string name="reviews_requested_description">显示请求的代码审查</string>
     <string name="widget_issues">Issues</string>
     <string name="widget_notifications">Notifications</string>
+    <string name="afdian">爱发电</string>
+    <string name="afdian_cookie">Cookie</string>
+    <string name="afdian_cookie_hint">必填格式: auth_token=xxx。从浏览器F12→Application→Cookies→afdian.com，复制 auth_token 的完整键值对</string>
+    <string name="afdian_cookie_placeholder">auth_token=xxx</string>
+    <string name="widget_afdian_total">爱发电总收益</string>
+    <string name="widget_afdian_monthly">爱发电本月收益</string>
 </resources>

@@ -28,6 +28,7 @@ import androidx.navigation3.ui.NavDisplay
 import cn.waijade.nexuswid.ui.Screen
 import cn.waijade.nexuswid.ui.calculatePaneScaffoldDirective
 import cn.waijade.nexuswid.ui.settingsScreen.screens.AboutScreen
+import cn.waijade.nexuswid.ui.settingsScreen.screens.AfdianSettingsScreen
 import cn.waijade.nexuswid.ui.settingsScreen.screens.AppearanceSettings
 import cn.waijade.nexuswid.ui.settingsScreen.screens.BuildInfoScreen
 import cn.waijade.nexuswid.ui.settingsScreen.screens.DebugSettingsScreen
@@ -132,6 +133,16 @@ fun SettingsScreenRoot(
                 metadata = detailPane()
             ) {
                 GitHubSettingsScreen(
+                    contentPadding = contentPadding,
+                    onBack = backStack::onBack,
+                    modifier = modifier,
+                )
+            }
+
+            entry<Screen.Settings.Afdian>(
+                metadata = detailPane()
+            ) {
+                AfdianSettingsScreen(
                     contentPadding = contentPadding,
                     onBack = backStack::onBack,
                     modifier = modifier,

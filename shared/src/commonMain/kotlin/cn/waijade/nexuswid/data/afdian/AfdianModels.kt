@@ -1,0 +1,55 @@
+package cn.waijade.nexuswid.data.afdian
+
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.descriptors.PrimitiveKind
+import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
+import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
+import kotlinx.serialization.json.JsonDecoder
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.jsonPrimitive
+
+object FlexibleIntSerializer : KSerializer<Int> {
+    override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("FlexibleInt", PrimitiveKind.INT)
+
+    override fun deserialize(decoder: Decoder): Int {
+        val input = decoder as? JsonDecoder ?: return decoder.decodeInt()
+        val element = input.decodeJsonElement()
+        return element.jsonPrimitive.content.toIntOrNull() ?: 0
+    }
+
+    override fun serialize(encoder: Encoder, value: Int) {
+        encoder.encodeInt(value)
+    }
+}
+
+@Serializable
+data class AfdianDashboardResponse(
+    val ec: Int,
+    val em: String,
+    val data: AfdianDashboardData? = null
+)
+
+@Serializable
+data class AfdianDashboardData(
+    val summary: AfdianSummary? = null
+)
+
+@Serializable
+data class AfdianSummary(
+    val all_sum_amount: String = "0.00",
+    val month_amount: String = "0.00",
+    @Serializable(with = FlexibleIntSerializer::class)
+    val all_sponsor_count: Int = 0,
+    @Serializable(with = FlexibleIntSerializer::class)
+    val month_sponsor_count: Int = 0
+)
+
+data class AfdianEarnings(
+    val totalAmount: Double,
+    val totalCount: Int,
+    val monthlyAmount: Double,
+    val monthlyCount: Int
+)
