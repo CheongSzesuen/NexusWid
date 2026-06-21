@@ -24,11 +24,14 @@
 }
 ```
 
-**字段说明：**
-- `data.summary.all_sum_amount`: 总收入金额（字符串，单位：元）
-- `data.summary.month_amount`: 本月收入金额（字符串，单位：元）
-- `data.summary.all_sponsor_count`: 总赞助人数
-- `data.summary.month_sponsor_count`: 本月赞助人数
+**响应字段说明：**
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `ec` | int | 状态码，200 表示成功 |
+| `data.summary.all_sum_amount` | string | 总收入金额（单位：元） |
+| `data.summary.month_amount` | string | 本月收入金额（单位：元） |
+| `data.summary.all_sponsor_count` | int | 总赞助人数 |
+| `data.summary.month_sponsor_count` | int | 本月赞助人数 |
 
 ---
 
@@ -39,8 +42,10 @@
 **功能描述：** 获取按日统计的收入数据，支持分页。
 
 **请求参数：**
-- `page`: 页码（从1开始）
-- `type`: 统计类型，固定为 `"day"`
+| 参数 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| `page` | int | N | 页码（从 1 开始） |
+| `type` | string | N | 统计类型，固定为 `"day"` |
 
 **响应数据结构：**
 ```json
@@ -63,15 +68,18 @@
 }
 ```
 
-**字段说明：**
-- `data.list`: 统计数据列表
-- `data.has_more`: 是否有更多数据（1表示有，0表示无）
-- `date_str`: 日期（格式：YYYYMMDD）
-- `uv`: 页面访问量
-- `paid_order_real_amount`: 实际支付金额（字符串，单位：元）
-- `paid_order_count`: 支付订单数
-- `paid_user_count`: 支付用户数
-- `paid_old_user_count`: 老用户支付数
+**响应字段说明：**
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `ec` | int | 状态码，200 表示成功 |
+| `data.list` | array | 统计数据列表 |
+| `data.has_more` | int | 是否有更多数据（1=有，0=无） |
+| `date_str` | int | 日期（格式：YYYYMMDD） |
+| `uv` | int | 页面访问量 |
+| `paid_order_real_amount` | string | 实际支付金额（单位：元） |
+| `paid_order_count` | int | 支付订单数 |
+| `paid_user_count` | int | 支付用户数 |
+| `paid_old_user_count` | int | 老用户支付数 |
 
 ---
 
@@ -82,24 +90,26 @@
 **功能描述：** 筛选和查询赞助账单记录。
 
 **请求参数：**
-- `page`: 页码
-- `sort_field`: 排序字段（`update_time`）
-- `sort_value`: 排序方向（`desc`）
-- `is_redeem`: 是否兑换码订单（0=否）
-- `plan_id`: 计划ID筛选
-- `sign_status`: 签约状态
-- `has_remark`: 是否有备注（0=全部）
-- `status`: 订单状态
-- `order_id`: 订单号搜索
-- `nick_name`: 用户昵称搜索
-- `user_id`: 用户ID搜索
-- `remark`: 备注搜索
-- `order_remark`: 订单备注搜索
-- `express_no`: 快递单号搜索
-- `last_cart_order_id`: 上次购物车订单ID（分页用）
-- `last_order_id`: 上次订单ID（分页用）
-- `begin_time`: 开始时间
-- `end_time`: 结束时间
+| 参数 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| `page` | int | N | 页码 |
+| `sort_field` | string | N | 排序字段（`update_time`） |
+| `sort_value` | string | N | 排序方向（`desc`） |
+| `is_redeem` | int | N | 是否兑换码订单（0=否） |
+| `plan_id` | string | N | 计划 ID 筛选 |
+| `sign_status` | int | N | 签约状态 |
+| `has_remark` | int | N | 是否有备注（0=全部） |
+| `status` | int | N | 订单状态 |
+| `order_id` | string | N | 订单号搜索 |
+| `nick_name` | string | N | 用户昵称搜索 |
+| `user_id` | string | N | 用户 ID 搜索 |
+| `remark` | string | N | 备注搜索 |
+| `order_remark` | string | N | 订单备注搜索 |
+| `express_no` | string | N | 快递单号搜索 |
+| `last_cart_order_id` | string | N | 上次购物车订单 ID（分页用） |
+| `last_order_id` | string | N | 上次订单 ID（分页用） |
+| `begin_time` | int | N | 开始时间（Unix 时间戳） |
+| `end_time` | int | N | 结束时间（Unix 时间戳） |
 
 **响应数据结构：**
 ```json
@@ -164,26 +174,51 @@
 }
 ```
 
-**字段说明：**
-- `data.last_order_id`: 最后一个订单ID（用于下一页分页）
-- `data.has_more`: 是否有更多数据
-- `data.list`: 订单列表
-- `out_trade_no`: 订单号
-- `user_id`: 赞助者用户ID
-- `plan_id`: 计划ID
-- `remote_id`: 创作者用户ID
-- `title`: 订单标题
-- `month`: 月数
-- `total_amount`: 实际支付金额
-- `show_amount`: 显示金额
-- `status`: 订单状态（1=待支付，2=已支付）
-- `remark`: 用户备注
-- `create_time`: 创建时间
-- `update_time`: 更新时间
-- `product_type`: 产品类型（0=订阅，1=商品）
-- `sku_detail`: SKU详情JSON字符串
-- `sign_status`: 签约状态
-- `py_type`: 支付方式（1=支付宝，2=微信）
+**响应字段说明：**
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `ec` | int | 状态码，200 表示成功 |
+| `data.last_order_id` | int | 最后一个订单 ID（用于下一页分页） |
+| `data.last_cart_order_id` | string | 最后一个购物车订单 ID |
+| `data.has_more` | int | 是否有更多数据（0=否，1=是） |
+| `data.list` | array | 订单列表 |
+| `data.total_count` | int | 总订单数 |
+| `out_trade_no` | string | 订单号 |
+| `is_upgrade` | int | 是否升级订单 |
+| `user_id` | string | 赞助者用户 ID |
+| `plan_id` | string | 计划 ID |
+| `remote_id` | string | 创作者用户 ID |
+| `title` | string | 订单标题 |
+| `month` | int | 月数 |
+| `total_amount` | string | 实际支付金额（单位：元） |
+| `show_amount` | string | 显示金额（单位：元） |
+| `discount` | string | 折扣金额（单位：元） |
+| `status` | int | 订单状态（1=待支付，2=已支付） |
+| `remark` | string | 用户备注 |
+| `create_time` | int | 创建时间（Unix 时间戳） |
+| `update_time` | int | 更新时间（Unix 时间戳） |
+| `pay_success_sn` | int | 支付成功序号 |
+| `redeem_id` | string | 兑换码 ID |
+| `product_type` | int | 产品类型（0=订阅，1=商品） |
+| `sku_detail` | string | SKU 详情（JSON 字符串） |
+| `sku_count` | int | SKU 数量 |
+| `sign_status` | int | 签约状态 |
+| `user.user_id` | string | 赞助者用户 ID |
+| `user.name` | string | 赞助者昵称 |
+| `user.avatar` | string | 赞助者头像 URL |
+| `plan.plan_id` | string | 计划 ID |
+| `plan.name` | string | 计划名称 |
+| `plan.price` | string | 计划价格（单位：元） |
+| `plan.product_type` | int | 产品类型 |
+| `time_range.begin_time` | int | 赞助开始时间（Unix 时间戳） |
+| `time_range.end_time` | int | 赞助结束时间（Unix 时间戳） |
+| `sku_processed` | array | SKU 处理后列表 |
+| `sku_processed[].sku_id` | string | SKU ID |
+| `sku_processed[].price` | string | SKU 价格（单位：元） |
+| `sku_processed[].count` | int | 购买数量 |
+| `sku_processed[].name` | string | SKU 名称 |
+| `total_amount_g` | string | 总金额（单位：元） |
+| `py_type` | int | 支付方式（1=支付宝，2=微信） |
 
 ---
 
@@ -244,20 +279,23 @@
 }
 ```
 
-**字段说明：**
-- `data.monthly_bill`: 按年分组的月度账单列表
-- `year`: 年份
-- `data`: 该年份的月度数据列表
-- `month`: 月份
-- `data.total_amount`: 总金额（字符串，单位：元）
-- `data.creator_amount`: 创作者实际收入（扣除平台手续费后）
-- `data.sponsor_count`: 赞助人数
-- `data.create_time`: 账单创建时间（Unix时间戳）
+**响应字段说明：**
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `ec` | int | 状态码，200 表示成功 |
+| `data.monthly_bill` | array | 按年分组的月度账单列表 |
+| `year` | int | 年份 |
+| `data` | array | 该年份的月度数据列表 |
+| `month` | int | 月份 |
+| `data.total_amount` | string | 总金额（单位：元） |
+| `data.creator_amount` | string | 创作者实际收入（扣除平台手续费后） |
+| `data.sponsor_count` | int | 赞助人数 |
+| `data.create_time` | int | 账单创建时间（Unix 时间戳） |
 
 **注意事项：**
 - 数据按年份倒序排列，每月一条记录
 - `creator_amount` 是扣除平台手续费后的实际收入
-- 月收入为0的月份也会返回
+- 月收入为 0 的月份也会返回
 
 ---
 
@@ -268,24 +306,26 @@
 **功能描述：** 筛选和查询我赞助他人的账单记录（与 Sponsored Bill Out Filter 类似）。
 
 **请求参数：**
-- `page`: 页码
-- `sort_field`: 排序字段（`update_time`）
-- `sort_value`: 排序方向（`desc`）
-- `is_redeem`: 是否兑换码订单（0=否）
-- `plan_id`: 计划ID筛选
-- `sign_status`: 签约状态
-- `has_remark`: 是否有备注（0=全部）
-- `status`: 订单状态
-- `order_id`: 订单号搜索
-- `nick_name`: 用户昵称搜索
-- `user_id`: 用户ID搜索
-- `remark`: 备注搜索
-- `order_remark`: 订单备注搜索
-- `express_no`: 快递单号搜索
-- `last_cart_order_id`: 上次购物车订单ID（分页用）
-- `last_order_id`: 上次订单ID（分页用）
-- `begin_time`: 开始时间
-- `end_time`: 结束时间
+| 参数 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| `page` | int | N | 页码 |
+| `sort_field` | string | N | 排序字段（`update_time`） |
+| `sort_value` | string | N | 排序方向（`desc`） |
+| `is_redeem` | int | N | 是否兑换码订单（0=否） |
+| `plan_id` | string | N | 计划 ID 筛选 |
+| `sign_status` | int | N | 签约状态 |
+| `has_remark` | int | N | 是否有备注（0=全部） |
+| `status` | int | N | 订单状态 |
+| `order_id` | string | N | 订单号搜索 |
+| `nick_name` | string | N | 用户昵称搜索 |
+| `user_id` | string | N | 用户 ID 搜索 |
+| `remark` | string | N | 备注搜索 |
+| `order_remark` | string | N | 订单备注搜索 |
+| `express_no` | string | N | 快递单号搜索 |
+| `last_cart_order_id` | string | N | 上次购物车订单 ID（分页用） |
+| `last_order_id` | string | N | 上次订单 ID（分页用） |
+| `begin_time` | int | N | 开始时间（Unix 时间戳） |
+| `end_time` | int | N | 结束时间（Unix 时间戳） |
 
 **响应数据结构：**
 ```json
@@ -343,19 +383,41 @@
 }
 ```
 
-**字段说明：**
-- `data.sponsored_count`: 赞助数量
-- `data.payment_count`: 支付总额
-- `data.has_more`: 是否有更多数据
-- `data.list`: 订单列表
-- `data.total_count`: 总订单数
-- `out_trade_no`: 订单号
-- `user_id`: 我的用户ID
-- `remote_id`: 创作者用户ID
-- `title`: 订单标题
-- `total_amount`: 实际支付金额
-- `show_amount`: 显示金额
-- `status`: 订单状态（2=已支付）
-- `remark`: 用户备注
-- `product_type`: 产品类型（0=订阅，1=商品）
-- `py_type`: 支付方式（1=支付宝，2=微信，3=兑换码，4=VIP）
+**响应字段说明：**
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `ec` | int | 状态码，200 表示成功 |
+| `data.sponsored_count` | int | 赞助数量 |
+| `data.payment_count` | string | 支付总额（单位：元） |
+| `data.has_more` | int | 是否有更多数据（0=否，1=是） |
+| `data.list` | array | 订单列表 |
+| `data.total_count` | int | 总订单数 |
+| `out_trade_no` | string | 订单号 |
+| `user_id` | string | 我的用户 ID |
+| `plan_id` | string | 计划 ID |
+| `remote_id` | string | 创作者用户 ID |
+| `title` | string | 订单标题 |
+| `month` | int | 月数 |
+| `total_amount` | string | 实际支付金额（单位：元） |
+| `show_amount` | string | 显示金额（单位：元） |
+| `status` | int | 订单状态（2=已支付） |
+| `remark` | string | 用户备注 |
+| `create_time` | int | 创建时间（Unix 时间戳） |
+| `update_time` | int | 更新时间（Unix 时间戳） |
+| `product_type` | int | 产品类型（0=订阅，1=商品） |
+| `sku_detail` | string | SKU 详情（JSON 字符串） |
+| `user.user_id` | string | 创作者用户 ID |
+| `user.name` | string | 创作者昵称 |
+| `user.avatar` | string | 创作者头像 URL |
+| `plan.plan_id` | string | 计划 ID |
+| `plan.name` | string | 计划名称 |
+| `plan.price` | string | 计划价格（单位：元） |
+| `time_range.begin_time` | int | 赞助开始时间（Unix 时间戳） |
+| `time_range.end_time` | int | 赞助结束时间（Unix 时间戳） |
+| `sku_processed` | array | SKU 处理后列表 |
+| `sku_processed[].sku_id` | string | SKU ID |
+| `sku_processed[].price` | string | SKU 价格（单位：元） |
+| `sku_processed[].count` | int | 购买数量 |
+| `sku_processed[].name` | string | SKU 名称 |
+| `total_amount_g` | string | 总金额（单位：元） |
+| `py_type` | int | 支付方式（1=支付宝，2=微信，3=兑换码，4=VIP） |

@@ -69,11 +69,13 @@ https://ifdian.net/order/create?plan_id={plan_id}&product_type=0&month=3&remark=
 }
 ```
 
-**字段说明：**
-- `sku_id`: SKU ID
-- `count`: 购买数量
-- `name`: SKU 名称
-- `album_id`: 专辑 ID（通常为空）
+**SKU 字段说明：**
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `sku_id` | string | SKU ID |
+| `count` | int | 购买数量 |
+| `name` | string | SKU 名称 |
+| `album_id` | string | 专辑 ID（通常为空） |
 
 ### SKU 列表示例
 
@@ -93,9 +95,11 @@ https://ifdian.net/order/create?plan_id={plan_id}&product_type=0&month=3&remark=
 **功能描述：** 获取推荐的动态/帖子列表。
 
 **请求参数：**
-- `publish_sn`: 发布序号（用于分页，空表示第一页）
-- `type`: 类型，`"old"` 表示加载更早的内容
-- `all`: 是否获取全部（1=是）
+| 参数 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| `publish_sn` | string | N | 发布序号（用于分页，空表示第一页） |
+| `type` | string | N | 类型，`"old"` 表示加载更早的内容 |
+| `all` | int | N | 是否获取全部（1=是） |
 
 **响应数据结构：**
 ```json
@@ -138,20 +142,36 @@ https://ifdian.net/order/create?plan_id={plan_id}&product_type=0&month=3&remark=
 }
 ```
 
-**字段说明：**
-- `data.list`: 动态列表
-- `data.has_more`: 是否有更多数据
-- `post_id`: 动态ID
-- `title`: 标题
-- `content`: 内容
-- `pics`: 图片列表
-- `video`: 视频URL
-- `is_public`: 是否公开
-- `min_price`: 最低价格（付费内容）
-- `like_count`: 点赞数
-- `comment_count`: 评论数
-- `publish_time`: 发布时间
-- `cate`: 类型（pic=图片, video=视频, article=文章）
+**响应字段说明：**
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `ec` | int | 状态码，200 表示成功 |
+| `data.list` | array | 动态列表 |
+| `data.has_more` | int | 是否有更多数据（0=否，1=是） |
+| `post_id` | string | 动态 ID |
+| `user_id` | string | 作者用户 ID |
+| `title` | string | 标题 |
+| `preview_text` | string | 预览文本 |
+| `group_id` | string | 电圈 ID |
+| `type` | int | 类型 |
+| `cover` | string | 封面图片 URL |
+| `content` | string | 内容 |
+| `pics` | array | 图片列表 |
+| `audio` | string | 音频 URL |
+| `video` | string | 视频 URL |
+| `is_public` | int | 是否公开（0=否，1=是） |
+| `min_price` | string | 最低价格（付费内容，单位：元） |
+| `plan_ids` | array | 关联的计划 ID 列表 |
+| `status` | int | 状态 |
+| `like_count` | int | 点赞数 |
+| `comment_count` | int | 评论数 |
+| `publish_time` | int | 发布时间（Unix 时间戳） |
+| `publish_sn` | int | 发布序号 |
+| `cate` | string | 类型（`pic`=图片，`video`=视频，`article`=文章） |
+| `user.user_id` | string | 作者用户 ID |
+| `user.name` | string | 作者昵称 |
+| `user.avatar` | string | 作者头像 URL |
+| `user.url_slug` | string | 作者 URL 后缀 |
 
 ---
 
@@ -185,11 +205,14 @@ https://ifdian.net/order/create?plan_id={plan_id}&product_type=0&month=3&remark=
 }
 ```
 
-**字段说明：**
-- `data.list`: 轮播图列表
-- `image`: 图片URL
-- `url`: 跳转链接
-- `new_tab`: 是否新窗口打开（0=否，1=是）
+**响应字段说明：**
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `ec` | int | 状态码，200 表示成功 |
+| `data.list` | array | 轮播图列表 |
+| `image` | string | 图片 URL |
+| `url` | string | 跳转链接 |
+| `new_tab` | int | 是否新窗口打开（0=否，1=是） |
 
 ---
 
@@ -223,6 +246,156 @@ https://pic1.afdiancdn.com/user/{user_id}/avatar/{hash}_w{width}_h{height}_s{qua
 
 ---
 
+## 日志收集
+
+**接口地址：** `POST https://afdian.com/api/log/collect`
+
+**功能描述：** 上报用户访问日志，用于统计分析。
+
+**请求方式：** POST
+
+**请求参数：** 无（通过 Cookie 鉴权）
+
+**响应数据结构：**
+```json
+{
+    "ec": 200,
+    "em": "ok",
+    "data": {
+        "stat_id": "3ca2f1de458b11f1a54852540025c377",
+        "user_id": "7918072ee88711efa93552540025c377",
+        "creator_id": "00fb401a588211ebb7db52540025c377",
+        "uri": "https://ifdian.net/a/zaona?tab=feed",
+        "path": "/a/zaona",
+        "host": "ifdian.net",
+        "platform": "GNU/Linux",
+        "browser": "Chrome",
+        "browser_v": "149.0.0.0",
+        "is_login": 1,
+        "is_mobile": 0,
+        "ip": "103.151.172.84",
+        "ip_area": "中国香港 特别行政区",
+        "time": 1782065097,
+        "is_creator": 1,
+        "is_verified": 1,
+        "has_income": 1
+    }
+}
+```
+
+**响应字段说明：**
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `ec` | int | 状态码，200 表示成功 |
+| `data.stat_id` | string | 统计记录 ID |
+| `data.user_id` | string | 当前用户 ID |
+| `data.creator_id` | string | 被访问的创作者 ID |
+| `data.uri` | string | 完整访问 URL |
+| `data.path` | string | 访问路径 |
+| `data.host` | string | 访问域名 |
+| `data.platform` | string | 操作系统 |
+| `data.browser` | string | 浏览器 |
+| `data.browser_v` | string | 浏览器版本 |
+| `data.is_login` | int | 是否已登录（0=否，1=是） |
+| `data.is_mobile` | int | 是否移动端（0=否，1=是） |
+| `data.ip` | string | 用户 IP |
+| `data.ip_area` | string | IP 归属地 |
+| `data.time` | int | 访问时间（Unix 时间戳） |
+| `data.is_creator` | int | 是否为创作者（0=否，1=是） |
+| `data.is_verified` | int | 是否认证用户（0=否，1=是） |
+| `data.has_income` | int | 是否有收入（0=否，1=是） |
+
+---
+
+## 获取相册帖子
+
+**接口地址：** `GET https://afdian.com/api/user/get-album-post`
+
+**功能描述：** 获取指定相册下的帖子列表。**无需鉴权，公开可调用。**
+
+**请求参数：**
+| 参数 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| `album_id` | string | Y | 相册 ID（32 位 hex） |
+| `lastRank` | string | N | 上一页最后一条的 rank 值（用于分页） |
+| `rankOrder` | string | N | 排序方向，`asc` 或 `desc` |
+| `rankField` | string | N | 排序字段，如 `rank` |
+
+**响应数据结构：**
+```json
+{
+    "ec": 200,
+    "em": "ok",
+    "data": {
+        "list": [
+            {
+                "post_id": "944e8304819011f0bbed52540025c377",
+                "user_id": "00fb401a588211ebb7db52540025c377",
+                "title": "简明天气 - 更好看好用的米环米表天气应用",
+                "cover": "https://pic1.afdiancdn.com/...",
+                "content": "📖 使用教程：https://www.yuque.com/zaona/weather\n🐧 QQ交流群：947038648",
+                "pics": ["https://pic1.afdiancdn.com/..."],
+                "is_public": 1,
+                "min_price": "0.00",
+                "like_count": 7,
+                "comment_count": 2,
+                "publish_time": 1756111841,
+                "albums": [
+                    {
+                        "album_id": "7fe723baafe611f0911d52540025c377",
+                        "title": "米环米表快应用",
+                        "cover": "https://pic1.afdiancdn.com/...",
+                        "post_count": 2
+                    }
+                ],
+                "unlock_plan_ids": [
+                    "695ac5fc609011f0a7e452540025c377"
+                ],
+                "user": {
+                    "user_id": "00fb401a588211ebb7db52540025c377",
+                    "name": "Zaona",
+                    "avatar": "https://pic1.afdiancdn.com/...",
+                    "url_slug": "zaona"
+                },
+                "rank": 1
+            }
+        ],
+        "has_more": 0
+    }
+}
+```
+
+**响应字段说明：**
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `ec` | int | 状态码，200 表示成功 |
+| `data.list` | array | 帖子列表 |
+| `data.has_more` | int | 是否有更多数据（0=否，1=是） |
+| `post_id` | string | 帖子 ID |
+| `user_id` | string | 作者用户 ID |
+| `title` | string | 标题 |
+| `cover` | string | 封面图 URL |
+| `content` | string | 内容摘要 |
+| `pics` | array | 图片列表 |
+| `is_public` | int | 是否公开（0=否，1=是） |
+| `min_price` | string | 最低价格（付费内容，单位：元） |
+| `like_count` | int | 点赞数 |
+| `comment_count` | int | 评论数 |
+| `publish_time` | int | 发布时间（Unix 时间戳） |
+| `albums` | array | 所属相册列表 |
+| `albums[].album_id` | string | 相册 ID |
+| `albums[].title` | string | 相册标题 |
+| `albums[].cover` | string | 相册封面 URL |
+| `albums[].post_count` | int | 相册内帖子数 |
+| `unlock_plan_ids` | array | 可解锁该帖子的计划 ID 列表 |
+| `user.user_id` | string | 作者用户 ID |
+| `user.name` | string | 作者昵称 |
+| `user.avatar` | string | 作者头像 URL |
+| `user.url_slug` | string | 作者 URL 后缀 |
+| `rank` | int | 在相册中的排序值（用于分页） |
+
+---
+
 ## 评论接口
 
 ### 获取帖子评论
@@ -232,10 +405,12 @@ https://pic1.afdiancdn.com/user/{user_id}/avatar/{hash}_w{width}_h{height}_s{qua
 **功能描述：** 获取指定帖子的评论列表。
 
 **请求参数：**
-- `post_id`: 帖子ID（必填）
-- `publish_sn`: 发布序号（用于分页，空表示第一页）
-- `type`: 加载方向，`"old"` 表示加载更早的评论
-- `hot`: 是否按热门排序（1=是）
+| 参数 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| `post_id` | string | Y | 帖子 ID |
+| `publish_sn` | string | N | 发布序号（用于分页，空表示第一页） |
+| `type` | string | N | 加载方向，`"old"` 表示加载更早的评论 |
+| `hot` | int | N | 是否按热门排序（1=是） |
 
 **响应数据结构：**
 ```json
@@ -270,18 +445,28 @@ https://pic1.afdiancdn.com/user/{user_id}/avatar/{hash}_w{width}_h{height}_s{qua
 }
 ```
 
-**字段说明：**
-- `data.list`: 评论列表
-- `data.has_more`: 是否有更多评论
-- `comment_id`: 评论ID
-- `post_id`: 帖子ID
-- `content`: 评论内容
-- `like_count`: 点赞数
-- `publish_time`: 发布时间
-- `has_like`: 是否已点赞
-- `user`: 评论用户信息
-- `sub_comment_has_more`: 是否有更多子评论
-- `sub_comments`: 子评论列表
+**响应字段说明：**
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `ec` | int | 状态码，200 表示成功 |
+| `data.list` | array | 评论列表 |
+| `data.has_more` | int | 是否有更多评论（0=否，1=是） |
+| `comment_id` | string | 评论 ID |
+| `user_id` | string | 评论者用户 ID |
+| `status` | int | 状态 |
+| `post_id` | string | 帖子 ID |
+| `content` | string | 评论内容 |
+| `like_count` | int | 点赞数 |
+| `publish_time` | int | 发布时间（Unix 时间戳） |
+| `publish_sn` | int | 发布序号 |
+| `has_like` | int | 是否已点赞（0=否，1=是） |
+| `user.user_id` | string | 评论者用户 ID |
+| `user.name` | string | 评论者昵称 |
+| `user.avatar` | string | 评论者头像 URL |
+| `can_edit` | int | 是否可编辑（0=否，1=是） |
+| `block` | int | 是否被屏蔽（0=否，1=是） |
+| `sub_comment_has_more` | int | 是否有更多子评论（0=否，1=是） |
+| `sub_comments` | array | 子评论列表 |
 
 ---
 
@@ -297,12 +482,14 @@ https://pic1.afdiancdn.com/user/{user_id}/avatar/{hash}_w{width}_h{height}_s{qua
 ```
 
 常见错误码：
-- `ec = 200`: 成功
-- `ec = 400`: 请求参数错误
-- `ec = 401`: 未授权或 Cookie/Token 无效
-- `ec = 403`: 禁止访问
-- `ec = 404`: 资源不存在
-- `ec = 500`: 服务器内部错误
+| 错误码 | 说明 |
+|--------|------|
+| `ec = 200` | 成功 |
+| `ec = 400` | 请求参数错误 |
+| `ec = 401` | 未授权或 Cookie/Token 无效 |
+| `ec = 403` | 禁止访问 |
+| `ec = 404` | 资源不存在 |
+| `ec = 500` | 服务器内部错误 |
 
 ---
 

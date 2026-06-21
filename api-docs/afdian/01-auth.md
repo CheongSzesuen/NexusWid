@@ -97,8 +97,10 @@ referer: https://afdian.com/
 }
 ```
 
-**字段说明：**
-- `ec`: 状态码，200表示成功
-- `em`: 错误信息
-- `data.user_id`: 爱发电用户 ID（公开）
-- `data.user_private_id`: 爱发电用户私有 ID
+**响应字段说明：**
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `ec` | int | 状态码，200 表示成功 |
+| `em` | string | 错误信息 |
+| `data.user_id` | string | 爱发电用户 ID（公开） |
+| `data.user_private_id` | string | 爱发电用户私有 ID |

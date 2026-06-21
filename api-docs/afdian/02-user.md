@@ -35,15 +35,80 @@
 }
 ```
 
-**字段说明：**
-- `ec`: 状态码，200表示成功
-- `data.user.user_id`: 用户 ID
-- `data.user.name`: 用户昵称
-- `data.user.avatar`: 头像图片完整 URL
-- `data.user.cover`: 封面图片 URL
-- `data.user.url_slug`: 自定义 URL slug（如 `waijade` 对应 `ifdian.net/@waijade`）
-- `data.user.creator.doing`: 一句话简介
-- `data.user.creator.detail`: 详细介绍
+**响应字段说明：**
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `ec` | int | 状态码，200 表示成功 |
+| `data.user.user_id` | string | 用户 ID |
+| `data.user.name` | string | 用户昵称 |
+| `data.user.avatar` | string | 头像图片完整 URL |
+| `data.user.cover` | string | 封面图片 URL |
+| `data.user.url_slug` | string | 自定义 URL slug（如 `waijade` 对应 `ifdian.net/@waijade`） |
+| `data.user.creator.doing` | string | 一句话简介 |
+| `data.user.creator.detail` | string | 详细介绍 |
+
+---
+
+## 通过 Slug 获取用户资料
+
+**接口地址：** `GET https://afdian.com/api/user/get-profile-by-slug`
+
+**功能描述：** 通过 URL slug 获取用户公开资料。**无需鉴权，公开可调用。**
+
+**请求参数：**
+| 参数 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| `url_slug` | string | Y | 用户 URL 后缀（如 `zaona`） |
+
+**响应数据结构：**
+```json
+{
+    "ec": 200,
+    "em": "",
+    "data": {
+        "user": {
+            "user_id": "00fb401a588211ebb7db52540025c377",
+            "status": 1,
+            "name": "Zaona",
+            "gender": 0,
+            "avatar": "https://pic1.afdiancdn.com/user/00fb401a588211ebb7db52540025c377/avatar/920952973ef41b9eea82b373278ed5ca_w409_h409_s217.png",
+            "cover": "https://pic1.afdiancdn.com/user/00fb401a588211ebb7db52540025c377/common/dd3b03c39b0f8b4a1f462c385363f7cc_w1558_h400_s891.png",
+            "url_slug": "zaona",
+            "is_verified": 1,
+            "verified_type": 2,
+            "creator": {
+                "user_id": "00fb401a588211ebb7db52540025c377",
+                "status": 2,
+                "category_id": "d6163d8c837611e98ac352540025c377",
+                "type": 1,
+                "doing": "小米手环/手表 表盘/快应用",
+                "detail": "表盘\n· Ultra\n· 点阵Dot\n· 青丘云镜\n\n快应用\n· 简明天气\n· FlowChat\n· 更好的五子棋",
+                "category": {
+                    "category_id": "d6163d8c837611e98ac352540025c377",
+                    "name": "数码"
+                }
+            },
+            "is_sponsoring": 1
+        }
+    }
+}
+```
+
+**响应字段说明：**
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `ec` | int | 状态码，200 表示成功 |
+| `data.user.user_id` | string | 用户 ID |
+| `data.user.name` | string | 用户昵称 |
+| `data.user.avatar` | string | 头像 URL |
+| `data.user.cover` | string | 封面 URL |
+| `data.user.url_slug` | string | URL 后缀 |
+| `data.user.is_verified` | int | 是否认证（0=否，1=是） |
+| `data.user.verified_type` | int | 认证类型 |
+| `data.user.creator.doing` | string | 一句话简介 |
+| `data.user.creator.detail` | string | 详细介绍 |
+| `data.user.creator.category.name` | string | 所属分类名称 |
+| `data.user.is_sponsoring` | int | 当前登录用户是否正在赞助该创作者 |
 
 ---
 
@@ -109,22 +174,25 @@
 }
 ```
 
-**字段说明：**
-- `data.user.user_id`: 用户ID
-- `data.user.name`: 用户昵称
-- `data.user.gender`: 性别（0=未知，1=男，2=女）
-- `data.user.birthday`: 生日
-- `data.user.avatar`: 头像URL
-- `data.user.cover`: 封面URL
-- `data.user.url_slug`: 自定义URL后缀
-- `data.user.is_verified`: 是否认证
-- `data.user.verified_type`: 认证类型
-- `data.user.creator.status`: 创作者状态（1=正常，2=认证）
-- `data.user.creator.type`: 创作者类型（1=个人，2=组织）
-- `data.user.creator.doing`: 一句话简介
-- `data.user.creator.detail`: 详细介绍
-- `data.user.creator.monthly_fans`: 月粉丝数
-- `data.user.creator.monthly_income`: 月收入
+**响应字段说明：**
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `ec` | int | 状态码，200 表示成功 |
+| `data.user.user_id` | string | 用户 ID |
+| `data.user.name` | string | 用户昵称 |
+| `data.user.gender` | int | 性别（0=未知，1=男，2=女） |
+| `data.user.birthday` | string | 生日（格式：YYYYMMDD） |
+| `data.user.avatar` | string | 头像 URL |
+| `data.user.cover` | string | 封面 URL |
+| `data.user.url_slug` | string | 自定义 URL 后缀 |
+| `data.user.is_verified` | int | 是否认证 |
+| `data.user.verified_type` | int | 认证类型 |
+| `data.user.creator.status` | int | 创作者状态（1=正常，2=认证） |
+| `data.user.creator.type` | int | 创作者类型（1=个人，2=组织） |
+| `data.user.creator.doing` | string | 一句话简介 |
+| `data.user.creator.detail` | string | 详细介绍 |
+| `data.user.creator.monthly_fans` | int | 月粉丝数 |
+| `data.user.creator.monthly_income` | string | 月收入（单位：元） |
 
 ---
 
@@ -157,11 +225,14 @@
 }
 ```
 
-**字段说明：**
-- `data.login.email`: 邮箱（脱敏）
-- `data.login.phone`: 手机号（脱敏）
-- `data.oauth`: 第三方绑定信息
-- `data.user_private_id`: 用户私有ID
+**响应字段说明：**
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `ec` | int | 状态码，200 表示成功 |
+| `data.login.email` | string | 邮箱（脱敏） |
+| `data.login.phone` | string | 手机号（脱敏） |
+| `data.oauth` | object | 第三方绑定信息 |
+| `data.user_private_id` | string | 用户私有 ID |
 
 ---
 
@@ -216,13 +287,28 @@
 }
 ```
 
-**字段说明：**
-- `data.sponsoring`: 赞助中的创作者列表
-- `data.sponsoring_expired`: 已过期的赞助列表
-- `user`: 创作者信息
-- `sale_list`: 订单列表
-- `new_post_count`: 新动态数量
-- `latest_post_update_time`: 最新动态时间
+**响应字段说明：**
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `ec` | int | 状态码，200 表示成功 |
+| `data.sponsoring` | array | 赞助中的创作者列表 |
+| `data.sponsoring_expired` | array | 已过期的赞助列表 |
+| `user.user_id` | string | 创作者用户 ID |
+| `user.name` | string | 创作者昵称 |
+| `user.avatar` | string | 创作者头像 URL |
+| `user.url_slug` | string | 创作者 URL 后缀 |
+| `user.creator.doing` | string | 创作者简介 |
+| `sale_list` | array | 订单列表 |
+| `sale_list[].out_trade_no` | string | 订单号 |
+| `sale_list[].plan_id` | string | 计划 ID |
+| `sale_list[].title` | string | 订单标题 |
+| `sale_list[].month` | int | 月数 |
+| `sale_list[].total_amount` | string | 实际支付金额（单位：元） |
+| `sale_list[].show_amount` | string | 显示金额（单位：元） |
+| `sale_list[].status` | int | 订单状态（2=已支付） |
+| `sale_list[].product_type` | int | 产品类型（0=订阅，1=商品） |
+| `new_post_count` | int | 新动态数量 |
+| `latest_post_update_time` | int | 最新动态时间（Unix 时间戳） |
 
 ---
 
@@ -268,19 +354,29 @@
 }
 ```
 
-**字段说明：**
-- `data.list`: 电圈列表
-- `group_id`: 电圈ID
-- `title`: 电圈名称
-- `cover`: 封面图片
-- `status`: 状态
-- `open`: 是否开放
-- `type`: 类型（1=免费，2=付费）
-- `price`: 价格
-- `post_count`: 帖子数
-- `member_count`: 成员数
-- `new_post_count`: 新帖子数
-- `is_owner`: 是否是圈主
+**响应字段说明：**
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `ec` | int | 状态码，200 表示成功 |
+| `data.list` | array | 电圈列表 |
+| `group_id` | string | 电圈 ID |
+| `title` | string | 电圈名称 |
+| `cover` | string | 封面图片 URL |
+| `content` | string | 电圈描述 |
+| `status` | int | 状态 |
+| `open` | int | 是否开放（0=否，1=是） |
+| `type` | int | 类型（1=免费，2=付费） |
+| `price` | string | 价格（单位：元） |
+| `post_count` | int | 帖子数 |
+| `comment_count` | int | 评论数 |
+| `member_count` | int | 成员数 |
+| `create_time` | int | 创建时间（Unix 时间戳） |
+| `update_time` | int | 更新时间（Unix 时间戳） |
+| `latest_post_time` | int | 最新帖子时间（Unix 时间戳） |
+| `latest_comment_time` | int | 最新评论时间（Unix 时间戳） |
+| `join_group_type` | int | 加入类型 |
+| `new_post_count` | int | 新帖子数 |
+| `is_owner` | int | 是否是圈主（0=否，1=是） |
 
 ---
 
@@ -331,16 +427,21 @@
 }
 ```
 
-**字段说明：**
-- `data.list`: 收藏列表
-- `data.has_more`: 是否有更多数据
-- `id`: 收藏记录ID
-- `user_id`: 我的用户ID
-- `remote_id`: 被收藏的创作者用户ID
-- `status`: 收藏状态（1=有效）
-- `time`: 收藏时间（Unix时间戳）
-- `user`: 创作者用户信息
-- `user.name`: 创作者昵称
-- `user.avatar`: 创作者头像
-- `user.url_slug`: 创作者URL后缀
-- `user.creator.doing`: 创作者简介
+**响应字段说明：**
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `ec` | int | 状态码，200 表示成功 |
+| `data.list` | array | 收藏列表 |
+| `data.has_more` | int | 是否有更多数据（0=否，1=是） |
+| `id` | int | 收藏记录 ID |
+| `user_id` | string | 我的用户 ID |
+| `remote_id` | string | 被收藏的创作者用户 ID |
+| `status` | int | 收藏状态（1=有效） |
+| `time` | int | 收藏时间（Unix 时间戳） |
+| `user.user_id` | string | 创作者用户 ID |
+| `user.name` | string | 创作者昵称 |
+| `user.avatar` | string | 创作者头像 URL |
+| `user.cover` | string | 创作者封面 URL |
+| `user.url_slug` | string | 创作者 URL 后缀 |
+| `user.is_verified` | int | 是否认证 |
+| `user.creator.doing` | string | 创作者简介 |

@@ -102,10 +102,12 @@ referer: https://afdian.com/
 ```
 
 **字段说明：**
-- `ec`: 状态码，200表示成功
-- `em`: 错误信息
-- `data.user_id`: 爱发电用户 ID（公开）
-- `data.user_private_id`: 爱发电用户私有 ID
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `ec` | int | 状态码，200表示成功 |
+| `em` | string | 错误信息 |
+| `data.user_id` | string | 爱发电用户 ID（公开） |
+| `data.user_private_id` | string | 爱发电用户私有 ID |
 
 ---
 
@@ -147,14 +149,67 @@ referer: https://afdian.com/
 ```
 
 **字段说明：**
-- `ec`: 状态码，200表示成功
-- `data.user.user_id`: 用户 ID
-- `data.user.name`: 用户昵称
-- `data.user.avatar`: 头像图片完整 URL
-- `data.user.cover`: 封面图片 URL
-- `data.user.url_slug`: 自定义 URL slug（如 `waijade` 对应 `ifdian.net/@waijade`）
-- `data.user.creator.doing`: 一句话简介
-- `data.user.creator.detail`: 详细介绍
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `ec` | int | 状态码，200表示成功 |
+| `data.user.user_id` | string | 用户 ID |
+| `data.user.name` | string | 用户昵称 |
+| `data.user.avatar` | string | 头像图片完整 URL |
+| `data.user.cover` | string | 封面图片 URL |
+| `data.user.url_slug` | string | 自定义 URL slug（如 `waijade` 对应 `ifdian.net/@waijade`） |
+| `data.user.creator.doing` | string | 一句话简介 |
+| `data.user.creator.detail` | string | 详细介绍 |
+
+---
+
+### 2.2 通过 Slug 获取用户资料
+
+**接口地址：** `GET https://afdian.com/api/user/get-profile-by-slug`
+
+**功能描述：** 通过 URL slug 获取用户公开资料。**无需鉴权，公开可调用。**
+
+**请求参数：**
+| 参数 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| `url_slug` | string | Y | 用户 URL 后缀（如 `zaona`） |
+
+**响应数据结构：**
+```json
+{
+    "ec": 200,
+    "em": "",
+    "data": {
+        "user": {
+            "user_id": "00fb401a588211ebb7db52540025c377",
+            "name": "Zaona",
+            "avatar": "https://pic1.afdiancdn.com/...",
+            "cover": "https://pic1.afdiancdn.com/...",
+            "url_slug": "zaona",
+            "is_verified": 1,
+            "verified_type": 2,
+            "creator": {
+                "doing": "小米手环/手表 表盘/快应用",
+                "detail": "详细介绍...",
+                "category": { "name": "数码" }
+            },
+            "is_sponsoring": 1
+        }
+    }
+}
+```
+
+**字段说明：**
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `data.user.user_id` | string | 用户 ID |
+| `data.user.name` | string | 用户昵称 |
+| `data.user.avatar` | string | 头像 URL |
+| `data.user.cover` | string | 封面 URL |
+| `data.user.url_slug` | string | URL 后缀 |
+| `data.user.is_verified` | int | 是否认证 |
+| `data.user.creator.doing` | string | 一句话简介 |
+| `data.user.creator.detail` | string | 详细介绍 |
+| `data.user.is_sponsoring` | int | 当前登录用户是否正在赞助该创作者 |
 
 ---
 
@@ -205,16 +260,18 @@ referer: https://afdian.com/
 ```
 
 **字段说明：**
-- `out_trade_no`: 订单号
-- `user_id`: 赞助者 user_id
-- `plan_id`: 赞助档位 ID
-- `month`: 发电月数
-- `total_amount`: 实际金额（元）
-- `show_amount`: 显示金额（元）
-- `status`: 1=待支付, 2=已支付
-- `remark`: 留言
-- `product_type`: 0=常规方案订阅, 1=售卖商品
-- `sku_detail`: SKU 详情数组（售卖商品时有值）
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `out_trade_no` | string | 订单号 |
+| `user_id` | string | 赞助者 user_id |
+| `plan_id` | string | 赞助档位 ID |
+| `month` | int | 发电月数 |
+| `total_amount` | string | 实际金额（元） |
+| `show_amount` | string | 显示金额（元） |
+| `status` | int | 1=待支付, 2=已支付 |
+| `remark` | string | 留言 |
+| `product_type` | int | 0=常规方案订阅, 1=售卖商品 |
+| `sku_detail` | array | SKU 详情数组（售卖商品时有值） |
 
 ---
 
@@ -257,10 +314,12 @@ referer: https://afdian.com/
 ```
 
 **字段说明：**
-- `data.summary.all_sum_amount`: 总收入金额（字符串，单位：元）
-- `data.summary.month_amount`: 本月收入金额（字符串，单位：元）
-- `data.summary.all_sponsor_count`: 总赞助人数
-- `data.summary.month_sponsor_count`: 本月赞助人数
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `data.summary.all_sum_amount` | string | 总收入金额（单位：元） |
+| `data.summary.month_amount` | string | 本月收入金额（单位：元） |
+| `data.summary.all_sponsor_count` | int | 总赞助人数 |
+| `data.summary.month_sponsor_count` | int | 本月赞助人数 |
 
 ---
 
@@ -289,10 +348,12 @@ referer: https://afdian.com/
 ```
 
 **字段说明：**
-- `data.unread_message_num`: 未读消息总数
-- `data.unread_count.comment`: 未读评论数
-- `data.unread_count.like`: 未读点赞数
-- `data.unread_count.message`: 未读私信数
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `data.unread_message_num` | int | 未读消息总数 |
+| `data.unread_count.comment` | int | 未读评论数 |
+| `data.unread_count.like` | int | 未读点赞数 |
+| `data.unread_count.message` | int | 未读私信数 |
 
 ---
 
@@ -337,15 +398,17 @@ referer: https://afdian.com/
 ```
 
 **字段说明：**
-- `data.list`: 普通计划列表
-- `data.sale_list`: 销售计划列表
-- `plan_id`: 计划ID
-- `name`: 计划名称
-- `status`: 计划状态（1表示启用）
-- `price`: 计划价格（字符串，单位：元）
-- `total_amount`: 该计划总收入（字符串，单位：元）
-- `sponsor_count`: 该计划赞助人数
-- `pic`: 计划封面图片URL
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `data.list` | array | 普通计划列表 |
+| `data.sale_list` | array | 销售计划列表 |
+| `plan_id` | string | 计划ID |
+| `name` | string | 计划名称 |
+| `status` | int | 计划状态（1表示启用） |
+| `price` | string | 计划价格（单位：元） |
+| `total_amount` | string | 该计划总收入（单位：元） |
+| `sponsor_count` | int | 该计划赞助人数 |
+| `pic` | string | 计划封面图片URL |
 
 ---
 
@@ -381,14 +444,16 @@ referer: https://afdian.com/
 ```
 
 **字段说明：**
-- `data.list`: 统计数据列表
-- `data.has_more`: 是否有更多数据（1表示有，0表示无）
-- `date_str`: 日期（格式：YYYYMMDD）
-- `uv`: 页面访问量
-- `paid_order_real_amount`: 实际支付金额（字符串，单位：元）
-- `paid_order_count`: 支付订单数
-- `paid_user_count`: 支付用户数
-- `paid_old_user_count`: 老用户支付数
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `data.list` | array | 统计数据列表 |
+| `data.has_more` | int | 是否有更多数据（1表示有，0表示无） |
+| `date_str` | int | 日期（格式：YYYYMMDD） |
+| `uv` | int | 页面访问量 |
+| `paid_order_real_amount` | string | 实际支付金额（单位：元） |
+| `paid_order_count` | int | 支付订单数 |
+| `paid_user_count` | int | 支付用户数 |
+| `paid_old_user_count` | int | 老用户支付数 |
 
 ---
 
@@ -431,19 +496,21 @@ referer: https://afdian.com/
 ```
 
 **字段说明：**
-- `data.total_count`: 对话总数
-- `data.total_page`: 总页数
-- `data.has_more`: 是否有更多数据（1表示有，0表示无）
-- `data.list`: 对话列表
-- `latest_msg_id`: 最新消息ID
-- `unread_count`: 未读消息数
-- `total_count`: 该对话总消息数
-- `status`: 对话状态
-- `user.user_id`: 用户ID
-- `user.name`: 用户名
-- `user.avatar`: 用户头像URL
-- `desc`: 对话描述
-- `send_time`: 发送时间（Unix时间戳）
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `data.total_count` | int | 对话总数 |
+| `data.total_page` | int | 总页数 |
+| `data.has_more` | int | 是否有更多数据（1表示有，0表示无） |
+| `data.list` | array | 对话列表 |
+| `latest_msg_id` | int | 最新消息ID |
+| `unread_count` | int | 未读消息数 |
+| `total_count` | int | 该对话总消息数 |
+| `status` | int | 对话状态 |
+| `user.user_id` | string | 用户ID |
+| `user.name` | string | 用户名 |
+| `user.avatar` | string | 用户头像URL |
+| `desc` | string | 对话描述 |
+| `send_time` | int | 发送时间（Unix时间戳） |
 
 ---
 
@@ -518,16 +585,18 @@ referer: https://afdian.com/
 ```
 
 **字段说明：**
-- `data.has_more`: 是否有更多数据（1表示有，0表示无）
-- `data.list`: 消息列表
-- `type`: 消息方向，`"send"` 表示我发送的，`"receive"` 表示收到的
-- `message.msg_id`: 消息ID
-- `message.id`: 消息唯一标识
-- `message.sender`: 发送者用户ID
-- `message.r_status`: 读取状态（2表示已读）
-- `message.type`: 消息类型
-- `message.content`: 消息内容
-- `message.send_time`: 发送时间（Unix时间戳）
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `data.has_more` | int | 是否有更多数据（1表示有，0表示无） |
+| `data.list` | array | 消息列表 |
+| `type` | string | 消息方向，`"send"` 表示我发送的，`"receive"` 表示收到的 |
+| `message.msg_id` | int | 消息ID |
+| `message.id` | int | 消息唯一标识 |
+| `message.sender` | string | 发送者用户ID |
+| `message.r_status` | int | 读取状态（2表示已读） |
+| `message.type` | int | 消息类型 |
+| `message.content` | string | 消息内容 |
+| `message.send_time` | int | 发送时间（Unix时间戳） |
 
 ---
 
@@ -569,16 +638,18 @@ referer: https://afdian.com/
 ```
 
 **订单字段说明：**
-- `out_trade_no`: 订单号
-- `user_id`: 赞助者 user_id
-- `plan_id`: 赞助档位 ID
-- `month`: 发电月数
-- `total_amount`: 实际金额（元）
-- `show_amount`: 显示金额（元）
-- `status`: 1=待支付, 2=已支付
-- `remark`: 留言
-- `product_type`: 0=常规方案订阅, 1=售卖商品
-- `sku_detail`: SKU 详情数组
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `out_trade_no` | string | 订单号 |
+| `user_id` | string | 赞助者 user_id |
+| `plan_id` | string | 赞助档位 ID |
+| `month` | int | 发电月数 |
+| `total_amount` | string | 实际金额（元） |
+| `show_amount` | string | 显示金额（元） |
+| `status` | int | 1=待支付, 2=已支付 |
+| `remark` | string | 留言 |
+| `product_type` | int | 0=常规方案订阅, 1=售卖商品 |
+| `sku_detail` | array | SKU 详情数组 |
 
 ### 5.3 响应要求
 
@@ -663,10 +734,12 @@ https://ifdian.net/order/create?plan_id={plan_id}&product_type=0&month=3&remark=
 ```
 
 **字段说明：**
-- `sku_id`: SKU ID
-- `count`: 购买数量
-- `name`: SKU 名称
-- `album_id`: 专辑 ID（通常为空）
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `sku_id` | string | SKU ID |
+| `count` | int | 购买数量 |
+| `name` | string | SKU 名称 |
+| `album_id` | string | 专辑 ID（通常为空） |
 
 ### 8.3 SKU 列表示例
 
@@ -728,14 +801,16 @@ https://ifdian.net/order/create?plan_id={plan_id}&product_type=0&month=3&remark=
 ```
 
 **字段说明：**
-- `data.has_new_msg`: 是否有新消息（0=无，1=有）
-- `data.unread_message_num`: 未读消息总数
-- `data.unread_count.comment`: 未读评论数
-- `data.unread_count.like`: 未读点赞数
-- `data.unread_count.message`: 未读私信数
-- `data.unread_post_num`: 未读帖子数
-- `data.config.polling_interval`: 轮询间隔（秒）
-- `data.ip_info`: IP地址信息
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `data.has_new_msg` | int | 是否有新消息（0=无，1=有） |
+| `data.unread_message_num` | int | 未读消息总数 |
+| `data.unread_count.comment` | int | 未读评论数 |
+| `data.unread_count.like` | int | 未读点赞数 |
+| `data.unread_count.message` | int | 未读私信数 |
+| `data.unread_post_num` | int | 未读帖子数 |
+| `data.config.polling_interval` | int | 轮询间隔（秒） |
+| `data.ip_info` | object | IP地址信息 |
 
 ---
 
@@ -802,21 +877,23 @@ https://ifdian.net/order/create?plan_id={plan_id}&product_type=0&month=3&remark=
 ```
 
 **字段说明：**
-- `data.user.user_id`: 用户ID
-- `data.user.name`: 用户昵称
-- `data.user.gender`: 性别（0=未知，1=男，2=女）
-- `data.user.birthday`: 生日
-- `data.user.avatar`: 头像URL
-- `data.user.cover`: 封面URL
-- `data.user.url_slug`: 自定义URL后缀
-- `data.user.is_verified`: 是否认证
-- `data.user.verified_type`: 认证类型
-- `data.user.creator.status`: 创作者状态（1=正常，2=认证）
-- `data.user.creator.type`: 创作者类型（1=个人，2=组织）
-- `data.user.creator.doing`: 一句话简介
-- `data.user.creator.detail`: 详细介绍
-- `data.user.creator.monthly_fans`: 月粉丝数
-- `data.user.creator.monthly_income`: 月收入
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `data.user.user_id` | string | 用户ID |
+| `data.user.name` | string | 用户昵称 |
+| `data.user.gender` | int | 性别（0=未知，1=男，2=女） |
+| `data.user.birthday` | string | 生日 |
+| `data.user.avatar` | string | 头像URL |
+| `data.user.cover` | string | 封面URL |
+| `data.user.url_slug` | string | 自定义URL后缀 |
+| `data.user.is_verified` | int | 是否认证 |
+| `data.user.verified_type` | int | 认证类型 |
+| `data.user.creator.status` | int | 创作者状态（1=正常，2=认证） |
+| `data.user.creator.type` | int | 创作者类型（1=个人，2=组织） |
+| `data.user.creator.doing` | string | 一句话简介 |
+| `data.user.creator.detail` | string | 详细介绍 |
+| `data.user.creator.monthly_fans` | int | 月粉丝数 |
+| `data.user.creator.monthly_income` | string | 月收入 |
 
 ---
 
@@ -850,10 +927,12 @@ https://ifdian.net/order/create?plan_id={plan_id}&product_type=0&month=3&remark=
 ```
 
 **字段说明：**
-- `data.login.email`: 邮箱（脱敏）
-- `data.login.phone`: 手机号（脱敏）
-- `data.oauth`: 第三方绑定信息
-- `data.user_private_id`: 用户私有ID
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `data.login.email` | string | 邮箱（脱敏） |
+| `data.login.phone` | string | 手机号（脱敏） |
+| `data.oauth` | object | 第三方绑定信息 |
+| `data.user_private_id` | string | 用户私有ID |
 
 ---
 
@@ -910,19 +989,21 @@ https://ifdian.net/order/create?plan_id={plan_id}&product_type=0&month=3&remark=
 ```
 
 **字段说明：**
-- `data.list`: 动态列表
-- `data.has_more`: 是否有更多数据
-- `post_id`: 动态ID
-- `title`: 标题
-- `content`: 内容
-- `pics`: 图片列表
-- `video`: 视频URL
-- `is_public`: 是否公开
-- `min_price`: 最低价格（付费内容）
-- `like_count`: 点赞数
-- `comment_count`: 评论数
-- `publish_time`: 发布时间
-- `cate`: 类型（pic=图片, video=视频, article=文章）
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `data.list` | array | 动态列表 |
+| `data.has_more` | int | 是否有更多数据 |
+| `post_id` | string | 动态ID |
+| `title` | string | 标题 |
+| `content` | string | 内容 |
+| `pics` | array | 图片列表 |
+| `video` | string | 视频URL |
+| `is_public` | int | 是否公开 |
+| `min_price` | string | 最低价格（付费内容） |
+| `like_count` | int | 点赞数 |
+| `comment_count` | int | 评论数 |
+| `publish_time` | int | 发布时间 |
+| `cate` | string | 类型（pic=图片, video=视频, article=文章） |
 
 ---
 
@@ -957,10 +1038,12 @@ https://ifdian.net/order/create?plan_id={plan_id}&product_type=0&month=3&remark=
 ```
 
 **字段说明：**
-- `data.list`: 轮播图列表
-- `image`: 图片URL
-- `url`: 跳转链接
-- `new_tab`: 是否新窗口打开（0=否，1=是）
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `data.list` | array | 轮播图列表 |
+| `image` | string | 图片URL |
+| `url` | string | 跳转链接 |
+| `new_tab` | int | 是否新窗口打开（0=否，1=是） |
 
 ---
 
@@ -1016,12 +1099,14 @@ https://ifdian.net/order/create?plan_id={plan_id}&product_type=0&month=3&remark=
 ```
 
 **字段说明：**
-- `data.sponsoring`: 赞助中的创作者列表
-- `data.sponsoring_expired`: 已过期的赞助列表
-- `user`: 创作者信息
-- `sale_list`: 订单列表
-- `new_post_count`: 新动态数量
-- `latest_post_update_time`: 最新动态时间
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `data.sponsoring` | array | 赞助中的创作者列表 |
+| `data.sponsoring_expired` | array | 已过期的赞助列表 |
+| `user` | object | 创作者信息 |
+| `sale_list` | array | 订单列表 |
+| `new_post_count` | int | 新动态数量 |
+| `latest_post_update_time` | int | 最新动态时间 |
 
 ---
 
@@ -1068,18 +1153,90 @@ https://ifdian.net/order/create?plan_id={plan_id}&product_type=0&month=3&remark=
 ```
 
 **字段说明：**
-- `data.list`: 电圈列表
-- `group_id`: 电圈ID
-- `title`: 电圈名称
-- `cover`: 封面图片
-- `status`: 状态
-- `open`: 是否开放
-- `type`: 类型（1=免费，2=付费）
-- `price`: 价格
-- `post_count`: 帖子数
-- `member_count`: 成员数
-- `new_post_count`: 新帖子数
-- `is_owner`: 是否是圈主
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `data.list` | array | 电圈列表 |
+| `group_id` | string | 电圈ID |
+| `title` | string | 电圈名称 |
+| `cover` | string | 封面图片 |
+| `status` | int | 状态 |
+| `open` | int | 是否开放 |
+| `type` | int | 类型（1=免费，2=付费） |
+| `price` | string | 价格 |
+| `post_count` | int | 帖子数 |
+| `member_count` | int | 成员数 |
+| `new_post_count` | int | 新帖子数 |
+| `is_owner` | int | 是否是圈主 |
+
+---
+
+### 9.8 Who Sponsored Me API - 赞助我的人列表
+
+**接口地址：** `POST https://afdian.com/api/my/who-sponsored-me`
+
+**功能描述：** 获取赞助当前创作者的用户列表，支持分页。
+
+**请求方式：** POST（body 为空或 `{}`）
+
+**请求参数：** 无（通过 Cookie 鉴权）
+
+**响应数据结构：**
+```json
+{
+    "ec": 200,
+    "em": "",
+    "data": {
+        "total_count": 1120,
+        "total_page": 112,
+        "list": [
+            {
+                "sponsor_plans": [
+                    {
+                        "plan_id": "751c4cb48ffa11f08f9f5254001e7c00",
+                        "name": "星露谷钓鱼",
+                        "pic": "https://pic1.afdiancdn.com/...",
+                        "price": "4.00",
+                        "show_price": "4.00",
+                        "pay_month": 1,
+                        "product_type": 1,
+                        "sku_processed": [
+                            {
+                                "sku_id": "275ef95a903511f0859b52540025c377",
+                                "price": "4.00",
+                                "count": 1,
+                                "name": "通用"
+                            }
+                        ]
+                    }
+                ],
+                "current_plan": { ... },
+                "all_sum_amount": "4.00",
+                "create_time": 1782036943,
+                "last_pay_time": 1782036943,
+                "user": {
+                    "user_id": "9fa4113c365911f1919252540025c377",
+                    "name": "萌厨🍝",
+                    "avatar": "https://pic1.afdiancdn.com/...",
+                    "url_slug": ""
+                }
+            }
+        ]
+    }
+}
+```
+
+**字段说明：**
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `data.total_count` | int | 赞助总人数 |
+| `data.total_page` | int | 总页数 |
+| `data.list` | array | 赞助记录列表 |
+| `sponsor_plans` | array | 该用户购买的计划列表 |
+| `current_plan` | object | 当前生效的计划 |
+| `all_sum_amount` | string | 该用户累计赞助金额（单位：元） |
+| `create_time` | int | 首次赞助时间（Unix 时间戳） |
+| `last_pay_time` | int | 最近赞助时间（Unix 时间戳） |
+| `user` | object | 赞助者用户信息 |
 
 ---
 
@@ -1139,19 +1296,21 @@ https://ifdian.net/order/create?plan_id={plan_id}&product_type=0&month=3&remark=
 ```
 
 **字段说明：**
-- `data.list`: 创作者列表
-- `data.has_more`: 是否有更多数据
-- `data.exists`: 是否存在结果
-- `user.user_id`: 用户ID
-- `user.name`: 用户昵称
-- `user.avatar`: 头像URL
-- `user.url_slug`: 自定义URL后缀
-- `user.is_verified`: 是否认证
-- `user.creator.doing`: 一句话简介
-- `user.creator.detail`: 详细介绍
-- `user.creator.monthly_fans`: 月粉丝数（`**`表示隐藏）
-- `user.creator.monthly_income`: 月收入（`**`表示隐藏）
-- `user.creator.category`: 所属分类
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `data.list` | array | 创作者列表 |
+| `data.has_more` | int | 是否有更多数据 |
+| `data.exists` | int | 是否存在结果 |
+| `user.user_id` | string | 用户ID |
+| `user.name` | string | 用户昵称 |
+| `user.avatar` | string | 头像URL |
+| `user.url_slug` | string | 自定义URL后缀 |
+| `user.is_verified` | int | 是否认证 |
+| `user.creator.doing` | string | 一句话简介 |
+| `user.creator.detail` | string | 详细介绍 |
+| `user.creator.monthly_fans` | string | 月粉丝数（`**`表示隐藏） |
+| `user.creator.monthly_income` | string | 月收入（`**`表示隐藏） |
+| `user.creator.category` | object | 所属分类 |
 
 ---
 
@@ -1189,12 +1348,14 @@ https://ifdian.net/order/create?plan_id={plan_id}&product_type=0&month=3&remark=
 ```
 
 **字段说明：**
-- `data.list`: 分类列表
-- `data.is_hg`: 是否海外版
-- `category_id`: 分类ID
-- `name`: 分类名称
-- `pic`: 分类图标URL
-- `rank`: 排序权重
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `data.list` | array | 分类列表 |
+| `data.is_hg` | boolean | 是否海外版 |
+| `category_id` | string | 分类ID |
+| `name` | string | 分类名称 |
+| `pic` | string | 分类图标URL |
+| `rank` | int | 排序权重 |
 
 **常见分类ID：**
 | category_id | 名称 |
@@ -1305,25 +1466,27 @@ https://ifdian.net/order/create?plan_id={plan_id}&product_type=0&month=3&remark=
 ```
 
 **字段说明：**
-- `data.last_order_id`: 最后一个订单ID（用于下一页分页）
-- `data.has_more`: 是否有更多数据
-- `data.list`: 订单列表
-- `out_trade_no`: 订单号
-- `user_id`: 赞助者用户ID
-- `plan_id`: 计划ID
-- `remote_id`: 创作者用户ID
-- `title`: 订单标题
-- `month`: 月数
-- `total_amount`: 实际支付金额
-- `show_amount`: 显示金额
-- `status`: 订单状态（1=待支付，2=已支付）
-- `remark`: 用户备注
-- `create_time`: 创建时间
-- `update_time`: 更新时间
-- `product_type`: 产品类型（0=订阅，1=商品）
-- `sku_detail`: SKU详情JSON字符串
-- `sign_status`: 签约状态
-- `py_type`: 支付方式（1=支付宝，2=微信）
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `data.last_order_id` | int | 最后一个订单ID（用于下一页分页） |
+| `data.has_more` | int | 是否有更多数据 |
+| `data.list` | array | 订单列表 |
+| `out_trade_no` | string | 订单号 |
+| `user_id` | string | 赞助者用户ID |
+| `plan_id` | string | 计划ID |
+| `remote_id` | string | 创作者用户ID |
+| `title` | string | 订单标题 |
+| `month` | int | 月数 |
+| `total_amount` | string | 实际支付金额 |
+| `show_amount` | string | 显示金额 |
+| `status` | int | 订单状态（1=待支付，2=已支付） |
+| `remark` | string | 用户备注 |
+| `create_time` | int | 创建时间 |
+| `update_time` | int | 更新时间 |
+| `product_type` | int | 产品类型（0=订阅，1=商品） |
+| `sku_detail` | string | SKU详情JSON字符串 |
+| `sign_status` | int | 签约状态 |
+| `py_type` | int | 支付方式（1=支付宝，2=微信） |
 
 ---
 
@@ -1387,14 +1550,16 @@ https://ifdian.net/order/create?plan_id={plan_id}&product_type=0&month=3&remark=
 ```
 
 **字段说明：**
-- `data.monthly_bill`: 按年分组的月度账单列表
-- `year`: 年份
-- `data`: 该年份的月度数据列表
-- `month`: 月份
-- `data.total_amount`: 总金额（字符串，单位：元）
-- `data.creator_amount`: 创作者实际收入（扣除平台手续费后）
-- `data.sponsor_count`: 赞助人数
-- `data.create_time`: 账单创建时间（Unix时间戳）
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `data.monthly_bill` | array | 按年分组的月度账单列表 |
+| `year` | int | 年份 |
+| `data` | array | 该年份的月度数据列表 |
+| `month` | int | 月份 |
+| `data.total_amount` | string | 总金额（单位：元） |
+| `data.creator_amount` | string | 创作者实际收入（扣除平台手续费后） |
+| `data.sponsor_count` | int | 赞助人数 |
+| `data.create_time` | int | 账单创建时间（Unix时间戳） |
 
 **注意事项：**
 - 数据按年份倒序排列，每月一条记录
@@ -1488,21 +1653,23 @@ https://ifdian.net/order/create?plan_id={plan_id}&product_type=0&month=3&remark=
 ```
 
 **字段说明：**
-- `data.sponsored_count`: 赞助数量
-- `data.payment_count`: 支付总额
-- `data.has_more`: 是否有更多数据
-- `data.list`: 订单列表
-- `data.total_count`: 总订单数
-- `out_trade_no`: 订单号
-- `user_id`: 我的用户ID
-- `remote_id`: 创作者用户ID
-- `title`: 订单标题
-- `total_amount`: 实际支付金额
-- `show_amount`: 显示金额
-- `status`: 订单状态（2=已支付）
-- `remark`: 用户备注
-- `product_type`: 产品类型（0=订阅，1=商品）
-- `py_type`: 支付方式（1=支付宝，2=微信，3=兑换码，4=VIP）
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `data.sponsored_count` | int | 赞助数量 |
+| `data.payment_count` | string | 支付总额 |
+| `data.has_more` | int | 是否有更多数据 |
+| `data.list` | array | 订单列表 |
+| `data.total_count` | int | 总订单数 |
+| `out_trade_no` | string | 订单号 |
+| `user_id` | string | 我的用户ID |
+| `remote_id` | string | 创作者用户ID |
+| `title` | string | 订单标题 |
+| `total_amount` | string | 实际支付金额 |
+| `show_amount` | string | 显示金额 |
+| `status` | int | 订单状态（2=已支付） |
+| `remark` | string | 用户备注 |
+| `product_type` | int | 产品类型（0=订阅，1=商品） |
+| `py_type` | int | 支付方式（1=支付宝，2=微信，3=兑换码，4=VIP） |
 
 ---
 
@@ -1556,18 +1723,20 @@ https://ifdian.net/order/create?plan_id={plan_id}&product_type=0&month=3&remark=
 ```
 
 **字段说明：**
-- `data.list`: 收藏列表
-- `data.has_more`: 是否有更多数据
-- `id`: 收藏记录ID
-- `user_id`: 我的用户ID
-- `remote_id`: 被收藏的创作者用户ID
-- `status`: 收藏状态（1=有效）
-- `time`: 收藏时间（Unix时间戳）
-- `user`: 创作者用户信息
-- `user.name`: 创作者昵称
-- `user.avatar`: 创作者头像
-- `user.url_slug`: 创作者URL后缀
-- `user.creator.doing`: 创作者简介
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `data.list` | array | 收藏列表 |
+| `data.has_more` | int | 是否有更多数据 |
+| `id` | int | 收藏记录ID |
+| `user_id` | string | 我的用户ID |
+| `remote_id` | string | 被收藏的创作者用户ID |
+| `status` | int | 收藏状态（1=有效） |
+| `time` | int | 收藏时间（Unix时间戳） |
+| `user` | object | 创作者用户信息 |
+| `user.name` | string | 创作者昵称 |
+| `user.avatar` | string | 创作者头像 |
+| `user.url_slug` | string | 创作者URL后缀 |
+| `user.creator.doing` | string | 创作者简介 |
 
 ---
 
@@ -1598,6 +1767,141 @@ https://pic1.afdiancdn.com/user/{user_id}/avatar/{hash}_w{width}_h{height}_s{qua
 | `s51` | 图片质量参数 |
 
 **结论：** 头像 URL 的 hash 部分不可推导，必须通过获取用户资料接口获取完整 URL。
+
+---
+
+## 16. 获取相册帖子
+
+**接口地址：** `GET https://afdian.com/api/user/get-album-post`
+
+**功能描述：** 获取指定相册下的帖子列表。**无需鉴权，公开可调用。**
+
+**请求参数：**
+| 参数 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| `album_id` | string | Y | 相册 ID（32 位 hex） |
+| `lastRank` | string | N | 上一页最后一条的 rank 值（用于分页） |
+| `rankOrder` | string | N | 排序方向，`asc` 或 `desc` |
+| `rankField` | string | N | 排序字段，如 `rank` |
+
+**响应数据结构：**
+```json
+{
+    "ec": 200,
+    "em": "ok",
+    "data": {
+        "list": [
+            {
+                "post_id": "944e8304819011f0bbed52540025c377",
+                "user_id": "00fb401a588211ebb7db52540025c377",
+                "title": "简明天气 - 更好看好用的米环米表天气应用",
+                "cover": "https://pic1.afdiancdn.com/...",
+                "content": "📖 使用教程：https://www.yuque.com/zaona/weather",
+                "pics": ["https://pic1.afdiancdn.com/..."],
+                "is_public": 1,
+                "min_price": "0.00",
+                "like_count": 7,
+                "comment_count": 2,
+                "publish_time": 1756111841,
+                "albums": [
+                    {
+                        "album_id": "7fe723baafe611f0911d52540025c377",
+                        "title": "米环米表快应用",
+                        "post_count": 2
+                    }
+                ],
+                "unlock_plan_ids": ["695ac5fc609011f0a7e452540025c377"],
+                "user": {
+                    "user_id": "00fb401a588211ebb7db52540025c377",
+                    "name": "Zaona",
+                    "avatar": "https://pic1.afdiancdn.com/...",
+                    "url_slug": "zaona"
+                },
+                "rank": 1
+            }
+        ],
+        "has_more": 0
+    }
+}
+```
+
+**字段说明：**
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `data.list` | array | 帖子列表 |
+| `data.has_more` | int | 是否有更多数据 |
+| `post_id` | string | 帖子 ID |
+| `title` | string | 标题 |
+| `cover` | string | 封面图 URL |
+| `content` | string | 内容摘要 |
+| `pics` | array | 图片列表 |
+| `is_public` | int | 是否公开 |
+| `min_price` | string | 最低价格（付费内容） |
+| `like_count` | int | 点赞数 |
+| `comment_count` | int | 评论数 |
+| `publish_time` | int | 发布时间（Unix 时间戳） |
+| `albums` | array | 所属相册列表 |
+| `unlock_plan_ids` | array | 可解锁该帖子的计划 ID 列表 |
+| `rank` | int | 在相册中的排序值（用于分页） |
+
+---
+
+## 17. 日志收集
+
+**接口地址：** `POST https://afdian.com/api/log/collect`
+
+**功能描述：** 上报用户访问日志，用于统计分析。
+
+**请求方式：** POST
+
+**请求参数：** 无（通过 Cookie 鉴权）
+
+**响应数据结构：**
+```json
+{
+    "ec": 200,
+    "em": "ok",
+    "data": {
+        "stat_id": "3ca2f1de458b11f1a54852540025c377",
+        "user_id": "7918072ee88711efa93552540025c377",
+        "creator_id": "00fb401a588211ebb7db52540025c377",
+        "uri": "https://ifdian.net/a/zaona?tab=feed",
+        "path": "/a/zaona",
+        "host": "ifdian.net",
+        "platform": "GNU/Linux",
+        "browser": "Chrome",
+        "browser_v": "149.0.0.0",
+        "is_login": 1,
+        "is_mobile": 0,
+        "ip": "103.151.172.84",
+        "ip_area": "中国香港 特别行政区",
+        "time": 1782065097,
+        "is_creator": 1,
+        "is_verified": 1,
+        "has_income": 1
+    }
+}
+```
+
+**字段说明：**
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `stat_id` | string | 统计记录 ID |
+| `user_id` | string | 当前用户 ID |
+| `creator_id` | string | 被访问的创作者 ID |
+| `uri` | string | 完整访问 URL |
+| `path` | string | 访问路径 |
+| `host` | string | 访问域名 |
+| `platform` | string | 操作系统 |
+| `browser` | string | 浏览器 |
+| `is_login` | int | 是否已登录 |
+| `is_mobile` | int | 是否移动端 |
+| `ip` | string | 用户 IP |
+| `ip_area` | string | IP 归属地 |
+| `time` | int | 访问时间（Unix 时间戳） |
+| `is_creator` | int | 是否为创作者 |
+| `is_verified` | int | 是否认证用户 |
+| `has_income` | int | 是否有收入 |
 
 ---
 
