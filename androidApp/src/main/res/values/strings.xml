@@ -18,4 +18,5 @@
     <string name="afdian_token">Token</string>
     <string name="widget_afdian_unread">爱发电未读数</string>
     <string name="widget_afdian_product">爱发电商品收益</string>
+    <string name="widget_afdian_daily_chart">爱发电每日收益折线图</string>
 </resources>

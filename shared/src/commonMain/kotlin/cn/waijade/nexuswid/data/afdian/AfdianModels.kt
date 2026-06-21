@@ -117,3 +117,32 @@ data class AfdianProductSummary(
     val sponsorCount: Int,
     val price: String
 )
+
+@Serializable
+data class AfdianStatResponse(
+    val ec: Int,
+    val em: String,
+    val data: AfdianStatData? = null
+)
+
+@Serializable
+data class AfdianStatData(
+    val list: List<AfdianDailyStat> = emptyList(),
+    @Serializable(with = FlexibleIntSerializer::class)
+    val has_more: Int = 0
+)
+
+@Serializable
+data class AfdianDailyStat(
+    @Serializable(with = FlexibleIntSerializer::class)
+    val date_str: Int = 0,
+    @Serializable(with = FlexibleIntSerializer::class)
+    val uv: Int = 0,
+    val paid_order_real_amount: String = "0.00",
+    @Serializable(with = FlexibleIntSerializer::class)
+    val paid_order_count: Int = 0,
+    @Serializable(with = FlexibleIntSerializer::class)
+    val paid_user_count: Int = 0,
+    @Serializable(with = FlexibleIntSerializer::class)
+    val paid_old_user_count: Int = 0
+)

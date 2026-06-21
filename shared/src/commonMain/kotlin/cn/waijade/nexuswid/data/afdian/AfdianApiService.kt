@@ -3,9 +3,13 @@ package cn.waijade.nexuswid.data.afdian
 import io.ktor.client.HttpClient
 import io.ktor.client.request.get
 import io.ktor.client.request.header
+import io.ktor.client.request.parameter
 import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.isSuccess
+import kotlinx.datetime.Clock
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 import kotlinx.serialization.json.Json
 
 sealed class AfdianResult {
@@ -109,9 +113,44 @@ class AfdianApiService(
         }
     }
 
+    suspend fun getDailyStats(cookie: String): List<AfdianDailyStat> {
+        android.util.Log.d(TAG, "getDailyStats")
+        val now = Clock.System.now()
+        val actionDate = now.toLocalDateTime(TimeZone.currentSystemDefault()).date
+        val currentMonthPrefix = "${actionDate.year}${actionDate.monthNumber.toString().padStart(2, '0')}"
+
+        val allStats = mutableListOf<AfdianDailyStat>()
+        var page = 1
+        while (true) {
+            val response = httpClient.get(STAT_URL) {
+                commonHeaders(cookie)
+                parameter("page", page)
+                parameter("type", "day")
+            }
+            if (!response.status.isSuccess()) break
+
+            val bodyText = response.bodyAsText()
+            val result = json.decodeFromString<AfdianStatResponse>(bodyText)
+            if (result.ec != 200) break
+
+            val data = result.data ?: break
+            val list = data.list
+            if (list.isEmpty()) break
+
+            val currentMonthItems = list.filter { it.date_str.toString().startsWith(currentMonthPrefix) }
+            allStats.addAll(currentMonthItems)
+
+            if (list.last().date_str.toString() < currentMonthPrefix || data.has_more == 0) break
+            page++
+        }
+
+        return allStats.sortedBy { it.date_str }
+    }
+
     companion object {
         private const val TAG = "AfdianApiService"
         private const val CHECK_URL = "https://afdian.com/api/my/check"
         private const val PLANS_URL = "https://afdian.com/api/creator/all-plans"
+        private const val STAT_URL = "https://afdian.com/api/my/stat"
     }
 }
