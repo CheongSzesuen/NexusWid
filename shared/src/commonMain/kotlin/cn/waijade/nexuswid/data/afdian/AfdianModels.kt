@@ -146,3 +146,44 @@ data class AfdianDailyStat(
     @Serializable(with = FlexibleIntSerializer::class)
     val paid_old_user_count: Int = 0
 )
+
+@Serializable
+data class AfdianDialogsResponse(
+    val ec: Int,
+    val em: String,
+    val data: AfdianDialogsData? = null
+)
+
+@Serializable
+data class AfdianDialogsData(
+    @Serializable(with = FlexibleIntSerializer::class)
+    val total_count: Int = 0,
+    @Serializable(with = FlexibleIntSerializer::class)
+    val total_page: Int = 0,
+    @Serializable(with = FlexibleIntSerializer::class)
+    val has_more: Int = 0,
+    val list: List<AfdianDialog> = emptyList()
+)
+
+@Serializable
+data class AfdianDialog(
+    @Serializable(with = FlexibleIntSerializer::class)
+    val latest_msg_id: Int = 0,
+    @Serializable(with = FlexibleIntSerializer::class)
+    val unread_count: Int = 0,
+    @Serializable(with = FlexibleIntSerializer::class)
+    val total_count: Int = 0,
+    @Serializable(with = FlexibleIntSerializer::class)
+    val status: Int = 0,
+    val user: AfdianDialogUser? = null,
+    val desc: String = "",
+    @Serializable(with = FlexibleIntSerializer::class)
+    val send_time: Int = 0
+)
+
+@Serializable
+data class AfdianDialogUser(
+    val user_id: String = "",
+    val name: String = "",
+    val avatar: String = ""
+)

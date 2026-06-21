@@ -22,6 +22,11 @@ sealed class AfdianUnreadResult {
     data class Error(val message: String) : AfdianUnreadResult()
 }
 
+sealed class AfdianDialogsResult {
+    data class Success(val data: AfdianDialogsData) : AfdianDialogsResult()
+    data class Error(val message: String) : AfdianDialogsResult()
+}
+
 data class AfdianServiceConfig(
     val cookie: String,
     val apiUrl: String = "https://afdian.com/api/my/dashboard"
@@ -147,10 +152,71 @@ class AfdianApiService(
         return allStats.sortedBy { it.date_str }
     }
 
+    suspend fun getDialogs(cookie: String, page: Int = 1): AfdianDialogsResult {
+        android.util.Log.d(TAG, "getDialogs page=$page")
+        return runCatching {
+            val response = httpClient.get(DIALOGS_URL) {
+                commonHeaders(cookie)
+                parameter("page", page)
+                parameter("unread", 0)
+            }
+            if (!response.status.isSuccess()) return AfdianDialogsResult.Error("HTTP ${response.status}")
+
+            val bodyText = response.bodyAsText()
+            android.util.Log.d(TAG, "dialogs resp: ${bodyText.take(200)}")
+            val result = json.decodeFromString<AfdianDialogsResponse>(bodyText)
+            if (result.ec != 200) return AfdianDialogsResult.Error(result.em.ifBlank { "错误$result.ec" })
+
+            AfdianDialogsResult.Success(result.data ?: AfdianDialogsData())
+        }.getOrElse { e -> android.util.Log.e(TAG, "err: ${e.message}"); AfdianDialogsResult.Error(e.message ?: "未知错误") }
+    }
+
+    suspend fun getComplaintCount(cookie: String): Int {
+        android.util.Log.d(TAG, "getComplaintCount")
+        val complaintKeys = mutableSetOf<String>()
+        val maxPages = 5
+        
+        for (page in 1..maxPages) {
+            when (val result = getDialogs(cookie, page)) {
+                is AfdianDialogsResult.Success -> {
+                    val dialogs = result.data.list
+                    for (dialog in dialogs) {
+                        if (dialog.unread_count > 0 && 
+                            dialog.desc.contains("发起投诉") &&
+                            dialog.desc.contains("https://ifdian.net/u/")) {
+                            val userId = dialog.user?.user_id ?: continue
+                            val orderId = extractOrderId(dialog.desc)
+                            if (orderId != null) {
+                                complaintKeys.add("${userId}_$orderId")
+                            }
+                        }
+                    }
+                    
+                    if (result.data.has_more == 0 || page >= result.data.total_page) {
+                        break
+                    }
+                }
+                is AfdianDialogsResult.Error -> {
+                    android.util.Log.e(TAG, "Failed to get dialogs: ${result.message}")
+                    break
+                }
+            }
+        }
+        
+        android.util.Log.d(TAG, "Total complaint count: ${complaintKeys.size}")
+        return complaintKeys.size
+    }
+
+    private fun extractOrderId(desc: String): String? {
+        val match = Regex("""如超期可能会影响你正常收款[：:]\s*\n?(\d{20,})""").find(desc)
+        return match?.groupValues?.get(1)
+    }
+
     companion object {
         private const val TAG = "AfdianApiService"
         private const val CHECK_URL = "https://afdian.com/api/my/check"
         private const val PLANS_URL = "https://afdian.com/api/creator/all-plans"
         private const val STAT_URL = "https://afdian.com/api/my/stat"
+        private const val DIALOGS_URL = "https://afdian.com/api/message/dialogs"
     }
 }
