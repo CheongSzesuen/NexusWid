@@ -59,4 +59,5 @@
     <string name="afdian_cookie_placeholder">auth_token=xxx</string>
     <string name="widget_afdian_total">爱发电总收益</string>
     <string name="widget_afdian_monthly">爱发电本月收益</string>
+    <string name="widget_afdian_unread">爱发电未读数</string>
 </resources>

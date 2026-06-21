@@ -53,3 +53,34 @@ data class AfdianEarnings(
     val monthlyAmount: Double,
     val monthlyCount: Int
 )
+
+@Serializable
+data class AfdianCheckResponse(
+    val ec: Int,
+    val em: String,
+    val data: AfdianCheckData? = null
+)
+
+@Serializable
+data class AfdianCheckData(
+    @Serializable(with = FlexibleIntSerializer::class)
+    val unread_message_num: Int = 0,
+    val unread_count: AfdianUnreadBreakdown? = null
+)
+
+@Serializable
+data class AfdianUnreadBreakdown(
+    @Serializable(with = FlexibleIntSerializer::class)
+    val comment: Int = 0,
+    @Serializable(with = FlexibleIntSerializer::class)
+    val like: Int = 0,
+    @Serializable(with = FlexibleIntSerializer::class)
+    val message: Int = 0
+)
+
+data class AfdianUnreadCount(
+    val total: Int,
+    val comment: Int,
+    val like: Int,
+    val message: Int
+)

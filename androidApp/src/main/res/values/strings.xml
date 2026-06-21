@@ -16,4 +16,5 @@
     <string name="afdian">爱发电</string>
     <string name="afdian_user_id">User ID</string>
     <string name="afdian_token">Token</string>
+    <string name="widget_afdian_unread">爱发电未读数</string>
 </resources>
