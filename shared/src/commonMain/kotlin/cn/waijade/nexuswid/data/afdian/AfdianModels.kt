@@ -229,3 +229,49 @@ data class AfdianMonthlyIncome(
     val creatorAmount: Double,
     val sponsorCount: Int
 )
+
+@Serializable
+data class AfdianCreatorListResponse(
+    val ec: Int,
+    val em: String,
+    val data: AfdianCreatorListData? = null
+)
+
+@Serializable
+data class AfdianCreatorListData(
+    val list: List<AfdianCreatorItem> = emptyList(),
+    @Serializable(with = FlexibleIntSerializer::class)
+    val has_more: Int = 0
+)
+
+@Serializable
+data class AfdianCreatorItem(
+    val user_id: String = "",
+    val name: String = "",
+    val avatar: String = "",
+    val url_slug: String = "",
+    @Serializable(with = FlexibleIntSerializer::class)
+    val is_verified: Int = 0,
+    val creator: AfdianCreatorInfo? = null
+)
+
+@Serializable
+data class AfdianCreatorInfo(
+    val doing: String = "",
+    val category: AfdianCreatorCategory? = null
+)
+
+@Serializable
+data class AfdianCreatorCategory(
+    val name: String = ""
+)
+
+data class AfdianRandomCreator(
+    val userId: String,
+    val name: String,
+    val avatar: String,
+    val urlSlug: String,
+    val isVerified: Boolean,
+    val doing: String,
+    val categoryName: String
+)

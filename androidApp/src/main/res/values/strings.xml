@@ -21,4 +21,5 @@
     <string name="widget_afdian_daily_chart">爱发电每日收益折线图</string>
     <string name="widget_afdian_monthly_chart">爱发电月度收益折线图</string>
     <string name="widget_afdian_complaint">爱发电未读投诉</string>
+    <string name="widget_afdian_random_creator">随机推荐创作者</string>
 </resources>

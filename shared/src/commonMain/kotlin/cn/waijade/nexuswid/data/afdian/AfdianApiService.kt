@@ -249,6 +249,42 @@ class AfdianApiService(
         }
     }
 
+    suspend fun getRandomCreator(cookie: String): AfdianRandomCreator? {
+        android.util.Log.d(TAG, "getRandomCreator")
+        return runCatching {
+            val randomPage = (1..30).random()
+            val url = "$CREATOR_LIST_URL?page=$randomPage&category_id=&q="
+            android.util.Log.d(TAG, "creator url: $url")
+            
+            val response = httpClient.get(url) {
+                commonHeaders(cookie)
+            }
+            if (!response.status.isSuccess()) return null
+
+            val bodyText = response.bodyAsText()
+            android.util.Log.d(TAG, "creator resp: ${bodyText.take(300)}")
+            val result = json.decodeFromString<AfdianCreatorListResponse>(bodyText)
+            if (result.ec != 200) return null
+
+            val creators = result.data?.list ?: return null
+            if (creators.isEmpty()) return null
+
+            val item = creators.random()
+            AfdianRandomCreator(
+                userId = item.user_id,
+                name = item.name,
+                avatar = item.avatar,
+                urlSlug = item.url_slug,
+                isVerified = item.is_verified == 1,
+                doing = item.creator?.doing ?: "",
+                categoryName = item.creator?.category?.name ?: ""
+            )
+        }.getOrElse { e ->
+            android.util.Log.e(TAG, "getRandomCreator err: ${e.message}")
+            null
+        }
+    }
+
     companion object {
         private const val TAG = "AfdianApiService"
         private const val CHECK_URL = "https://afdian.com/api/my/check"
@@ -256,5 +292,6 @@ class AfdianApiService(
         private const val STAT_URL = "https://afdian.com/api/my/stat"
         private const val DIALOGS_URL = "https://afdian.com/api/message/dialogs"
         private const val INCOME_URL = "https://afdian.com/api/my/income"
+        private const val CREATOR_LIST_URL = "https://ifdian.net/api/creator/list"
     }
 }
