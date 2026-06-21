@@ -145,6 +145,11 @@ fun SettingsScreenRoot(
                 AfdianSettingsScreen(
                     contentPadding = contentPadding,
                     onBack = backStack::onBack,
+                    onProductSelected = {
+                        GlobalScope.launch {
+                            cn.waijade.nexuswid.widget.AfdianProductWidget.updateAll(context)
+                        }
+                    },
                     modifier = modifier,
                 )
             }

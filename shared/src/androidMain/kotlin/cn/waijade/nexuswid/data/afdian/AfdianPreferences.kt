@@ -19,6 +19,12 @@ class AfdianPreferences(context: Context) {
     val isConfigured: Boolean
         get() = cookie.isNotBlank()
 
+    var selectedProductPlanId: String
+        get() = prefs.getString(KEY_PRODUCT_PLAN_ID, "") ?: ""
+        set(value) {
+            prefs.edit().putString(KEY_PRODUCT_PLAN_ID, value).apply()
+        }
+
     fun clear() {
         prefs.edit().clear().apply()
     }
@@ -26,5 +32,6 @@ class AfdianPreferences(context: Context) {
     companion object {
         private const val PREFS_NAME = "afdian_preferences"
         private const val KEY_COOKIE = "afdian_cookie"
+        private const val KEY_PRODUCT_PLAN_ID = "selected_product_plan_id"
     }
 }

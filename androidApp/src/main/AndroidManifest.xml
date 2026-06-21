@@ -32,6 +32,21 @@
             android:theme="@style/Theme.NexusWid"
             android:taskAffinity=""
             android:excludeFromRecents="true" />
+        <activity
+            android:name=".AfdianProductConfigActivity"
+            android:exported="true"
+            android:theme="@style/Theme.NexusWid"
+            android:taskAffinity=""
+            android:excludeFromRecents="true" />
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
 
         <receiver
             android:name=".widget.ContributionHeatmapWidgetProvider"
@@ -135,6 +150,17 @@
             <meta-data
                 android:name="android.appwidget.provider"
                 android:resource="@xml/afdian_unread_widget_info" />
+        </receiver>
+        <receiver
+            android:name=".widget.AfdianProductWidgetReceiver"
+            android:exported="true"
+            android:label="@string/widget_afdian_product">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/afdian_product_widget_info" />
         </receiver>
     </application>
 </manifest>

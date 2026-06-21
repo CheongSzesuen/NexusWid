@@ -85,8 +85,33 @@ class AfdianApiService(
         }.getOrElse { e -> android.util.Log.e(TAG, "err: ${e.message}"); AfdianUnreadResult.Error(e.message ?: "未知错误") }
     }
 
+    suspend fun getPlans(cookie: String): List<AfdianPlan> {
+        android.util.Log.d(TAG, "getPlans")
+        return runCatching {
+            val response = httpClient.get(PLANS_URL) {
+                commonHeaders(cookie)
+            }
+            if (!response.status.isSuccess()) return emptyList()
+
+            val bodyText = response.bodyAsText()
+            android.util.Log.d(TAG, "plans resp: ${bodyText.take(200)}")
+            val result = json.decodeFromString<AfdianPlanResponse>(bodyText)
+            if (result.ec != 200) return emptyList()
+
+            val allPlans = mutableListOf<AfdianPlan>()
+            result.data?.list?.let { allPlans.addAll(it) }
+            result.data?.sale_list?.let { allPlans.addAll(it) }
+            allPlans.distinctBy { it.plan_id }
+                .filter { it.status == 1 }
+        }.getOrElse { e ->
+            android.util.Log.e(TAG, "err: ${e.message}")
+            emptyList()
+        }
+    }
+
     companion object {
         private const val TAG = "AfdianApiService"
         private const val CHECK_URL = "https://afdian.com/api/my/check"
+        private const val PLANS_URL = "https://afdian.com/api/creator/all-plans"
     }
 }

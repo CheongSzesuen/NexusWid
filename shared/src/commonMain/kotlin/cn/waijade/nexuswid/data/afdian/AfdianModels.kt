@@ -84,3 +84,36 @@ data class AfdianUnreadCount(
     val like: Int,
     val message: Int
 )
+
+@Serializable
+data class AfdianPlanResponse(
+    val ec: Int,
+    val em: String,
+    val data: AfdianPlanData? = null
+)
+
+@Serializable
+data class AfdianPlanData(
+    val list: List<AfdianPlan>? = null,
+    val sale_list: List<AfdianPlan>? = null
+)
+
+@Serializable
+data class AfdianPlan(
+    val plan_id: String,
+    val name: String = "",
+    val status: Int = 0,
+    val price: String = "0.00",
+    val total_amount: String = "0.00",
+    @Serializable(with = FlexibleIntSerializer::class)
+    val sponsor_count: Int = 0,
+    val pic: String = ""
+)
+
+data class AfdianProductSummary(
+    val planId: String,
+    val name: String,
+    val totalAmount: Double,
+    val sponsorCount: Int,
+    val price: String
+)
