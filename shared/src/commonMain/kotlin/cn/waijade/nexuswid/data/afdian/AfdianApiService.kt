@@ -212,11 +212,49 @@ class AfdianApiService(
         return match?.groupValues?.get(1)
     }
 
+    suspend fun getMonthlyIncome(cookie: String): List<AfdianMonthlyIncome> {
+        android.util.Log.d(TAG, "getMonthlyIncome")
+        return runCatching {
+            val response = httpClient.get(INCOME_URL) {
+                commonHeaders(cookie)
+            }
+            if (!response.status.isSuccess()) return emptyList()
+
+            val bodyText = response.bodyAsText()
+            android.util.Log.d(TAG, "income resp: ${bodyText.take(200)}")
+            val result = json.decodeFromString<AfdianIncomeResponse>(bodyText)
+            if (result.ec != 200) return emptyList()
+
+            val monthlyBills = result.data?.monthly_bill ?: return emptyList()
+            val incomes = mutableListOf<AfdianMonthlyIncome>()
+            
+            for (yearlyBill in monthlyBills) {
+                for (monthlyBill in yearlyBill.data) {
+                    incomes.add(
+                        AfdianMonthlyIncome(
+                            year = yearlyBill.year,
+                            month = monthlyBill.month,
+                            totalAmount = monthlyBill.data.total_amount.toDoubleOrNull() ?: 0.0,
+                            creatorAmount = monthlyBill.data.creator_amount.toDoubleOrNull() ?: 0.0,
+                            sponsorCount = monthlyBill.data.sponsor_count
+                        )
+                    )
+                }
+            }
+            
+            incomes.sortedWith(compareByDescending<AfdianMonthlyIncome> { it.year }.thenByDescending { it.month })
+        }.getOrElse { e ->
+            android.util.Log.e(TAG, "err: ${e.message}")
+            emptyList()
+        }
+    }
+
     companion object {
         private const val TAG = "AfdianApiService"
         private const val CHECK_URL = "https://afdian.com/api/my/check"
         private const val PLANS_URL = "https://afdian.com/api/creator/all-plans"
         private const val STAT_URL = "https://afdian.com/api/my/stat"
         private const val DIALOGS_URL = "https://afdian.com/api/message/dialogs"
+        private const val INCOME_URL = "https://afdian.com/api/my/income"
     }
 }

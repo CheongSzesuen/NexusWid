@@ -187,3 +187,45 @@ data class AfdianDialogUser(
     val name: String = "",
     val avatar: String = ""
 )
+
+@Serializable
+data class AfdianIncomeResponse(
+    val ec: Int,
+    val em: String,
+    val data: AfdianIncomeData? = null
+)
+
+@Serializable
+data class AfdianIncomeData(
+    val monthly_bill: List<AfdianYearlyBill> = emptyList()
+)
+
+@Serializable
+data class AfdianYearlyBill(
+    val year: Int,
+    val data: List<AfdianMonthlyBill> = emptyList()
+)
+
+@Serializable
+data class AfdianMonthlyBill(
+    val month: Int,
+    val data: AfdianMonthlyBillData
+)
+
+@Serializable
+data class AfdianMonthlyBillData(
+    val total_amount: String = "0.00",
+    val creator_amount: String = "0.00",
+    @Serializable(with = FlexibleIntSerializer::class)
+    val sponsor_count: Int = 0,
+    @Serializable(with = FlexibleIntSerializer::class)
+    val create_time: Long = 0
+)
+
+data class AfdianMonthlyIncome(
+    val year: Int,
+    val month: Int,
+    val totalAmount: Double,
+    val creatorAmount: Double,
+    val sponsorCount: Int
+)

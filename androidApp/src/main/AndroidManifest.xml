@@ -174,6 +174,17 @@
                 android:resource="@xml/afdian_daily_chart_widget_info" />
         </receiver>
         <receiver
+            android:name=".widget.AfdianMonthlyEarningsChartWidgetReceiver"
+            android:exported="true"
+            android:label="@string/widget_afdian_monthly_chart">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/afdian_monthly_chart_widget_info" />
+        </receiver>
+        <receiver
             android:name=".widget.AfdianComplaintWidgetReceiver"
             android:exported="true"
             android:label="@string/widget_afdian_complaint">

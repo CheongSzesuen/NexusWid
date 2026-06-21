@@ -7,7 +7,6 @@ import android.graphics.Canvas
 import android.graphics.LinearGradient
 import android.graphics.Paint
 import android.graphics.Path
-import android.graphics.RectF
 import android.graphics.Shader
 import android.util.Log
 import androidx.compose.runtime.Composable
@@ -48,7 +47,7 @@ import androidx.glance.text.TextStyle
 import androidx.glance.unit.ColorProvider
 import cn.waijade.nexuswid.R
 import cn.waijade.nexuswid.data.afdian.AfdianApiService
-import cn.waijade.nexuswid.data.afdian.AfdianDailyStat
+import cn.waijade.nexuswid.data.afdian.AfdianMonthlyIncome
 import cn.waijade.nexuswid.data.afdian.AfdianPreferences
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.okhttp.OkHttp
@@ -56,23 +55,22 @@ import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
 import kotlin.math.max
-import kotlin.math.min
 import kotlin.math.roundToInt
 
-class AfdianDailyEarningsChartWidget : GlanceAppWidget() {
+class AfdianMonthlyEarningsChartWidget : GlanceAppWidget() {
 
     override val sizeMode: SizeMode = SizeMode.Exact
 
     override suspend fun provideGlance(context: Context, id: GlanceId) {
-        val (stats, errorMsg) = loadDailyStats(context)
+        val (incomes, errorMsg) = loadMonthlyIncome(context)
         val isDark = resolveIsDark(context)
         val prefs = AfdianPreferences(context)
         provideContent {
-            AfdianDailyEarningsChartContent(stats, errorMsg, isDark, prefs.isConfigured)
+            AfdianMonthlyEarningsChartContent(incomes, errorMsg, isDark, prefs.isConfigured)
         }
     }
 
-    private suspend fun loadDailyStats(context: Context): Pair<List<AfdianDailyStat>?, String?> {
+    private suspend fun loadMonthlyIncome(context: Context): Pair<List<AfdianMonthlyIncome>?, String?> {
         val prefs = AfdianPreferences(context)
         if (!prefs.isConfigured) {
             Log.d(TAG, "Not configured")
@@ -85,9 +83,9 @@ class AfdianDailyEarningsChartWidget : GlanceAppWidget() {
         }
         return try {
             val service = AfdianApiService(httpClient, json)
-            val stats = service.getDailyStats(prefs.cookie)
-            Log.d(TAG, "Loaded ${stats.size} daily stats")
-            stats to null
+            val incomes = service.getMonthlyIncome(prefs.cookie)
+            Log.d(TAG, "Loaded ${incomes.size} monthly incomes")
+            incomes to null
         } catch (e: Exception) {
             Log.e(TAG, "Failed: ${e.message}")
             null to (e.message ?: "未知错误")
@@ -97,26 +95,26 @@ class AfdianDailyEarningsChartWidget : GlanceAppWidget() {
     }
 
     companion object {
-        private const val TAG = "AfdianDailyChart"
+        private const val TAG = "AfdianMonthlyChart"
 
         suspend fun updateAll(context: Context) {
             val manager = GlanceAppWidgetManager(context)
-            manager.getGlanceIds(AfdianDailyEarningsChartWidget::class.java).forEach { id ->
-                AfdianDailyEarningsChartWidget().update(context, id)
+            manager.getGlanceIds(AfdianMonthlyEarningsChartWidget::class.java).forEach { id ->
+                AfdianMonthlyEarningsChartWidget().update(context, id)
             }
         }
     }
 }
 
-class RefreshAfdianDailyEarningsChartAction : ActionCallback {
+class RefreshAfdianMonthlyEarningsChartAction : ActionCallback {
     override suspend fun onAction(context: Context, glanceId: GlanceId, parameters: ActionParameters) {
-        AfdianDailyEarningsChartWidget().update(context, glanceId)
+        AfdianMonthlyEarningsChartWidget().update(context, glanceId)
     }
 }
 
 @Composable
-private fun AfdianDailyEarningsChartContent(
-    stats: List<AfdianDailyStat>?,
+private fun AfdianMonthlyEarningsChartContent(
+    incomes: List<AfdianMonthlyIncome>?,
     errorMsg: String?,
     isDark: Boolean,
     isConfigured: Boolean
@@ -133,13 +131,13 @@ private fun AfdianDailyEarningsChartContent(
 
     val statusText = when {
         !isConfigured -> "未配置"
-        stats == null && errorMsg != null -> errorMsg.take(8)
-        stats == null -> "加载中"
-        stats.isEmpty() -> "暂无数据"
+        incomes == null && errorMsg != null -> errorMsg.take(8)
+        incomes == null -> "加载中"
+        incomes.isEmpty() -> "暂无数据"
         else -> null
     }
 
-    val totalAmount = stats?.sumOf { it.paid_order_real_amount.toDoubleOrNull() ?: 0.0 }
+    val totalAmount = incomes?.sumOf { it.creatorAmount }
     val totalText = if (totalAmount != null) formatAmount(totalAmount) else ""
 
     val iconSize: Dp = 18.dp
@@ -155,7 +153,7 @@ private fun AfdianDailyEarningsChartContent(
                 .cornerRadius(28.dp)
                 .background(bgColor)
                 .padding(pad)
-                .clickable(onClick = actionRunCallback<RefreshAfdianDailyEarningsChartAction>())
+                .clickable(onClick = actionRunCallback<RefreshAfdianMonthlyEarningsChartAction>())
         ) {
             Column(modifier = GlanceModifier.fillMaxSize()) {
                 Row(
@@ -169,7 +167,7 @@ private fun AfdianDailyEarningsChartContent(
                     )
                     Spacer(GlanceModifier.width(6.dp))
                     Text(
-                        text = "本月收入",
+                        text = "每月汇总",
                         style = TextStyle(
                             color = ColorProvider(labelColor),
                             fontSize = labelSize.value.sp
@@ -201,13 +199,13 @@ private fun AfdianDailyEarningsChartContent(
                             )
                         )
                     }
-                } else if (stats != null) {
+                } else if (incomes != null) {
                     val chartWidth = size.width - pad * 2
                     val chartHeight = size.height - pad * 2 - iconSize - 6.dp
                     if (chartWidth.value > 0f && chartHeight.value > 0f) {
-                        val bitmap = renderLineChartBitmap(
+                        val bitmap = renderMonthlyLineChartBitmap(
                             context = androidx.glance.LocalContext.current,
-                            stats = stats,
+                            incomes = incomes,
                             widthDp = chartWidth.value,
                             heightDp = chartHeight.value,
                             isDark = isDark,
@@ -228,9 +226,9 @@ private fun AfdianDailyEarningsChartContent(
     }
 }
 
-private fun renderLineChartBitmap(
+private fun renderMonthlyLineChartBitmap(
     context: Context,
-    stats: List<AfdianDailyStat>,
+    incomes: List<AfdianMonthlyIncome>,
     widthDp: Float,
     heightDp: Float,
     isDark: Boolean,
@@ -268,9 +266,9 @@ private fun renderLineChartBitmap(
 
     if (chartWidth <= 0f || chartHeight <= 0f) return bitmap
 
-    val amounts = stats.map { it.paid_order_real_amount.toDoubleOrNull() ?: 0.0 }
+    val amounts = incomes.map { it.creatorAmount }
     val maxAmount = max(amounts.maxOrNull() ?: 0.0, 1.0)
-    val days = stats.map { it.date_str % 100 }
+    val months = incomes.map { "${it.month}月" }
 
     val pointCount = amounts.size
     if (pointCount < 2) return bitmap
@@ -358,14 +356,14 @@ private fun renderLineChartBitmap(
     }
 
     val showEveryN = when {
-        pointCount <= 7 -> 1
-        pointCount <= 15 -> 2
+        pointCount <= 6 -> 1
+        pointCount <= 12 -> 2
         else -> 3
     }
     points.forEachIndexed { index, (x, _) ->
         if (index % showEveryN == 0 || index == points.size - 1) {
-            val dayLabel = "${days[index]}"
-            canvas.drawText(dayLabel, x, chartBottom + 11f * density, xLabelPaint)
+            val monthLabel = months[index]
+            canvas.drawText(monthLabel, x, chartBottom + 11f * density, xLabelPaint)
         }
     }
 
@@ -393,6 +391,6 @@ private fun formatAmount(amount: Double): String {
     }
 }
 
-class AfdianDailyEarningsChartWidgetReceiver : GlanceAppWidgetReceiver() {
-    override val glanceAppWidget: GlanceAppWidget = AfdianDailyEarningsChartWidget()
+class AfdianMonthlyEarningsChartWidgetReceiver : GlanceAppWidgetReceiver() {
+    override val glanceAppWidget: GlanceAppWidget = AfdianMonthlyEarningsChartWidget()
 }
