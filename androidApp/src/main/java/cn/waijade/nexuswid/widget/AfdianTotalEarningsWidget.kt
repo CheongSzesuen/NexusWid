@@ -174,7 +174,7 @@ private fun AfdianTotalEarningsContent(earnings: AfdianEarnings?, errorMsg: Stri
                     modifier = GlanceModifier
                         .fillMaxWidth()
                         .defaultWeight(),
-                    contentAlignment = Alignment.Center
+                    contentAlignment = Alignment.CenterStart
                 ) {
                     Text(
                         text = amountText,

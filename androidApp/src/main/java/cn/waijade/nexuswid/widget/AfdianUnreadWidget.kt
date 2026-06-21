@@ -167,7 +167,7 @@ private fun AfdianUnreadContent(unread: Int?, errorMsg: String?, isDark: Boolean
                     modifier = GlanceModifier
                         .fillMaxWidth()
                         .defaultWeight(),
-                    contentAlignment = Alignment.Center
+                    contentAlignment = Alignment.CenterStart
                 ) {
                     Text(
                         text = displayText,
