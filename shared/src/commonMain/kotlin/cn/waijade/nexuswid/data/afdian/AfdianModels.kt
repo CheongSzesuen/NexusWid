@@ -275,3 +275,54 @@ data class AfdianRandomCreator(
     val doing: String,
     val categoryName: String
 )
+
+@Serializable
+data class AfdianTopSponsorsResponse(
+    val ec: Int,
+    val em: String,
+    val data: AfdianTopSponsorsData? = null
+)
+
+@Serializable
+data class AfdianTopSponsorsData(
+    @Serializable(with = FlexibleIntSerializer::class)
+    val has_more: Int = 0,
+    val list: List<AfdianSponsorItem> = emptyList()
+)
+
+@Serializable
+data class AfdianSponsorItem(
+    val user_id: String = "",
+    val name: String = "",
+    val avatar: String = "",
+    val url_slug: String = "",
+    @Serializable(with = FlexibleIntSerializer::class)
+    val is_verified: Int = 0
+)
+
+data class AfdianTopSponsor(
+    val userId: String,
+    val name: String,
+    val avatar: String,
+    val urlSlug: String,
+    val isVerified: Boolean
+)
+
+@Serializable
+data class AfdianProfileResponse(
+    val ec: Int,
+    val em: String,
+    val data: AfdianProfileData? = null
+)
+
+@Serializable
+data class AfdianProfileData(
+    val user: AfdianProfileUser? = null
+)
+
+@Serializable
+data class AfdianProfileUser(
+    val user_id: String = "",
+    val name: String = "",
+    val avatar: String = ""
+)

@@ -285,6 +285,53 @@ class AfdianApiService(
         }
     }
 
+    suspend fun getTopSponsors(userId: String): List<AfdianTopSponsor> {
+        android.util.Log.d(TAG, "getTopSponsors for userId=$userId")
+        return runCatching {
+            val url = "$TOP_SPONSORS_URL?user_id=$userId"
+            val response = httpClient.get(url)
+            if (!response.status.isSuccess()) return emptyList()
+
+            val bodyText = response.bodyAsText()
+            android.util.Log.d(TAG, "topSponsors resp: ${bodyText.take(300)}")
+            val result = json.decodeFromString<AfdianTopSponsorsResponse>(bodyText)
+            if (result.ec != 200) return emptyList()
+
+            result.data?.list?.map { item ->
+                AfdianTopSponsor(
+                    userId = item.user_id,
+                    name = item.name.ifBlank { "匿名用户" },
+                    avatar = item.avatar,
+                    urlSlug = item.url_slug,
+                    isVerified = item.is_verified == 1
+                )
+            } ?: emptyList()
+        }.getOrElse { e ->
+            android.util.Log.e(TAG, "getTopSponsors err: ${e.message}")
+            emptyList()
+        }
+    }
+
+    suspend fun getUserIdFromProfile(cookie: String): String? {
+        android.util.Log.d(TAG, "getUserIdFromProfile")
+        return runCatching {
+            val response = httpClient.get(PROFILE_URL) {
+                commonHeaders(cookie)
+            }
+            if (!response.status.isSuccess()) return null
+
+            val bodyText = response.bodyAsText()
+            android.util.Log.d(TAG, "profile resp: ${bodyText.take(200)}")
+            val result = json.decodeFromString<AfdianProfileResponse>(bodyText)
+            if (result.ec != 200) return null
+
+            result.data?.user?.user_id?.takeIf { it.isNotBlank() }
+        }.getOrElse { e ->
+            android.util.Log.e(TAG, "getUserIdFromProfile err: ${e.message}")
+            null
+        }
+    }
+
     companion object {
         private const val TAG = "AfdianApiService"
         private const val CHECK_URL = "https://afdian.com/api/my/check"
@@ -293,5 +340,7 @@ class AfdianApiService(
         private const val DIALOGS_URL = "https://afdian.com/api/message/dialogs"
         private const val INCOME_URL = "https://afdian.com/api/my/income"
         private const val CREATOR_LIST_URL = "https://ifdian.net/api/creator/list"
+        private const val TOP_SPONSORS_URL = "https://afdian.com/api/creator/get-top-sponsors"
+        private const val PROFILE_URL = "https://afdian.com/api/my/profile"
     }
 }

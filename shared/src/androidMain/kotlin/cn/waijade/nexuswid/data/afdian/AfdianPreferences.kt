@@ -25,6 +25,12 @@ class AfdianPreferences(context: Context) {
             prefs.edit().putString(KEY_PRODUCT_PLAN_ID, value).apply()
         }
 
+    var userId: String
+        get() = prefs.getString(KEY_USER_ID, "") ?: ""
+        set(value) {
+            prefs.edit().putString(KEY_USER_ID, value).apply()
+        }
+
     fun clear() {
         prefs.edit().clear().apply()
     }
@@ -33,5 +39,6 @@ class AfdianPreferences(context: Context) {
         private const val PREFS_NAME = "afdian_preferences"
         private const val KEY_COOKIE = "afdian_cookie"
         private const val KEY_PRODUCT_PLAN_ID = "selected_product_plan_id"
+        private const val KEY_USER_ID = "afdian_user_id"
     }
 }
