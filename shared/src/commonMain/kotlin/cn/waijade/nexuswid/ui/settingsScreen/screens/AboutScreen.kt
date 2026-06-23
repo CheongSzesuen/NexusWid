@@ -158,7 +158,7 @@ fun AboutScreen(
                         ) {
                             Icon(
                                 painterResource(Res.drawable.ic_launcher_about),
-                                tint = androidx.compose.ui.graphics.Color.Unspecified,
+                                tint = colorScheme.onPrimaryContainer,
                                 contentDescription = null,
                                 modifier = Modifier
                                     .size(64.dp)
@@ -353,7 +353,6 @@ fun AboutScreen(
                         leadingContent = { Icon(painterResource(Res.drawable.gavel), null) },
                         content = { Text(stringResource(Res.string.license)) },
                         supportingContent = { Text("GNU General Public License Version 3") },
-                        selected = showLicense,
                         shapes = segmentedListItemShapes(1, 2),
                         colors = listItemColors
                     )

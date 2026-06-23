@@ -122,8 +122,6 @@ fun BuildInfoScreen(
                 contentPadding = insets,
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                item { Spacer(Modifier.height(innerPadding.calculateTopPadding() + 16.dp)) }
-
                 item { BuildConfigSection() }
                 item { PlatformSection() }
             }
@@ -137,7 +135,7 @@ private fun SectionLabel(text: String) {
         text = text,
         style = MaterialTheme.typography.labelLarge,
         color = MaterialTheme.colorScheme.primary,
-        modifier = Modifier.padding(start = 16.dp, bottom = 8.dp)
+        modifier = Modifier.padding(start = 16.dp, bottom = 4.dp)
     )
 }
 

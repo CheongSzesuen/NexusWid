@@ -240,14 +240,12 @@ fun WidgetSettingsScreen(
                     .fillMaxSize()
                     .padding(horizontal = 16.dp)
             ) {
-                item { Spacer(Modifier.height(14.dp)) }
-
                 item {
                     Text(
                         text = stringResource(Res.string.widget_contribution),
-                        style = MaterialTheme.typography.titleSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 4.dp)
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.padding(start = 16.dp, bottom = 4.dp)
                     )
                 }
 
@@ -445,9 +443,9 @@ fun WidgetSettingsScreen(
                 item {
                     Text(
                         text = stringResource(Res.string.widget_reviews_requested),
-                        style = MaterialTheme.typography.titleSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 4.dp)
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.padding(start = 16.dp, bottom = 4.dp)
                     )
                 }
 
@@ -526,9 +524,9 @@ fun WidgetSettingsScreen(
                 item {
                     Text(
                         text = "Issues",
-                        style = MaterialTheme.typography.titleSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 4.dp)
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.padding(start = 16.dp, bottom = 4.dp)
                     )
                 }
 
@@ -636,9 +634,9 @@ fun WidgetSettingsScreen(
                 item {
                     Text(
                         text = stringResource(Res.string.widget_pull_requests),
-                        style = MaterialTheme.typography.titleSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 4.dp)
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.padding(start = 16.dp, bottom = 4.dp)
                     )
                 }
 
@@ -746,9 +744,9 @@ fun WidgetSettingsScreen(
                 item {
                     Text(
                         text = "Actions",
-                        style = MaterialTheme.typography.titleSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 4.dp)
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.padding(start = 16.dp, bottom = 4.dp)
                     )
                 }
 
@@ -817,9 +815,9 @@ fun WidgetSettingsScreen(
                 item {
                     Text(
                         text = "Notifications",
-                        style = MaterialTheme.typography.titleSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 4.dp)
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.padding(start = 16.dp, bottom = 4.dp)
                     )
                 }
 
@@ -888,9 +886,9 @@ fun WidgetSettingsScreen(
                 item {
                     Text(
                         text = "PR 组件外观",
-                        style = MaterialTheme.typography.titleSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 4.dp)
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.padding(start = 16.dp, bottom = 4.dp)
                     )
                 }
 

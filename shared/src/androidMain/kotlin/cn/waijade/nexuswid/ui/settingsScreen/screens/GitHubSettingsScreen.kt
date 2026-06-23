@@ -130,8 +130,6 @@ fun GitHubSettingsScreen(
                     .fillMaxSize()
                     .padding(horizontal = 16.dp)
             ) {
-                item { Spacer(Modifier.height(14.dp)) }
-
                 item {
                     SegmentedListItem(
                         onClick = {},

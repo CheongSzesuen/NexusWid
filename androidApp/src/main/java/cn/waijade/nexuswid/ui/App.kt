@@ -379,8 +379,8 @@ private fun LiquidGlassBottomBar(
 ) {
     val contentColor = if (isLightTheme) Color.Black else Color.White
     val motionScheme = motionScheme
-    var selectedTabIndex by rememberSaveable { mutableIntStateOf(0) }
     val routeIndex = mainScreens.indexOfFirst { it.route == selectedRoute() }.coerceAtLeast(0)
+    var selectedTabIndex by rememberSaveable { mutableIntStateOf(routeIndex) }
 
     LaunchedEffect(routeIndex) {
         selectedTabIndex = routeIndex

@@ -179,8 +179,6 @@ fun AfdianSettingsScreen(
                     .fillMaxSize()
                     .padding(horizontal = 16.dp)
             ) {
-                item { Spacer(Modifier.height(14.dp)) }
-
                 item {
                     SegmentedListItem(
                         onClick = {},
@@ -220,9 +218,9 @@ fun AfdianSettingsScreen(
                 item {
                     Text(
                         text = "商品收益小组件",
-                        style = MaterialTheme.typography.titleSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 4.dp)
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.padding(start = 16.dp, bottom = 4.dp)
                     )
                 }
 

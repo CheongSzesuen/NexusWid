@@ -104,7 +104,7 @@ fun SettingsScreenRoot(
                 AboutScreen(
                     contentPadding = contentPadding,
                     onBack = backStack::onBack,
-                    onNavigate = backStack::onTopLevelNavigate
+                    onNavigate = { backStack.add(it) }
                 )
             }
 

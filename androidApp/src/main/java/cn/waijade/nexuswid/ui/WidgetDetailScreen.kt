@@ -112,6 +112,7 @@ fun SharedTransitionScope.WidgetDetailScreen(
                 scrollBehavior = scrollBehavior
             )
         },
+        containerColor = topBarColors.containerColor,
         modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection)
     ) { innerPadding ->
         val insets = mergePaddingValues(innerPadding, contentPadding)
