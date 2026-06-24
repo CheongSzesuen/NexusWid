@@ -2,7 +2,10 @@
 
 package cn.waijade.nexuswid.ui
 
+import android.content.Context
 import androidx.compose.animation.SharedTransitionScope
+import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -10,10 +13,12 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledTonalIconButton
@@ -33,6 +38,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -40,12 +46,15 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import cn.waijade.nexuswid.data.HeatmapColorMode
+import cn.waijade.nexuswid.data.github.GitHubPreferences
+import cn.waijade.nexuswid.data.github.PullRequestItem
+import cn.waijade.nexuswid.data.github.PullRequestType
 import cn.waijade.nexuswid.ui.settingsScreen.screens.HeatmapPreviewCard
 import cn.waijade.nexuswid.ui.settingsScreen.screens.PullRequestsPreviewCard
 import cn.waijade.nexuswid.ui.settingsScreen.screens.ReviewsRequestedPreviewCard
 import cn.waijade.nexuswid.ui.theme.CustomColors.topBarColors
 import cn.waijade.nexuswid.ui.theme.LocalAppFonts
-import cn.waijade.nexuswid.widget.HeatmapWidgetDataStore
+import cn.waijade.nexuswid.widget.WidgetDataCache
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import nexuswid.shared.generated.resources.Res
@@ -58,12 +67,15 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 fun SharedTransitionScope.WidgetDetailScreen(
     widgetType: String,
+    widgetData: HomeWidgetData,
     contentPadding: PaddingValues,
     onBack: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+    val isDark = isSystemInDarkTheme()
+    val loadingBg = if (isDark) Color(0xFF0D1117) else Color.White
 
     val title = when (widgetType) {
         "contribution_heatmap" -> stringResource(Res.string.contribution_heatmap)
@@ -72,12 +84,45 @@ fun SharedTransitionScope.WidgetDetailScreen(
         else -> "小组件"
     }
 
-    val contributionLevels = remember { mutableStateOf<Map<String, Int>>(emptyMap()) }
+    // 从缓存加载数据（首页已缓存过）
+    val contributionLevels = remember { mutableStateOf(widgetData.contributionLevels) }
+    val prItems = remember { mutableStateOf(widgetData.prItems) }
+    val prTypes = remember { mutableStateOf(widgetData.prTypes) }
+    val reviewsCount = remember { mutableStateOf(widgetData.reviewsCount) }
+    var isHeatmapReady by remember { mutableStateOf(widgetData.isHeatmapLoaded) }
+    var isPrReady by remember { mutableStateOf(widgetData.isPrLoaded) }
+    var isReviewsReady by remember { mutableStateOf(widgetData.isReviewsLoaded) }
+
+    // 如果首页数据还没加载完（极少情况），从缓存补加载
     LaunchedEffect(widgetType) {
-        if (widgetType == "contribution_heatmap") {
-            withContext(Dispatchers.IO) {
-                val dataStore = HeatmapWidgetDataStore(context)
-                contributionLevels.value = dataStore.getContributionLevels()
+        if (widgetData.isHeatmapLoaded && widgetData.isPrLoaded && widgetData.isReviewsLoaded) return@LaunchedEffect
+        withContext(Dispatchers.IO) {
+            when (widgetType) {
+                "contribution_heatmap" -> {
+                    if (!widgetData.isHeatmapLoaded) {
+                        val prefs = context.getSharedPreferences("widget_data_cache", Context.MODE_PRIVATE)
+                        val raw = prefs.getString("cached_contribution_levels", null)
+                        contributionLevels.value = if (raw.isNullOrBlank()) emptyMap()
+                        else raw.split(",").associate { entry ->
+                            val parts = entry.split("=")
+                            parts[0] to (parts.getOrNull(1)?.toIntOrNull() ?: 0)
+                        }
+                        isHeatmapReady = true
+                    }
+                }
+                "pull_requests" -> {
+                    if (!widgetData.isPrLoaded) {
+                        prTypes.value = GitHubPreferences(context).selectedPullRequestTypes
+                        prItems.value = WidgetDataCache.loadPullRequests(context)
+                        isPrReady = true
+                    }
+                }
+                "reviews_requested" -> {
+                    if (!widgetData.isReviewsLoaded) {
+                        reviewsCount.value = WidgetDataCache.loadReviewsCount(context)
+                        isReviewsReady = true
+                    }
+                }
             }
         }
     }
@@ -120,13 +165,13 @@ fun SharedTransitionScope.WidgetDetailScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(insets)
-                .padding(24.dp),
+                .padding(horizontal = 16.dp, vertical = 24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(200.dp)
+                    .height(160.dp)
                     .sharedBoundsReveal(
                         sharedTransitionScope = this@WidgetDetailScreen,
                         sharedContentState = rememberSharedContentState("widget_preview_$widgetType"),
@@ -137,26 +182,42 @@ fun SharedTransitionScope.WidgetDetailScreen(
             ) {
                 when (widgetType) {
                     "contribution_heatmap" -> {
-                        HeatmapPreviewCard(
-                            colorMode = HeatmapColorMode.SYSTEM,
-                            weekStartsOnMonday = false,
-                            contributionLevels = contributionLevels.value,
-                            modifier = Modifier.fillMaxSize()
-                        )
+                        if (!isHeatmapReady) {
+                            LoadingPlaceholder(loadingBg)
+                        } else {
+                            HeatmapPreviewCard(
+                                colorMode = HeatmapColorMode.SYSTEM,
+                                weekStartsOnMonday = false,
+                                contributionLevels = contributionLevels.value,
+                                modifier = Modifier.fillMaxSize(),
+                                showPlaceholder = false
+                            )
+                        }
                     }
 
                     "reviews_requested" -> {
-                        ReviewsRequestedPreviewCard(
-                            colorMode = HeatmapColorMode.SYSTEM,
-                            modifier = Modifier.fillMaxSize()
-                        )
+                        if (!isReviewsReady) {
+                            LoadingPlaceholder(loadingBg)
+                        } else {
+                            ReviewsRequestedPreviewCard(
+                                colorMode = HeatmapColorMode.SYSTEM,
+                                count = reviewsCount.value,
+                                modifier = Modifier.fillMaxSize()
+                            )
+                        }
                     }
 
                     "pull_requests" -> {
-                        PullRequestsPreviewCard(
-                            colorMode = HeatmapColorMode.SYSTEM,
-                            modifier = Modifier.fillMaxSize()
-                        )
+                        if (!isPrReady) {
+                            LoadingPlaceholder(loadingBg)
+                        } else {
+                            PullRequestsPreviewCard(
+                                colorMode = HeatmapColorMode.SYSTEM,
+                                prItems = prItems.value,
+                                prTypes = prTypes.value,
+                                modifier = Modifier.fillMaxSize()
+                            )
+                        }
                     }
                 }
             }
@@ -175,5 +236,23 @@ fun SharedTransitionScope.WidgetDetailScreen(
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
+    }
+}
+
+@Composable
+private fun LoadingPlaceholder(bgColor: Color) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(bgColor, RoundedCornerShape(16.dp)),
+        contentAlignment = Alignment.Center
+    ) {
+        CircularProgressIndicator(
+            modifier = Modifier
+                .height(24.dp)
+                .width(24.dp),
+            strokeWidth = 2.dp,
+            color = MaterialTheme.colorScheme.primary
+        )
     }
 }

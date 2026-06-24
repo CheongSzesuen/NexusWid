@@ -1,5 +1,6 @@
 package cn.waijade.nexuswid.ui
 
+import android.content.Context
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.SharedTransitionLayout
@@ -61,6 +62,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -68,6 +70,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.role
@@ -84,8 +87,20 @@ import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.ui.NavDisplay
 import androidx.window.core.layout.WindowSizeClass
 import org.jetbrains.compose.resources.stringResource
+import cn.waijade.nexuswid.data.github.GitHubApiService
+import cn.waijade.nexuswid.data.github.GitHubPreferences
+import cn.waijade.nexuswid.data.github.PullRequestType
 import cn.waijade.nexuswid.ui.settingsScreen.SettingsScreenRoot
 import cn.waijade.nexuswid.ui.liquidglass.LiquidBottomTab
+import cn.waijade.nexuswid.widget.HeatmapWidgetDataStore
+import cn.waijade.nexuswid.widget.WidgetDataCache
+import io.ktor.client.HttpClient
+import io.ktor.client.engine.okhttp.OkHttp
+import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.serialization.kotlinx.json.json
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import kotlinx.serialization.json.Json
 import cn.waijade.nexuswid.ui.liquidglass.LiquidBottomTabs
 import cn.waijade.nexuswid.ui.settingsScreen.viewModel.SettingsViewModel
 import cn.waijade.nexuswid.ui.theme.NexusTheme
@@ -152,6 +167,74 @@ fun AppScreen(
     }
 
     val backStack = rememberNavBackStack(Screen.Home)
+    val context = LocalContext.current
+
+    val widgetData = remember { mutableStateOf(HomeWidgetData()) }
+
+    LaunchedEffect(Unit) {
+        withContext(Dispatchers.IO) {
+            // 加载热力图数据
+            val dataStore = HeatmapWidgetDataStore(context)
+            val levels = dataStore.getContributionLevels()
+            widgetData.value = widgetData.value.copy(
+                contributionLevels = levels,
+                isHeatmapLoaded = true
+            )
+
+            // 加载 PR 数据
+            val prefs = GitHubPreferences(context)
+            val types = prefs.selectedPullRequestTypes
+            val token = prefs.token.takeIf { it.isNotBlank() }
+            val prList = if (token != null) {
+                val json = Json { ignoreUnknownKeys = true }
+                val httpClient = HttpClient(OkHttp) {
+                    install(ContentNegotiation) { json(json) }
+                }
+                val service = GitHubApiService(httpClient, json)
+                val result = runCatching {
+                    service.getPullRequestList(
+                        token = token, pullRequestTypes = types,
+                        limit = 20, withCheckStatus = 3
+                    ).getOrThrow()
+                }
+                httpClient.close()
+                result.getOrElse { WidgetDataCache.loadPullRequests(context) }
+                    .also { if (result.isSuccess) WidgetDataCache.savePullRequests(context, it) }
+            } else {
+                WidgetDataCache.loadPullRequests(context)
+            }
+            widgetData.value = widgetData.value.copy(
+                prItems = prList,
+                prTypes = types,
+                isPrLoaded = true
+            )
+
+            // 加载审查请求数量
+            val count = if (token != null) {
+                val json = Json { ignoreUnknownKeys = true }
+                val httpClient = HttpClient(OkHttp) {
+                    install(ContentNegotiation) { json(json) }
+                }
+                val service = GitHubApiService(httpClient, json)
+                val result = runCatching {
+                    service.getPullRequestCount(
+                        token = token,
+                        pullRequestTypes = setOf(PullRequestType.REVIEW_REQUESTED)
+                    ).getOrThrow()
+                }
+                httpClient.close()
+                result.getOrElse { WidgetDataCache.loadReviewsCount(context) }
+                    .also { if (result.isSuccess) WidgetDataCache.saveReviewsCount(context, it) }
+            } else {
+                WidgetDataCache.loadReviewsCount(context)
+            }
+            widgetData.value = widgetData.value.copy(
+                reviewsCount = count,
+                isReviewsLoaded = true
+            )
+        }
+    }
+
     val toolbarScrollBehavior = FloatingToolbarDefaults.exitAlwaysScrollBehavior(
         FloatingToolbarExitDirection.Bottom
     )
@@ -255,6 +338,7 @@ fun AppScreen(
                 entryProvider = entryProvider {
                     entry<Screen.Home> {
                         HomeScreen(
+                            widgetData = widgetData.value,
                             contentPadding = contentPadding,
                             onWidgetClick = { widgetType ->
                                 backStack.add(Screen.Widget(widgetType))
@@ -265,6 +349,7 @@ fun AppScreen(
                     entry<Screen.Widget> { widget ->
                         WidgetDetailScreen(
                             widgetType = widget.widgetType,
+                            widgetData = widgetData.value,
                             contentPadding = contentPadding,
                             onBack = { backStack.onBack() }
                         )

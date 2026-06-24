@@ -88,6 +88,8 @@ import androidx.window.core.layout.WindowSizeClass.Companion.WIDTH_DP_EXPANDED_L
 import cn.waijade.nexuswid.data.HeatmapColorMode
 import cn.waijade.nexuswid.data.HeatmapTheme
 import cn.waijade.nexuswid.data.github.IssueType
+import cn.waijade.nexuswid.data.github.CheckStatus
+import cn.waijade.nexuswid.data.github.PullRequestItem
 import cn.waijade.nexuswid.data.github.PullRequestType
 import cn.waijade.nexuswid.ui.mergePaddingValues
 import cn.waijade.nexuswid.ui.theme.CustomColors.detailPaneTopBarColors
@@ -133,7 +135,7 @@ import kotlin.random.Random
 
 private const val PREVIEW_CONTENT_PADDING_DP = 6f
 private const val PREVIEW_CELL_SIZE_SCALE = 1f
-private const val PREVIEW_CORNER_RADIUS_DP = 12f
+private const val PREVIEW_CORNER_RADIUS_DP = 16f
 
 @Composable
 fun WidgetSettingsScreen(
@@ -1164,7 +1166,8 @@ fun HeatmapPreviewCard(
     colorMode: HeatmapColorMode,
     weekStartsOnMonday: Boolean,
     contributionLevels: Map<String, Int>,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    showPlaceholder: Boolean = true
 ) {
     val context = LocalContext.current
     val systemDark = androidx.compose.foundation.isSystemInDarkTheme()
@@ -1209,10 +1212,14 @@ fun HeatmapPreviewCard(
                 ).times(PREVIEW_CELL_SIZE_SCALE).dp
             }
             val gap = HeatmapGridCalculator.GAP_DP.dp
-            val sample = remember(columns, weekStartsOnMonday, contributionLevels) {
+            val sample = remember(columns, weekStartsOnMonday, contributionLevels, showPlaceholder) {
                 if (contributionLevels.isEmpty()) {
-                    val random = Random(previewSeed)
-                    List(columns * rows) { random.nextInt(5) }
+                    if (showPlaceholder) {
+                        val random = Random(previewSeed)
+                        List(columns * rows) { random.nextInt(5) }
+                    } else {
+                        List(columns * rows) { -1 }
+                    }
                 } else {
                     val dataStore = HeatmapWidgetDataStore(context)
                     dataStore.buildGridFromLevels(
@@ -1272,15 +1279,14 @@ fun HeatmapPreviewCard(
     }
 }
 
-private enum class PRPreviewStatus { SUCCESS, FAILURE }
-
 @Composable
 private fun PRPreviewRow(
     repo: String,
     prNumber: Int,
     title: String,
-    status: PRPreviewStatus,
-    grayText: Color
+    status: CheckStatus,
+    grayText: Color,
+    textPrimary: Color
 ) {
     Column(
         modifier = Modifier
@@ -1296,26 +1302,27 @@ private fun PRPreviewRow(
                 fontSize = 13.sp,
                 maxLines = 1
             )
-            Spacer(Modifier.width(4.dp))
-            Icon(
-                painter = painterResource(
-                    when (status) {
-                        PRPreviewStatus.SUCCESS -> cn.waijade.nexuswid.R.drawable.ic_check_circle_green
-                        PRPreviewStatus.FAILURE -> cn.waijade.nexuswid.R.drawable.ic_x_circle_red
-                    }
-                ),
-                contentDescription = null,
-                tint = when (status) {
-                    PRPreviewStatus.SUCCESS -> Color(0xFF1F883D)
-                    PRPreviewStatus.FAILURE -> Color(0xFFCF222E)
-                },
-                modifier = Modifier.size(16.dp)
-            )
+            if (status != CheckStatus.NONE) {
+                Spacer(Modifier.width(4.dp))
+                Icon(
+                    painter = painterResource(
+                        when (status) {
+                            CheckStatus.SUCCESS -> cn.waijade.nexuswid.R.drawable.ic_check_circle_green
+                            CheckStatus.FAILURE -> cn.waijade.nexuswid.R.drawable.ic_x_circle_red
+                            CheckStatus.PENDING -> cn.waijade.nexuswid.R.drawable.ic_dot_circle_gray
+                            CheckStatus.NONE -> cn.waijade.nexuswid.R.drawable.ic_check_circle_green
+                        }
+                    ),
+                    contentDescription = null,
+                    tint = Color.Unspecified,
+                    modifier = Modifier.size(16.dp)
+                )
+            }
         }
         Spacer(Modifier.height(1.dp))
         Text(
             text = title,
-            color = Color.White,
+            color = textPrimary,
             fontSize = 14.sp,
             fontWeight = FontWeight.Medium,
             maxLines = 1,
@@ -1327,6 +1334,8 @@ private fun PRPreviewRow(
 @Composable
 fun PullRequestsPreviewCard(
     colorMode: HeatmapColorMode,
+    prItems: List<PullRequestItem> = emptyList(),
+    prTypes: Set<PullRequestType> = emptySet(),
     modifier: Modifier = Modifier
 ) {
     val systemDark = androidx.compose.foundation.isSystemInDarkTheme()
@@ -1341,6 +1350,14 @@ fun PullRequestsPreviewCard(
     val grayText = if (isDark) Color(0xFF8B949E) else Color(0xFF656D76)
     val ghLogoTint = if (isDark) Color.White else Color(0xFF1F2328)
 
+    val headerText = if (prTypes.isEmpty()) {
+        "Pull requests"
+    } else {
+        val n = prItems.size.coerceAtLeast(0)
+        val onlyReview = prTypes.size == 1 && prTypes.contains(PullRequestType.REVIEW_REQUESTED)
+        if (onlyReview) "$n reviews requested" else "$n pull requests"
+    }
+
     Surface(
         modifier = modifier,
         shape = RoundedCornerShape(16.dp),
@@ -1349,7 +1366,7 @@ fun PullRequestsPreviewCard(
         BoxWithConstraints(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(14.dp)
+                .padding(horizontal = 16.dp, vertical = 14.dp)
         ) {
             Column(
                 modifier = Modifier.fillMaxSize()
@@ -1362,13 +1379,13 @@ fun PullRequestsPreviewCard(
                         painter = painterResource(cn.waijade.nexuswid.R.drawable.ic_git_pull_request_green),
                         contentDescription = null,
                         tint = githubGreen,
-                        modifier = Modifier.size(16.dp)
+                        modifier = Modifier.size(18.dp)
                     )
                     Spacer(Modifier.width(8.dp))
                     Text(
-                        text = "2 reviews requested",
+                        text = headerText,
                         color = textPrimary,
-                        fontSize = 13.sp,
+                        fontSize = 14.sp,
                         fontWeight = FontWeight.Medium,
                         modifier = Modifier.weight(1f)
                     )
@@ -1385,21 +1402,34 @@ fun PullRequestsPreviewCard(
 
                 Spacer(Modifier.height(10.dp))
 
-                PRPreviewRow(
-                    repo = "github/docs",
-                    prNumber = 4287,
-                    title = "Fix broken links in API reference",
-                    status = PRPreviewStatus.SUCCESS,
-                    grayText = grayText
-                )
-
-                PRPreviewRow(
-                    repo = "kubernetes/kubernetes",
-                    prNumber = 131204,
-                    title = "Update node autoscaler config",
-                    status = PRPreviewStatus.FAILURE,
-                    grayText = grayText
-                )
+                if (prItems.isEmpty()) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(1f),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = if (prTypes.isEmpty())
+                                "Sign in GitHub to see pull requests"
+                            else "No pull requests",
+                            color = grayText,
+                            fontSize = 12.sp
+                        )
+                    }
+                } else {
+                    val visibleItems = prItems.take(3)
+                    visibleItems.forEach { item ->
+                        PRPreviewRow(
+                            repo = item.repoFullName,
+                            prNumber = item.number,
+                            title = item.title,
+                            status = item.checkStatus,
+                            grayText = grayText,
+                            textPrimary = textPrimary
+                        )
+                    }
+                }
             }
         }
     }
@@ -1516,6 +1546,7 @@ fun IssuesPreviewCard(
 @Composable
 fun ReviewsRequestedPreviewCard(
     colorMode: HeatmapColorMode,
+    count: Int = -1,
     modifier: Modifier = Modifier
 ) {
     val systemDark = androidx.compose.foundation.isSystemInDarkTheme()
@@ -1530,6 +1561,16 @@ fun ReviewsRequestedPreviewCard(
     val iconRes = if (isDark) cn.waijade.nexuswid.R.drawable.ic_git_pull_request
         else cn.waijade.nexuswid.R.drawable.ic_git_pull_request_dark
 
+    val countText = if (count >= 0) {
+        when {
+            count >= 1_000_000 -> "${count / 1_000_000}M+"
+            count >= 1_000 -> "${count / 1_000}k+"
+            else -> count.toString()
+        }
+    } else {
+        "_"
+    }
+
     Surface(
         modifier = modifier,
         shape = RoundedCornerShape(16.dp),
@@ -1538,13 +1579,16 @@ fun ReviewsRequestedPreviewCard(
         BoxWithConstraints(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(20.dp)
+                .padding(14.dp)
         ) {
             val contentHeight = maxHeight
             val contentWidth = maxWidth
-            val iconSize = (contentHeight * 0.15f).coerceAtMost(contentWidth * 0.3f)
-            val labelSize = (contentHeight * 0.12f).coerceAtMost(18.dp)
-            val countTextSize = (contentHeight * 0.45f).coerceAtMost(contentWidth * 0.5f)
+            val contentEdge = contentHeight.coerceAtMost(contentWidth) - 14.dp * 2
+            val iconSize = (contentEdge * 0.15f).coerceIn(12.dp, 24.dp)
+            val labelSize = (contentEdge * 0.12f).coerceIn(8.dp, 14.dp)
+            val maxByHeight = contentEdge * 0.45f
+            val maxByWidth = contentEdge / (countText.length * 0.55f + 0.5f)
+            val countTextSize = maxByHeight.coerceAtMost(maxByWidth).coerceIn(10.dp, 64.dp)
 
             Column(
                 modifier = Modifier.fillMaxSize(),
@@ -1560,7 +1604,7 @@ fun ReviewsRequestedPreviewCard(
                         .height(iconSize)
                 )
                 Text(
-                    text = "3",
+                    text = countText,
                     color = textColor,
                     style = MaterialTheme.typography.displayLarge.copy(
                         fontWeight = FontWeight.Bold,
