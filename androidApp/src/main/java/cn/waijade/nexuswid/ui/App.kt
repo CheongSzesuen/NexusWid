@@ -461,10 +461,17 @@ fun AppScreen(
         )
     }
 
+    val showBottomBar by remember {
+        derivedStateOf {
+            val route = backStack.lastOrNull()
+            route == Screen.Home || route == Screen.Settings.Main
+        }
+    }
+
     Scaffold(
         bottomBar = {
             AnimatedVisibility(
-                true,
+                showBottomBar,
                 enter = slideInVertically(motionScheme.slowSpatialSpec()) { it },
                 exit = slideOutVertically(motionScheme.slowSpatialSpec()) { it }
             ) {
