@@ -89,7 +89,11 @@ import androidx.window.core.layout.WindowSizeClass
 import org.jetbrains.compose.resources.stringResource
 import cn.waijade.nexuswid.data.github.GitHubApiService
 import cn.waijade.nexuswid.data.github.GitHubPreferences
+import cn.waijade.nexuswid.data.github.IssueType
 import cn.waijade.nexuswid.data.github.PullRequestType
+import cn.waijade.nexuswid.data.afdian.AfdianApiService
+import cn.waijade.nexuswid.data.afdian.AfdianPreferences
+import cn.waijade.nexuswid.data.afdian.AfdianServiceConfig
 import cn.waijade.nexuswid.ui.settingsScreen.SettingsScreenRoot
 import cn.waijade.nexuswid.ui.liquidglass.LiquidBottomTab
 import cn.waijade.nexuswid.widget.HeatmapWidgetDataStore
@@ -232,6 +236,207 @@ fun AppScreen(
                 reviewsCount = count,
                 isReviewsLoaded = true
             )
+
+            // 加载 Issues 数据
+            val issueTypes = prefs.selectedIssueTypes
+            val issueList = if (token != null) {
+                val json2 = Json { ignoreUnknownKeys = true }
+                val httpClient2 = HttpClient(OkHttp) {
+                    install(ContentNegotiation) { json(json2) }
+                }
+                val service2 = GitHubApiService(httpClient2, json2)
+                val result = runCatching {
+                    service2.getIssueList(
+                        token = token, issueTypes = issueTypes, limit = 20
+                    ).getOrThrow()
+                }
+                httpClient2.close()
+                result.getOrElse { WidgetDataCache.loadIssues(context) }
+                    .also { if (result.isSuccess) WidgetDataCache.saveIssues(context, it) }
+            } else {
+                WidgetDataCache.loadIssues(context)
+            }
+            widgetData.value = widgetData.value.copy(
+                issueItems = issueList,
+                issueTypes = issueTypes,
+                isIssuesLoaded = true
+            )
+
+            // 加载 Actions 数据 - 使用用户第一个仓库
+            val actionsRepo: String
+            val actionsList = if (token != null) {
+                val json3 = Json { ignoreUnknownKeys = true }
+                val httpClient3 = HttpClient(OkHttp) {
+                    install(ContentNegotiation) { json(json3) }
+                }
+                val service3 = GitHubApiService(httpClient3, json3)
+                val repos = runCatching {
+                    service3.getUserRepos(token, limit = 5).getOrThrow()
+                }.getOrElse { emptyList() }
+                val repo = repos.firstOrNull()?.fullName ?: ""
+                actionsRepo = repo
+                if (repo.isNotBlank()) {
+                    val result = runCatching {
+                        service3.getWorkflowRuns(token, repo, limit = 10).getOrThrow()
+                    }
+                    httpClient3.close()
+                    result.getOrElse { WidgetDataCache.loadActions(context, "home") }
+                        .also { if (result.isSuccess) WidgetDataCache.saveActions(context, "home", it) }
+                } else {
+                    httpClient3.close()
+                    emptyList()
+                }
+            } else {
+                actionsRepo = ""
+                emptyList()
+            }
+            widgetData.value = widgetData.value.copy(
+                actionRuns = actionsList,
+                actionsRepo = actionsRepo,
+                isActionsLoaded = true
+            )
+
+            // 加载 Notifications 数据
+            val notifList = if (token != null) {
+                val json4 = Json { ignoreUnknownKeys = true }
+                val httpClient4 = HttpClient(OkHttp) {
+                    install(ContentNegotiation) { json(json4) }
+                }
+                val service4 = GitHubApiService(httpClient4, json4)
+                val result = runCatching {
+                    service4.getNotifications(token, limit = 10).getOrThrow()
+                }
+                httpClient4.close()
+                result.getOrElse { WidgetDataCache.loadNotifications(context) }
+                    .also { if (result.isSuccess) WidgetDataCache.saveNotifications(context, it) }
+            } else {
+                WidgetDataCache.loadNotifications(context)
+            }
+            val unreadCount = notifList.count { it.isUnread }
+            widgetData.value = widgetData.value.copy(
+                notificationItems = notifList,
+                notificationUnreadCount = unreadCount,
+                isNotificationsLoaded = true,
+                githubConfigured = token != null
+            )
+
+            // 加载 Afdian 数据
+            val afdianPrefs = AfdianPreferences(context)
+            val afdianConfigured = afdianPrefs.isConfigured
+            widgetData.value = widgetData.value.copy(afdianConfigured = afdianConfigured)
+
+            if (afdianConfigured) {
+                val afJson = Json { ignoreUnknownKeys = true }
+                val afHttpClient = HttpClient(OkHttp) {
+                    install(ContentNegotiation) { json(afJson) }
+                }
+                val afService = AfdianApiService(afHttpClient, afJson)
+                val config = AfdianServiceConfig(cookie = afdianPrefs.cookie)
+
+                // 总收益 & 本月收益
+                runCatching {
+                    val earningsResult = afService.getEarnings(config)
+                    if (earningsResult is cn.waijade.nexuswid.data.afdian.AfdianResult.Success) {
+                        val e = earningsResult.earnings
+                        widgetData.value = widgetData.value.copy(
+                            afdianTotalEarnings = e.totalAmount,
+                            afdianMonthlyEarnings = e.monthlyAmount
+                        )
+                    }
+                }
+                widgetData.value = widgetData.value.copy(
+                    isAfdianTotalLoaded = true,
+                    isAfdianMonthlyLoaded = true
+                )
+
+                // 未读数
+                runCatching {
+                    val unreadResult = afService.getUnreadCount(afdianPrefs.cookie)
+                    if (unreadResult is cn.waijade.nexuswid.data.afdian.AfdianUnreadResult.Success) {
+                        widgetData.value = widgetData.value.copy(
+                            afdianUnreadCount = unreadResult.data.total
+                        )
+                    }
+                }
+                widgetData.value = widgetData.value.copy(isAfdianUnreadLoaded = true)
+
+                // 商品收益
+                runCatching {
+                    val planId = afdianPrefs.selectedProductPlanId
+                    if (planId.isNotBlank()) {
+                        val plans = afService.getPlans(afdianPrefs.cookie)
+                        val plan = plans.find { it.plan_id == planId }
+                        if (plan != null) {
+                            widgetData.value = widgetData.value.copy(
+                                afdianProductData = cn.waijade.nexuswid.data.afdian.AfdianProductSummary(
+                                    planId = plan.plan_id,
+                                    name = plan.name,
+                                    totalAmount = plan.total_amount.toDoubleOrNull() ?: 0.0,
+                                    sponsorCount = plan.sponsor_count,
+                                    price = plan.price
+                                )
+                            )
+                        }
+                    }
+                }
+                widgetData.value = widgetData.value.copy(isAfdianProductLoaded = true)
+
+                // 每日收益图表
+                runCatching {
+                    val dailyStats = afService.getDailyStats(afdianPrefs.cookie)
+                    widgetData.value = widgetData.value.copy(afdianDailyStats = dailyStats)
+                }
+                widgetData.value = widgetData.value.copy(isAfdianDailyLoaded = true)
+
+                // 月度收益图表
+                runCatching {
+                    val monthlyIncome = afService.getMonthlyIncome(afdianPrefs.cookie)
+                    widgetData.value = widgetData.value.copy(afdianMonthlyIncomes = monthlyIncome)
+                }
+                widgetData.value = widgetData.value.copy(isAfdianMonthlyIncomeLoaded = true)
+
+                // 投诉数
+                runCatching {
+                    val complaintCount = afService.getComplaintCount(afdianPrefs.cookie)
+                    widgetData.value = widgetData.value.copy(afdianComplaintCount = complaintCount)
+                }
+                widgetData.value = widgetData.value.copy(isAfdianComplaintLoaded = true)
+
+                // 随机推荐创作者
+                runCatching {
+                    val creator = fetchAfdianRandomCreator(afdianPrefs)
+                    widgetData.value = widgetData.value.copy(afdianRandomCreator = creator)
+                }
+                widgetData.value = widgetData.value.copy(isAfdianRandomCreatorLoaded = true)
+
+                // 赞助月榜
+                runCatching {
+                    val userId = afdianPrefs.userId.ifBlank {
+                        afService.getUserIdFromProfile(afdianPrefs.cookie)?.also {
+                            afdianPrefs.userId = it
+                        } ?: ""
+                    }
+                    if (userId.isNotBlank()) {
+                        val sponsors = afService.getTopSponsors(userId)
+                        widgetData.value = widgetData.value.copy(afdianTopSponsors = sponsors)
+                    }
+                }
+                widgetData.value = widgetData.value.copy(isAfdianTopSponsorsLoaded = true)
+
+                afHttpClient.close()
+            } else {
+                widgetData.value = widgetData.value.copy(
+                    isAfdianTotalLoaded = true,
+                    isAfdianMonthlyLoaded = true,
+                    isAfdianUnreadLoaded = true,
+                    isAfdianProductLoaded = true,
+                    isAfdianDailyLoaded = true,
+                    isAfdianMonthlyIncomeLoaded = true,
+                    isAfdianComplaintLoaded = true,
+                    isAfdianRandomCreatorLoaded = true,
+                    isAfdianTopSponsorsLoaded = true
+                )
+            }
         }
     }
 
@@ -525,3 +730,30 @@ private fun LiquidGlassBottomBar(
 }
 
 
+private suspend fun fetchAfdianRandomCreator(prefs: AfdianPreferences): cn.waijade.nexuswid.data.afdian.AfdianRandomCreator? {
+    val json = Json { ignoreUnknownKeys = true }
+    repeat(3) {
+        runCatching {
+            val page = (1..20).random()
+            val url = java.net.URL("https://ifdian.net/api/creator/list?page=$page&type=hot")
+            val text = url.readText()
+            val response = json.decodeFromString(
+                cn.waijade.nexuswid.data.afdian.AfdianCreatorListResponse.serializer(), text
+            )
+            if (response.ec != 200 || response.data?.list.isNullOrEmpty()) return@runCatching
+            val list = response.data!!.list
+            val item = list.random()
+            val creatorInfo = item.creator
+            return cn.waijade.nexuswid.data.afdian.AfdianRandomCreator(
+                userId = item.user_id,
+                name = item.name,
+                avatar = item.avatar,
+                urlSlug = item.url_slug,
+                isVerified = item.is_verified != 0,
+                doing = creatorInfo?.doing ?: "",
+                categoryName = creatorInfo?.category?.name ?: ""
+            )
+        }
+    }
+    return null
+}

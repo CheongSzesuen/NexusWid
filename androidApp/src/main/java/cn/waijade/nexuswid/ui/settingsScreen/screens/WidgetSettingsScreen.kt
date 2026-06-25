@@ -1052,7 +1052,9 @@ private fun requestPinNotificationsWidget(context: Context): PinWidgetRequestRes
 @Composable
 fun ActionsPreviewCard(
     colorMode: HeatmapColorMode,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    actionRuns: List<cn.waijade.nexuswid.data.github.WorkflowRunItem> = emptyList(),
+    repo: String = ""
 ) {
     val systemDark = androidx.compose.foundation.isSystemInDarkTheme()
     val isDark = when (colorMode) {
@@ -1089,7 +1091,7 @@ fun ActionsPreviewCard(
                     )
                     Spacer(Modifier.width(8.dp))
                     Text(
-                        text = "owner/repo",
+                        text = repo.ifBlank { "owner/repo" },
                         color = textPrimary,
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Medium,
@@ -1108,15 +1110,28 @@ fun ActionsPreviewCard(
 
                 Spacer(Modifier.height(10.dp))
 
-                ActionsPreviewRow("CI", "main", true, grayText, textPrimary)
-                ActionsPreviewRow("Lint", "main", false, grayText, textPrimary)
+                if (actionRuns.isNotEmpty()) {
+                    actionRuns.take(3).forEach { run ->
+                        ActionsPreviewRowReal(
+                            workflowName = run.workflowName,
+                            branch = run.branch,
+                            success = run.conclusion == "success",
+                            commitMessage = run.commitMessage,
+                            grayText = grayText,
+                            titleColor = textPrimary
+                        )
+                    }
+                } else {
+                    ActionsPreviewRowPlaceholder("CI", "main", true, grayText, textPrimary)
+                    ActionsPreviewRowPlaceholder("Lint", "main", false, grayText, textPrimary)
+                }
             }
         }
     }
 }
 
 @Composable
-private fun ActionsPreviewRow(
+private fun ActionsPreviewRowPlaceholder(
     workflowName: String,
     branch: String,
     success: Boolean,
@@ -1152,6 +1167,55 @@ private fun ActionsPreviewRow(
         Spacer(Modifier.height(1.dp))
         Text(
             text = if (success) "Fix: update dependencies" else "Add: new feature without tests",
+            color = titleColor,
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Medium,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
+    }
+}
+
+@Composable
+private fun ActionsPreviewRowReal(
+    workflowName: String,
+    branch: String,
+    success: Boolean,
+    commitMessage: String,
+    grayText: Color,
+    titleColor: Color
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp)
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "$workflowName  $branch",
+                color = grayText,
+                fontSize = 12.sp,
+                maxLines = 1,
+                modifier = Modifier.weight(1f)
+            )
+            Spacer(Modifier.width(4.dp))
+            Icon(
+                painter = painterResource(
+                    if (success) cn.waijade.nexuswid.R.drawable.ic_check_circle_green
+                    else cn.waijade.nexuswid.R.drawable.ic_x_circle_red
+                ),
+                contentDescription = null,
+                tint = if (success) Color(0xFF1F883D) else Color(0xFFCF222E),
+                modifier = Modifier.size(16.dp)
+            )
+        }
+        Spacer(Modifier.height(1.dp))
+        Text(
+            text = commitMessage.ifBlank {
+                if (success) "Fix: update dependencies" else "Add: new feature without tests"
+            },
             color = titleColor,
             fontSize = 14.sp,
             fontWeight = FontWeight.Medium,
@@ -1438,7 +1502,9 @@ fun PullRequestsPreviewCard(
 @Composable
 fun IssuesPreviewCard(
     colorMode: HeatmapColorMode,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    issueItems: List<cn.waijade.nexuswid.data.github.IssueItem> = emptyList(),
+    issueTypes: Set<cn.waijade.nexuswid.data.github.IssueType> = emptySet()
 ) {
     val systemDark = androidx.compose.foundation.isSystemInDarkTheme()
     val isDark = when (colorMode) {
@@ -1450,6 +1516,15 @@ fun IssuesPreviewCard(
     val bgColor = if (isDark) Color(0xFF0D1117) else Color(0xFFF6F8FA)
     val textPrimary = if (isDark) Color.White else Color(0xFF1F2328)
     val grayText = if (isDark) Color(0xFF8B949E) else Color(0xFF656D76)
+
+    val count = if (issueItems.isNotEmpty()) issueItems.size
+        else if (issueTypes.isEmpty() && issueItems.isEmpty()) 5
+        else 0
+    val headerText = if (issueTypes.isEmpty()) {
+        if (issueItems.isEmpty()) "5 assigned issues" else "${issueItems.size} issues"
+    } else {
+        "${issueItems.size} issues"
+    }
 
     Surface(
         modifier = modifier,
@@ -1476,7 +1551,7 @@ fun IssuesPreviewCard(
                     )
                     Spacer(Modifier.width(8.dp))
                     Text(
-                        text = "5 assigned issues",
+                        text = headerText,
                         color = textPrimary,
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Medium,
@@ -1495,48 +1570,74 @@ fun IssuesPreviewCard(
 
                 Spacer(Modifier.height(10.dp))
 
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 4.dp)
-                ) {
-                    Text(
-                        text = "github/docs #4287",
-                        color = grayText,
-                        fontSize = 13.sp,
-                        maxLines = 1
-                    )
-                    Spacer(Modifier.height(1.dp))
-                    Text(
-                        text = "Fix broken links in API reference",
-                        color = textPrimary,
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Medium,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                }
+                if (issueItems.isNotEmpty()) {
+                    issueItems.take(3).forEach { item ->
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 4.dp)
+                        ) {
+                            Text(
+                                text = "${item.repoFullName} #${item.number}",
+                                color = grayText,
+                                fontSize = 13.sp,
+                                maxLines = 1
+                            )
+                            Spacer(Modifier.height(1.dp))
+                            Text(
+                                text = item.title,
+                                color = textPrimary,
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Medium,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
+                    }
+                } else {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 4.dp)
+                    ) {
+                        Text(
+                            text = "github/docs #4287",
+                            color = grayText,
+                            fontSize = 13.sp,
+                            maxLines = 1
+                        )
+                        Spacer(Modifier.height(1.dp))
+                        Text(
+                            text = "Fix broken links in API reference",
+                            color = textPrimary,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Medium,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
 
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 4.dp)
-                ) {
-                    Text(
-                        text = "kubernetes/kubernetes #131204",
-                        color = grayText,
-                        fontSize = 13.sp,
-                        maxLines = 1
-                    )
-                    Spacer(Modifier.height(1.dp))
-                    Text(
-                        text = "Update node autoscaler config",
-                        color = textPrimary,
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Medium,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 4.dp)
+                    ) {
+                        Text(
+                            text = "kubernetes/kubernetes #131204",
+                            color = grayText,
+                            fontSize = 13.sp,
+                            maxLines = 1
+                        )
+                        Spacer(Modifier.height(1.dp))
+                        Text(
+                            text = "Update node autoscaler config",
+                            color = textPrimary,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Medium,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
                 }
             }
         }
@@ -1636,7 +1737,9 @@ fun ReviewsRequestedPreviewCard(
 @Composable
 fun NotificationsPreviewCard(
     colorMode: HeatmapColorMode,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    notificationItems: List<cn.waijade.nexuswid.data.github.NotificationItem> = emptyList(),
+    unreadCount: Int = -1
 ) {
     val systemDark = androidx.compose.foundation.isSystemInDarkTheme()
     val isDark = when (colorMode) {
@@ -1676,7 +1779,9 @@ fun NotificationsPreviewCard(
                     )
                     Spacer(Modifier.width(8.dp))
                     Text(
-                        text = "3 unread",
+                        text = if (unreadCount >= 0) "$unreadCount unread"
+                               else if (notificationItems.isNotEmpty()) "${notificationItems.size} notifications"
+                               else "3 unread",
                         color = textPrimary,
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Medium,
@@ -1695,32 +1800,45 @@ fun NotificationsPreviewCard(
 
                 Spacer(Modifier.height(10.dp))
 
-                NotificationsPreviewRow(
-                    repo = "AstralSightStudios/AstroBox-Repo",
-                    title = "Add new quick app entry for 恐龙快跑",
-                    reason = "commented",
-                    isUnread = true,
-                    grayText = grayText,
-                    titleColor = textPrimary
-                )
+                if (notificationItems.isNotEmpty()) {
+                    notificationItems.take(3).forEach { item ->
+                        NotificationsPreviewRow(
+                            repo = item.repoFullName,
+                            title = item.title,
+                            reason = item.reason.displayName,
+                            isUnread = item.isUnread,
+                            grayText = grayText,
+                            titleColor = textPrimary
+                        )
+                    }
+                } else {
+                    NotificationsPreviewRow(
+                        repo = "AstralSightStudios/AstroBox-Repo",
+                        title = "Add new quick app entry for 恐龙快跑",
+                        reason = "commented",
+                        isUnread = true,
+                        grayText = grayText,
+                        titleColor = textPrimary
+                    )
 
-                NotificationsPreviewRow(
-                    repo = "google/accompanist",
-                    title = "Update SwipeRefresh to use Material3",
-                    reason = "review requested",
-                    isUnread = true,
-                    grayText = grayText,
-                    titleColor = textPrimary
-                )
+                    NotificationsPreviewRow(
+                        repo = "google/accompanist",
+                        title = "Update SwipeRefresh to use Material3",
+                        reason = "review requested",
+                        isUnread = true,
+                        grayText = grayText,
+                        titleColor = textPrimary
+                    )
 
-                NotificationsPreviewRow(
-                    repo = "kubernetes/kubernetes",
-                    title = "Fix node autoscaler memory leak",
-                    reason = "mentioned",
-                    isUnread = false,
-                    grayText = grayText,
-                    titleColor = textPrimary
-                )
+                    NotificationsPreviewRow(
+                        repo = "kubernetes/kubernetes",
+                        title = "Fix node autoscaler memory leak",
+                        reason = "mentioned",
+                        isUnread = false,
+                        grayText = grayText,
+                        titleColor = textPrimary
+                    )
+                }
             }
         }
     }
