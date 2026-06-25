@@ -17,8 +17,11 @@ import androidx.compose.material3.adaptive.navigation3.ListDetailSceneStrategy.C
 import androidx.compose.material3.adaptive.navigation3.ListDetailSceneStrategy.Companion.listPane
 import androidx.compose.material3.adaptive.navigation3.rememberListDetailSceneStrategy
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.drop
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.LayoutDirection
@@ -64,6 +67,10 @@ fun SettingsScreenRoot(
     val settingsState by settingsViewModel.settingsState.collectAsStateWithLifecycle()
     val directionMultiplier = if (LocalLayoutDirection.current == LayoutDirection.Ltr) 1 else -1
     val context = LocalContext.current
+
+    LaunchedEffect(backStack.size) {
+        settingsViewModel.updateIsAtRoot(backStack.size <= 1)
+    }
 
     NavDisplay(
         backStack = backStack,

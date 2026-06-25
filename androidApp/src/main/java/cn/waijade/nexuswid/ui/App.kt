@@ -464,7 +464,7 @@ fun AppScreen(
     val showBottomBar by remember {
         derivedStateOf {
             val route = backStack.lastOrNull()
-            route == Screen.Home || route == Screen.Settings.Main
+            route == Screen.Home || (route == Screen.Settings.Main && settingsState.isAtRoot)
         }
     }
 

@@ -16,5 +16,6 @@ data class SettingsState(
     val weekStartsOnMonday: Boolean = false,
     val liquidGlassBottomBar: Boolean = false,
     val selectedPullRequestTypes: Set<PullRequestType> = setOf(PullRequestType.REVIEW_REQUESTED),
-    val selectedIssueTypes: Set<IssueType> = setOf(IssueType.ASSIGNED)
+    val selectedIssueTypes: Set<IssueType> = setOf(IssueType.ASSIGNED),
+    val isAtRoot: Boolean = true
 )

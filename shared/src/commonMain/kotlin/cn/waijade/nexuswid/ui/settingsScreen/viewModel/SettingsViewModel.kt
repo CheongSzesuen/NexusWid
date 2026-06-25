@@ -103,4 +103,10 @@ class SettingsViewModel(
             widgetPreferences.selectedIssueTypes = types
         }
     }
+
+    fun updateIsAtRoot(isAtRoot: Boolean) {
+        viewModelScope.launch {
+            stateRepository.updateIsAtRoot(isAtRoot)
+        }
+    }
 }

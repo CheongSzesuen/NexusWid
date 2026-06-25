@@ -44,4 +44,8 @@ class StateRepository {
     fun updateSelectedIssueTypes(types: Set<IssueType>) {
         settingsState.update { it.copy(selectedIssueTypes = types) }
     }
+
+    fun updateIsAtRoot(isAtRoot: Boolean) {
+        settingsState.update { it.copy(isAtRoot = isAtRoot) }
+    }
 }
